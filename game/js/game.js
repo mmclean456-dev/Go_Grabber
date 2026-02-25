@@ -2115,25 +2115,26 @@ class Game {
     
     renderMinimap() {
         const mmCtx = this.minimapCtx;
-        const scale = 150 / (this.world.width * TILE_SIZE);
         
         mmCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         mmCtx.fillRect(0, 0, 150, 150);
         
-        // Draw simplified map
-        const tileScale = 150 / this.world.width;
+        // Calculate scale to fit entire world in 150x150 minimap
+        const xScale = 150 / this.world.width;
+        const yScale = 150 / this.world.height;
+        
+        // Draw simplified map (sample every 3rd tile for performance)
         for (let y = 0; y < this.world.height; y += 3) {
             for (let x = 0; x < this.world.width; x += 3) {
                 const tile = this.world.map[y][x];
                 mmCtx.fillStyle = TILE_COLORS[tile];
-                mmCtx.fillRect(x * tileScale / 3, y * tileScale / 3 * (150 / this.world.height), 
-                              tileScale, tileScale);
+                mmCtx.fillRect(x * xScale, y * yScale, xScale * 3, yScale * 3);
             }
         }
         
         // Draw player position
-        const playerMmX = (this.player.x / TILE_SIZE) * tileScale / 3;
-        const playerMmY = (this.player.y / TILE_SIZE) * tileScale / 3 * (150 / this.world.height);
+        const playerMmX = (this.player.x / TILE_SIZE) * xScale;
+        const playerMmY = (this.player.y / TILE_SIZE) * yScale;
         
         mmCtx.fillStyle = '#ffff00';
         mmCtx.beginPath();
@@ -2143,8 +2144,8 @@ class Game {
         // Draw NPCs as dots
         for (const npc of this.npcs) {
             if (!npc.alive) continue;
-            const npcMmX = (npc.x / TILE_SIZE) * tileScale / 3;
-            const npcMmY = (npc.y / TILE_SIZE) * tileScale / 3 * (150 / this.world.height);
+            const npcMmX = (npc.x / TILE_SIZE) * xScale;
+            const npcMmY = (npc.y / TILE_SIZE) * yScale;
             
             mmCtx.fillStyle = npc.hostile ? '#ff4444' : '#44ff44';
             mmCtx.beginPath();
