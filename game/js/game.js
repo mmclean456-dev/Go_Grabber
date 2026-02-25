@@ -1741,6 +1741,13 @@ class Game {
     }
     
     start() {
+        this.camera.x = this.player.x - CANVAS_WIDTH / 2;
+        this.camera.y = this.player.y - CANVAS_HEIGHT / 2;
+        this.camera.x = Math.max(0, Math.min(this.camera.x, this.world.width * TILE_SIZE - CANVAS_WIDTH));
+        this.camera.y = Math.max(0, Math.min(this.camera.y, this.world.height * TILE_SIZE - CANVAS_HEIGHT));
+        this.targetCamera.x = this.camera.x;
+        this.targetCamera.y = this.camera.y;
+
         this.running = true;
         this.lastTime = performance.now();
         this.updateHUD();
@@ -2630,6 +2637,14 @@ class SaveSystem {
             Object.assign(game.player, saveData.player);
             game.player.targetX = game.player.x;
             game.player.targetY = game.player.y;
+
+            // Snap camera to restored player position
+            game.camera.x = game.player.x - CANVAS_WIDTH / 2;
+            game.camera.y = game.player.y - CANVAS_HEIGHT / 2;
+            game.camera.x = Math.max(0, Math.min(game.camera.x, game.world.width * TILE_SIZE - CANVAS_WIDTH));
+            game.camera.y = Math.max(0, Math.min(game.camera.y, game.world.height * TILE_SIZE - CANVAS_HEIGHT));
+            game.targetCamera.x = game.camera.x;
+            game.targetCamera.y = game.camera.y;
             
             // Restore game state
             game.quests = saveData.quests;
