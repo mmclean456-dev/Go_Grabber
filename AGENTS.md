@@ -20,3 +20,5 @@ Then open `http://localhost:8080/` in Chrome.
 - **All state is client-side**: Game uses `localStorage` for save/load. No database or API.
 - **Canvas rendering**: The game renders on a 1200x700 HTML5 Canvas. UI overlays (inventory, quest log, combat, shops) are HTML elements positioned absolutely over the canvas.
 - **Procedural generation**: The game world is seeded from `Date.now()`, so each playthrough generates a different map layout.
+- **Browser cache**: After editing `game.js` or `index.html`, use Ctrl+Shift+R (hard refresh) in Chrome to bypass the cache. The python HTTP server does not set no-cache headers.
+- **Canvas layering**: The `#minimap-canvas` must remain inside the `#minimap` div in `index.html`. If it becomes a sibling, its `width:100%; height:100%` CSS stretches it to cover the full game canvas, making the game appear black.
