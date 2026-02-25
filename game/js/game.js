@@ -198,17 +198,39 @@ function generateWorld() {
     const worldHeight = 150;
     const map = [];
     
+    // Key locations for land generation
+    const landCenters = [
+        { x: 50, y: 75, radius: 20 },   // Starting village
+        { x: 100, y: 75, radius: 18 },  // Forest
+        { x: 150, y: 90, radius: 15 },  // Pirate cove
+        { x: 30, y: 50, radius: 15 },   // Medieval castle
+        { x: 80, y: 40, radius: 12 },   // Western town
+        { x: 100, y: 20, radius: 12 },  // Mountain pass
+        { x: 175, y: 15, radius: 15 },  // Dragon lair
+        { x: 120, y: 100, radius: 12 }  // Mystic swamp
+    ];
+    
     // Noise-based terrain generation
     for (let y = 0; y < worldHeight; y++) {
         map[y] = [];
         for (let x = 0; x < worldWidth; x++) {
-            const noise1 = Math.sin(x * 0.05) * Math.cos(y * 0.05);
-            const noise2 = Math.sin(x * 0.1 + 100) * Math.cos(y * 0.08);
-            const combined = (noise1 + noise2) / 2;
+            // Check distance to nearest land center
+            let minDist = Infinity;
+            for (const center of landCenters) {
+                const dist = Math.hypot(x - center.x, y - center.y);
+                if (dist < minDist) minDist = dist;
+            }
             
-            if (combined < -0.3) {
+            // Land generation based on distance to centers
+            const landInfluence = Math.max(0, 1 - minDist / 25);
+            
+            const noise1 = Math.sin(x * 0.08) * Math.cos(y * 0.08);
+            const noise2 = Math.sin(x * 0.15 + 50) * Math.cos(y * 0.12);
+            const combined = (noise1 + noise2) / 2 + landInfluence * 0.5;
+            
+            if (combined < -0.2) {
                 map[y][x] = TILES.WATER;
-            } else if (combined < -0.1) {
+            } else if (combined < 0.0) {
                 map[y][x] = TILES.SAND;
             } else if (combined < 0.5) {
                 map[y][x] = TILES.GRASS;
@@ -218,43 +240,64 @@ function generateWorld() {
                 map[y][x] = TILES.STONE;
             }
             
+            // Ensure land near key locations
+            for (const center of landCenters) {
+                const dist = Math.hypot(x - center.x, y - center.y);
+                if (dist < center.radius) {
+                    if (map[y][x] === TILES.WATER) {
+                        map[y][x] = dist < center.radius * 0.5 ? TILES.GRASS : TILES.SAND;
+                    }
+                }
+            }
+            
             // Snow in northern areas
             if (y < 20 && map[y][x] !== TILES.WATER) {
                 map[y][x] = TILES.SNOW;
             }
             
-            // Dragon lair area (northeast)
-            if (x > 170 && y < 30) {
-                if (Math.random() < 0.3) map[y][x] = TILES.LAVA;
+            // Dragon lair area (northeast) - volcanic
+            if (x > 165 && y < 25) {
+                if (seededRandom() < 0.25) map[y][x] = TILES.LAVA;
                 else if (map[y][x] !== TILES.WATER) map[y][x] = TILES.STONE;
+            }
+            
+            // Swamp area - more marshy
+            if (x > 110 && x < 135 && y > 95 && y < 115) {
+                if (map[y][x] === TILES.GRASS) {
+                    map[y][x] = seededRandom() < 0.3 ? TILES.WATER : TILES.GRASS;
+                }
             }
         }
     }
     
-    // Create paths between regions
-    createPath(map, 50, 75, 100, 75); // Starting village to forest
-    createPath(map, 100, 75, 150, 90); // Forest to pirate cove
-    createPath(map, 50, 75, 30, 50); // To medieval castle
-    createPath(map, 100, 75, 80, 40); // To western town
-    createPath(map, 80, 40, 100, 20); // To mountain pass
-    createPath(map, 100, 20, 175, 15); // To dragon lair
-    createPath(map, 100, 75, 120, 100); // To mystic swamp
+    // Create paths between regions (wider paths)
+    createPath(map, 50, 75, 100, 75, 3); // Starting village to forest
+    createPath(map, 100, 75, 150, 90, 3); // Forest to pirate cove
+    createPath(map, 50, 75, 30, 50, 3); // To medieval castle
+    createPath(map, 100, 75, 80, 40, 3); // To western town
+    createPath(map, 80, 40, 100, 20, 2); // To mountain pass
+    createPath(map, 100, 20, 175, 15, 2); // To dragon lair
+    createPath(map, 100, 75, 120, 100, 2); // To mystic swamp
     
     return { map, width: worldWidth, height: worldHeight };
 }
 
-function createPath(map, x1, y1, x2, y2) {
+function createPath(map, x1, y1, x2, y2, width = 2) {
     let x = x1, y = y1;
     while (x !== x2 || y !== y2) {
-        if (map[y] && map[y][x] !== undefined) {
-            if (map[y][x] === TILES.WATER) {
-                map[y][x] = TILES.BRIDGE;
-            } else {
-                map[y][x] = TILES.DIRT;
+        // Create path with specified width
+        for (let dy = -width; dy <= width; dy++) {
+            for (let dx = -width; dx <= width; dx++) {
+                const px = x + dx;
+                const py = y + dy;
+                if (map[py] && map[py][px] !== undefined) {
+                    if (map[py][px] === TILES.WATER) {
+                        map[py][px] = TILES.BRIDGE;
+                    } else if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
+                        map[py][px] = TILES.DIRT;
+                    }
+                }
             }
-            // Widen path
-            if (map[y-1] && map[y-1][x] === TILES.WATER) map[y-1][x] = TILES.BRIDGE;
-            if (map[y+1] && map[y+1][x] === TILES.WATER) map[y+1][x] = TILES.BRIDGE;
         }
         if (x < x2) x++;
         else if (x > x2) x--;
@@ -1919,7 +1962,9 @@ class Game {
     }
     
     render() {
-        this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        // Fill entire canvas with dark background first
+        this.ctx.fillStyle = '#1a1a2e';
+        this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         
         // Calculate visible tile range
         const startTileX = Math.floor(this.camera.x / TILE_SIZE);
