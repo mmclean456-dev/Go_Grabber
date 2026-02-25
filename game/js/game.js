@@ -231,16 +231,156 @@ function generateWorld() {
         }
     }
     
+    // Create the starting village area FIRST (before paths)
+    createVillage(map, 50, 75);
+    
+    // Create the medieval castle area
+    createCastleArea(map, 30, 50);
+    
+    // Create the western town area
+    createTownArea(map, 80, 42);
+    
+    // Create the pirate cove area
+    createPirateCove(map, 150, 92);
+    
     // Create paths between regions
-    createPath(map, 50, 75, 100, 75); // Starting village to forest
+    createPath(map, 58, 75, 100, 75); // Village east exit to forest
     createPath(map, 100, 75, 150, 90); // Forest to pirate cove
-    createPath(map, 50, 75, 30, 50); // To medieval castle
-    createPath(map, 100, 75, 80, 40); // To western town
-    createPath(map, 80, 40, 100, 20); // To mountain pass
+    createPath(map, 42, 75, 30, 50); // Village west exit to medieval castle
+    createPath(map, 100, 75, 80, 42); // To western town
+    createPath(map, 80, 42, 100, 20); // To mountain pass
     createPath(map, 100, 20, 175, 15); // To dragon lair
     createPath(map, 100, 75, 120, 100); // To mystic swamp
     
     return { map, width: worldWidth, height: worldHeight };
+}
+
+// Create a proper village layout
+function createVillage(map, centerX, centerY) {
+    // Create a large grass area for the village (18x14 tiles)
+    for (let dy = -7; dy <= 7; dy++) {
+        for (let dx = -9; dx <= 9; dx++) {
+            const x = centerX + dx;
+            const y = centerY + dy;
+            if (y >= 0 && y < map.length && x >= 0 && x < map[0].length) {
+                map[y][x] = TILES.GRASS;
+            }
+        }
+    }
+    
+    // Create village square in the center (dirt area)
+    for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -3; dx <= 3; dx++) {
+            const x = centerX + dx;
+            const y = centerY + dy;
+            if (y >= 0 && y < map.length && x >= 0 && x < map[0].length) {
+                map[y][x] = TILES.DIRT;
+            }
+        }
+    }
+    
+    // Main road running east-west through village
+    for (let dx = -9; dx <= 9; dx++) {
+        const x = centerX + dx;
+        if (x >= 0 && x < map[0].length) {
+            map[centerY][x] = TILES.DIRT;
+            map[centerY - 1][x] = TILES.DIRT;
+        }
+    }
+    
+    // North-south road through village
+    for (let dy = -6; dy <= 6; dy++) {
+        const y = centerY + dy;
+        if (y >= 0 && y < map.length) {
+            map[y][centerX][0] = TILES.DIRT;
+            map[y][centerX] = TILES.DIRT;
+        }
+    }
+    
+    // Paths to building locations
+    // Path to inn (northeast)
+    for (let i = 0; i < 4; i++) {
+        map[centerY - 2 - i][centerX + 2] = TILES.DIRT;
+    }
+    // Path to blacksmith (southeast)  
+    for (let i = 0; i < 3; i++) {
+        map[centerY + 2 + i][centerX + 3] = TILES.DIRT;
+    }
+    // Path to tavern (southwest)
+    for (let i = 0; i < 3; i++) {
+        map[centerY + 2 + i][centerX - 3] = TILES.DIRT;
+    }
+    // Path to merchant (northwest)
+    for (let i = 0; i < 3; i++) {
+        map[centerY - 2 - i][centerX - 4] = TILES.DIRT;
+    }
+}
+
+// Create castle area
+function createCastleArea(map, centerX, centerY) {
+    // Create grass area around castle
+    for (let dy = -6; dy <= 6; dy++) {
+        for (let dx = -6; dx <= 6; dx++) {
+            const x = centerX + dx;
+            const y = centerY + dy;
+            if (y >= 0 && y < map.length && x >= 0 && x < map[0].length) {
+                map[y][x] = TILES.GRASS;
+            }
+        }
+    }
+    // Castle courtyard (stone)
+    for (let dy = -3; dy <= 3; dy++) {
+        for (let dx = -3; dx <= 3; dx++) {
+            const x = centerX + dx;
+            const y = centerY + dy;
+            if (y >= 0 && y < map.length && x >= 0 && x < map[0].length) {
+                map[y][x] = TILES.STONE;
+            }
+        }
+    }
+}
+
+// Create western town area
+function createTownArea(map, centerX, centerY) {
+    // Create dirt/sand area for western town
+    for (let dy = -5; dy <= 5; dy++) {
+        for (let dx = -6; dx <= 6; dx++) {
+            const x = centerX + dx;
+            const y = centerY + dy;
+            if (y >= 0 && y < map.length && x >= 0 && x < map[0].length) {
+                map[y][x] = TILES.SAND;
+            }
+        }
+    }
+    // Main street
+    for (let dx = -6; dx <= 6; dx++) {
+        const x = centerX + dx;
+        if (x >= 0 && x < map[0].length) {
+            map[centerY][x] = TILES.DIRT;
+        }
+    }
+}
+
+// Create pirate cove area
+function createPirateCove(map, centerX, centerY) {
+    // Create sand beach area
+    for (let dy = -4; dy <= 4; dy++) {
+        for (let dx = -5; dx <= 5; dx++) {
+            const x = centerX + dx;
+            const y = centerY + dy;
+            if (y >= 0 && y < map.length && x >= 0 && x < map[0].length) {
+                map[y][x] = TILES.SAND;
+            }
+        }
+    }
+    // Dock area
+    for (let dx = 0; dx <= 4; dx++) {
+        const x = centerX + dx;
+        if (x >= 0 && x < map[0].length) {
+            map[centerY][x] = TILES.DOCK;
+            map[centerY - 1][x] = TILES.DOCK;
+        }
+    }
 }
 
 function createPath(map, x1, y1, x2, y2) {
@@ -569,8 +709,9 @@ class Game {
     }
     
     generateNPCs() {
-        // Starting Village NPCs
-        this.addNPC(48, 73, NPC_TYPES.VILLAGER, 'Elder Thomas', [
+        // Starting Village NPCs - positioned within the village layout
+        // Village center is at (50, 75)
+        this.addNPC(50, 75, NPC_TYPES.VILLAGER, 'Elder Thomas', [
             { text: "Welcome, brave knight! Dark times have befallen our land.", choices: [
                 { text: "What happened?", next: 1 },
                 { text: "I'm looking for adventure.", next: 2 }
@@ -588,7 +729,7 @@ class Game {
             { text: "May the gods protect you, brave knight. Seek the clues, gather allies, and grow stronger!", end: true }
         ]);
         
-        this.addNPC(52, 76, NPC_TYPES.BLACKSMITH, 'Forge Master Aldric', [
+        this.addNPC(53, 78, NPC_TYPES.BLACKSMITH, 'Forge Master Aldric', [
             { text: "Ah, a knight seeking steel! I forge the finest weapons in the realm.", choices: [
                 { text: "Show me your wares. [Shop]", action: 'openShop', shopType: 'blacksmith' },
                 { text: "Do you know anything about the dragon?", next: 1 }
@@ -602,14 +743,14 @@ class Game {
             ]}
         ], { shop: 'blacksmith' });
         
-        this.addNPC(45, 74, NPC_TYPES.MERCHANT, 'Traveling Merchant', [
+        this.addNPC(46, 72, NPC_TYPES.MERCHANT, 'Traveling Merchant', [
             { text: "Potions, elixirs, rare goods! Everything an adventurer needs!", choices: [
                 { text: "Let me see what you have. [Shop]", action: 'openShop', shopType: 'merchant' },
                 { text: "Maybe later.", end: true }
             ]}
         ], { shop: 'merchant' });
         
-        this.addNPC(53, 72, NPC_TYPES.INNKEEPER, 'Martha the Innkeeper', [
+        this.addNPC(52, 70, NPC_TYPES.INNKEEPER, 'Martha the Innkeeper', [
             { text: "Welcome to the Rusty Flagon! Need rest, weary traveler?", choices: [
                 { text: "Rest and restore health. [20 gold]", action: 'rest', cost: 20 },
                 { text: "Just passing through.", end: true }
@@ -801,7 +942,7 @@ class Game {
         ], { clueGiver: true });
         
         // Additional Village NPCs
-        this.addNPC(55, 70, NPC_TYPES.VILLAGER, 'Worried Farmer', [
+        this.addNPC(55, 74, NPC_TYPES.VILLAGER, 'Worried Farmer', [
             { text: "My farm to the east is overrun by wolves! Please, brave knight, help me!", choices: [
                 { text: "I'll clear out the wolves.", action: 'startWolfQuest', next: 1 },
                 { text: "I'm busy with other matters.", end: true }
@@ -809,14 +950,14 @@ class Game {
             { text: "Thank you! There should be about 5 of them. Return to me when they're dealt with.", end: true }
         ], { questGiver: true });
         
-        // Add more wolves for the quest
+        // Add more wolves for the quest - east of village in farmland
         for (let i = 0; i < 5; i++) {
-            this.addNPC(65 + Math.floor(seededRandom() * 10), 70 + Math.floor(seededRandom() * 8), 
+            this.addNPC(65 + Math.floor(seededRandom() * 8), 73 + Math.floor(seededRandom() * 6), 
                 NPC_TYPES.BEAST, 'Farm Wolf', null, { hostile: true, level: 2, farmWolf: true });
         }
         
         // Tavern in village
-        this.addNPC(47, 77, NPC_TYPES.BARTENDER, 'Village Barkeep', [
+        this.addNPC(47, 78, NPC_TYPES.BARTENDER, 'Village Barkeep', [
             { text: "Welcome to the Golden Mug! Best ale in the realm!", choices: [
                 { text: "I'd like to gamble. [Dice Game]", action: 'openGambling', gamblingType: 'tavern' },
                 { text: "Any rumors worth hearing?", next: 1 },
@@ -1051,10 +1192,35 @@ class Game {
             });
         }
         
-        // Village buildings
-        this.decorations.push({ x: 48 * TILE_SIZE, y: 72 * TILE_SIZE, sprite: '🏠' });
-        this.decorations.push({ x: 52 * TILE_SIZE, y: 75 * TILE_SIZE, sprite: '⚒️' });
-        this.decorations.push({ x: 53 * TILE_SIZE, y: 71 * TILE_SIZE, sprite: '🏨' });
+        // Village buildings - create a proper village layout
+        // Village center is at (50, 75)
+        // Elder's house (center of village)
+        this.decorations.push({ x: 50 * TILE_SIZE, y: 74 * TILE_SIZE, sprite: '🏛️' });
+        // Inn (northeast area)
+        this.decorations.push({ x: 52 * TILE_SIZE, y: 69 * TILE_SIZE, sprite: '🏨' });
+        // Blacksmith (southeast area)
+        this.decorations.push({ x: 53 * TILE_SIZE, y: 77 * TILE_SIZE, sprite: '⚒️' });
+        // Tavern (southwest area)
+        this.decorations.push({ x: 47 * TILE_SIZE, y: 77 * TILE_SIZE, sprite: '🍺' });
+        // Merchant stall (northwest area)
+        this.decorations.push({ x: 46 * TILE_SIZE, y: 71 * TILE_SIZE, sprite: '🏪' });
+        // Farmer's house (east side)
+        this.decorations.push({ x: 56 * TILE_SIZE, y: 74 * TILE_SIZE, sprite: '🏠' });
+        // Additional village houses
+        this.decorations.push({ x: 44 * TILE_SIZE, y: 74 * TILE_SIZE, sprite: '🏠' });
+        this.decorations.push({ x: 48 * TILE_SIZE, y: 70 * TILE_SIZE, sprite: '🏠' });
+        this.decorations.push({ x: 54 * TILE_SIZE, y: 72 * TILE_SIZE, sprite: '🏠' });
+        // Well in the village square
+        this.decorations.push({ x: 50 * TILE_SIZE, y: 76 * TILE_SIZE, sprite: '⛲' });
+        // Trees around village perimeter
+        this.decorations.push({ x: 42 * TILE_SIZE, y: 69 * TILE_SIZE, sprite: '🌳' });
+        this.decorations.push({ x: 58 * TILE_SIZE, y: 69 * TILE_SIZE, sprite: '🌳' });
+        this.decorations.push({ x: 42 * TILE_SIZE, y: 80 * TILE_SIZE, sprite: '🌳' });
+        this.decorations.push({ x: 58 * TILE_SIZE, y: 80 * TILE_SIZE, sprite: '🌳' });
+        // Signpost at village entrance (east)
+        this.decorations.push({ x: 58 * TILE_SIZE, y: 75 * TILE_SIZE, sprite: '🪧' });
+        // Signpost at village entrance (west) 
+        this.decorations.push({ x: 42 * TILE_SIZE, y: 75 * TILE_SIZE, sprite: '🪧' });
         
         // Castle
         this.decorations.push({ x: 28 * TILE_SIZE, y: 47 * TILE_SIZE, sprite: '🏰' });
