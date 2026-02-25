@@ -328,60 +328,81 @@ const NPC_TYPES = {
     SHERIFF: { sprite: '⭐', hostile: false, dialogue: true, questGiver: true }
 };
 
-// Item definitions
+// Item Rarity System
+const RARITY = {
+    COMMON: { name: 'common', color: '#888888', order: 0 },
+    UNCOMMON: { name: 'uncommon', color: '#44cc44', order: 1 },
+    RARE: { name: 'rare', color: '#4488ff', order: 2 },
+    EPIC: { name: 'epic', color: '#aa44ff', order: 3 },
+    LEGENDARY: { name: 'legendary', color: '#ffaa00', order: 4 }
+};
+
+// Item definitions with rarity
 const ITEMS = {
     // Weapons
-    RUSTY_SWORD: { name: 'Rusty Sword', type: 'weapon', icon: '🗡️', attack: 5, price: 20 },
-    IRON_SWORD: { name: 'Iron Sword', type: 'weapon', icon: '⚔️', attack: 12, price: 80 },
-    STEEL_SWORD: { name: 'Steel Sword', type: 'weapon', icon: '🔪', attack: 20, price: 200 },
-    LEGENDARY_BLADE: { name: 'Legendary Blade', type: 'weapon', icon: '✨', attack: 35, price: 500 },
-    PISTOL: { name: 'Six Shooter', type: 'weapon', icon: '🔫', attack: 18, price: 150 },
-    CUTLASS: { name: 'Pirate Cutlass', type: 'weapon', icon: '🏴‍☠️', attack: 15, price: 120 },
+    RUSTY_SWORD: { name: 'Rusty Sword', type: 'weapon', icon: '🗡️', attack: 5, price: 20, rarity: RARITY.COMMON, description: 'A worn blade, but still sharp enough.' },
+    IRON_SWORD: { name: 'Iron Sword', type: 'weapon', icon: '⚔️', attack: 12, price: 80, rarity: RARITY.COMMON, description: 'A reliable sword forged from iron.' },
+    STEEL_SWORD: { name: 'Steel Sword', type: 'weapon', icon: '🔪', attack: 20, price: 200, rarity: RARITY.UNCOMMON, description: 'High-quality steel, perfectly balanced.' },
+    LEGENDARY_BLADE: { name: 'Legendary Blade', type: 'weapon', icon: '✨', attack: 35, price: 500, rarity: RARITY.LEGENDARY, description: 'A blade of legend, said to cut through anything.' },
+    PISTOL: { name: 'Six Shooter', type: 'weapon', icon: '🔫', attack: 18, price: 150, rarity: RARITY.UNCOMMON, description: 'A quick-draw revolver from the West.' },
+    CUTLASS: { name: 'Pirate Cutlass', type: 'weapon', icon: '🏴‍☠️', attack: 15, price: 120, rarity: RARITY.UNCOMMON, description: 'Curved blade favored by sea raiders.' },
     
     // Armor
-    LEATHER_ARMOR: { name: 'Leather Armor', type: 'armor', icon: '🥋', defense: 5, price: 50 },
-    CHAINMAIL: { name: 'Chainmail', type: 'armor', icon: '⛓️', defense: 12, price: 150 },
-    PLATE_ARMOR: { name: 'Plate Armor', type: 'armor', icon: '🛡️', defense: 25, price: 400 },
-    DRAGON_SCALE: { name: 'Dragon Scale Armor', type: 'armor', icon: '🐲', defense: 40, price: 1000 },
+    LEATHER_ARMOR: { name: 'Leather Armor', type: 'armor', icon: '🥋', defense: 5, price: 50, rarity: RARITY.COMMON, description: 'Basic protection, lightweight and flexible.' },
+    CHAINMAIL: { name: 'Chainmail', type: 'armor', icon: '⛓️', defense: 12, price: 150, rarity: RARITY.UNCOMMON, description: 'Interlocking metal rings provide solid defense.' },
+    PLATE_ARMOR: { name: 'Plate Armor', type: 'armor', icon: '🛡️', defense: 25, price: 400, rarity: RARITY.RARE, description: 'Heavy plate armor for serious protection.' },
+    DRAGON_SCALE: { name: 'Dragon Scale Armor', type: 'armor', icon: '🐲', defense: 40, price: 1000, rarity: RARITY.LEGENDARY, description: 'Forged from real dragon scales. Nearly impervious.' },
     
     // Consumables
-    HEALTH_POTION: { name: 'Health Potion', type: 'consumable', icon: '🧪', heal: 30, price: 25, stackable: true },
-    LARGE_POTION: { name: 'Large Health Potion', type: 'consumable', icon: '⚗️', heal: 75, price: 60, stackable: true },
-    STRENGTH_ELIXIR: { name: 'Strength Elixir', type: 'consumable', icon: '💪', tempAttack: 10, duration: 3, price: 40, stackable: true },
+    HEALTH_POTION: { name: 'Health Potion', type: 'consumable', icon: '🧪', heal: 30, price: 25, stackable: true, rarity: RARITY.COMMON, description: 'Restores 30 health points.' },
+    LARGE_POTION: { name: 'Large Health Potion', type: 'consumable', icon: '⚗️', heal: 75, price: 60, stackable: true, rarity: RARITY.UNCOMMON, description: 'Restores 75 health points.' },
+    STRENGTH_ELIXIR: { name: 'Strength Elixir', type: 'consumable', icon: '💪', tempAttack: 10, duration: 3, price: 40, stackable: true, rarity: RARITY.UNCOMMON, description: 'Temporarily boosts attack power.' },
     
     // Special items
-    SHIP_DEED: { name: 'Ship Deed', type: 'key', icon: '🚢', description: 'Proof of ship ownership' },
-    DRAGON_MAP: { name: 'Dragon Map', type: 'key', icon: '🗺️', description: 'Shows path to dragon lair' },
-    CASTLE_KEY: { name: 'Castle Key', type: 'key', icon: '🔑', description: 'Opens the castle gate' },
-    MYSTIC_AMULET: { name: 'Mystic Amulet', type: 'accessory', icon: '📿', special: 'reveal_clues' },
+    SHIP_DEED: { name: 'Ship Deed', type: 'key', icon: '🚢', description: 'Proof of ship ownership', rarity: RARITY.RARE, price: 0 },
+    DRAGON_MAP: { name: 'Dragon Map', type: 'key', icon: '🗺️', description: 'Shows path to dragon lair', rarity: RARITY.EPIC, price: 0 },
+    CASTLE_KEY: { name: 'Castle Key', type: 'key', icon: '🔑', description: 'Opens the castle gate', rarity: RARITY.RARE, price: 0 },
+    MYSTIC_AMULET: { name: 'Mystic Amulet', type: 'accessory', icon: '📿', special: 'reveal_clues', rarity: RARITY.EPIC, price: 500, description: 'Reveals hidden clues in the world.' },
     
     // Additional weapons
-    DAGGER: { name: 'Dagger', type: 'weapon', icon: '🗡️', attack: 8, price: 40 },
-    RAPIER: { name: 'Rapier', type: 'weapon', icon: '🤺', attack: 14, price: 100 },
-    BATTLE_AXE: { name: 'Battle Axe', type: 'weapon', icon: '🪓', attack: 22, price: 220 },
-    CROSSBOW: { name: 'Crossbow', type: 'weapon', icon: '🏹', attack: 16, price: 130 },
-    ROYAL_SWORD: { name: 'Royal Sword', type: 'weapon', icon: '👑', attack: 28, price: 350 },
-    DRAGON_SLAYER: { name: 'Dragon Slayer', type: 'weapon', icon: '🐲', attack: 45, price: 800, special: 'dragon_bonus' },
-    HEIRLOOM_SWORD: { name: 'Ruby Heirloom Sword', type: 'weapon', icon: '💎', attack: 25, price: 0 },
+    DAGGER: { name: 'Dagger', type: 'weapon', icon: '🗡️', attack: 8, price: 40, rarity: RARITY.COMMON, description: 'A small but deadly blade.' },
+    RAPIER: { name: 'Rapier', type: 'weapon', icon: '🤺', attack: 14, price: 100, rarity: RARITY.UNCOMMON, description: 'An elegant thrusting sword.' },
+    BATTLE_AXE: { name: 'Battle Axe', type: 'weapon', icon: '🪓', attack: 22, price: 220, rarity: RARITY.RARE, description: 'Heavy axe that deals devastating blows.' },
+    CROSSBOW: { name: 'Crossbow', type: 'weapon', icon: '🏹', attack: 16, price: 130, rarity: RARITY.UNCOMMON, description: 'Powerful ranged weapon.' },
+    ROYAL_SWORD: { name: 'Royal Sword', type: 'weapon', icon: '👑', attack: 28, price: 350, rarity: RARITY.EPIC, description: 'A blade fit for royalty.' },
+    DRAGON_SLAYER: { name: 'Dragon Slayer', type: 'weapon', icon: '🐲', attack: 45, price: 800, special: 'dragon_bonus', rarity: RARITY.LEGENDARY, description: 'Forged specifically to slay dragons. +50% damage vs dragons.' },
+    HEIRLOOM_SWORD: { name: 'Ruby Heirloom Sword', type: 'weapon', icon: '💎', attack: 25, price: 0, rarity: RARITY.EPIC, description: 'A family treasure with a ruby in the hilt.' },
     
     // Additional armor
-    KNIGHT_ARMOR: { name: 'Knight Armor', type: 'armor', icon: '⚔️', defense: 18, price: 280 },
-    ROYAL_ARMOR: { name: 'Royal Plate', type: 'armor', icon: '👑', defense: 32, price: 550 },
-    FIRE_CLOAK: { name: 'Fire Resistant Cloak', type: 'armor', icon: '🔥', defense: 15, price: 300, special: 'fire_resist' },
+    KNIGHT_ARMOR: { name: 'Knight Armor', type: 'armor', icon: '⚔️', defense: 18, price: 280, rarity: RARITY.RARE, description: 'Standard issue for royal knights.' },
+    ROYAL_ARMOR: { name: 'Royal Plate', type: 'armor', icon: '👑', defense: 32, price: 550, rarity: RARITY.EPIC, description: 'Ornate armor worn by the king\'s guard.' },
+    FIRE_CLOAK: { name: 'Fire Resistant Cloak', type: 'armor', icon: '🔥', defense: 15, price: 300, special: 'fire_resist', rarity: RARITY.RARE, description: 'Provides resistance against fire damage.' },
     
     // Additional consumables
-    ANTIDOTE: { name: 'Antidote', type: 'consumable', icon: '🧴', cure: 'poison', price: 30, stackable: true },
-    FIRE_RESIST_POTION: { name: 'Fire Resistance Potion', type: 'consumable', icon: '🔥', special: 'fire_resist', duration: 5, price: 150, stackable: true },
-    MEGA_POTION: { name: 'Mega Health Potion', type: 'consumable', icon: '💉', heal: 150, price: 120, stackable: true },
-    ATTACK_BOOST: { name: 'Attack Boost', type: 'consumable', icon: '⚡', tempAttack: 15, duration: 5, price: 80, stackable: true },
-    DEFENSE_BOOST: { name: 'Defense Boost', type: 'consumable', icon: '🛡️', tempDefense: 15, duration: 5, price: 80, stackable: true },
+    ANTIDOTE: { name: 'Antidote', type: 'consumable', icon: '🧴', cure: 'poison', price: 30, stackable: true, rarity: RARITY.COMMON, description: 'Cures poison status.' },
+    FIRE_RESIST_POTION: { name: 'Fire Resistance Potion', type: 'consumable', icon: '🔥', special: 'fire_resist', duration: 5, price: 150, stackable: true, rarity: RARITY.RARE, description: 'Grants temporary fire resistance.' },
+    MEGA_POTION: { name: 'Mega Health Potion', type: 'consumable', icon: '💉', heal: 150, price: 120, stackable: true, rarity: RARITY.RARE, description: 'Restores 150 health points.' },
+    ATTACK_BOOST: { name: 'Attack Boost', type: 'consumable', icon: '⚡', tempAttack: 15, duration: 5, price: 80, stackable: true, rarity: RARITY.UNCOMMON, description: 'Temporarily increases attack by 15.' },
+    DEFENSE_BOOST: { name: 'Defense Boost', type: 'consumable', icon: '🛡️', tempDefense: 15, duration: 5, price: 80, stackable: true, rarity: RARITY.UNCOMMON, description: 'Temporarily increases defense by 15.' },
     
     // Accessories
-    RING_OF_STRENGTH: { name: 'Ring of Strength', type: 'accessory', icon: '💪', attack: 5, price: 200 },
-    RING_OF_PROTECTION: { name: 'Ring of Protection', type: 'accessory', icon: '🛡️', defense: 5, price: 200 },
-    LUCKY_CHARM: { name: 'Lucky Charm', type: 'accessory', icon: '🍀', special: 'luck', price: 150 },
-    GOLD_RING: { name: 'Gold Ring', type: 'accessory', icon: '💍', price: 100, sellOnly: true }
+    RING_OF_STRENGTH: { name: 'Ring of Strength', type: 'accessory', icon: '💪', attack: 5, price: 200, rarity: RARITY.RARE, description: 'Grants +5 attack when worn.' },
+    RING_OF_PROTECTION: { name: 'Ring of Protection', type: 'accessory', icon: '🛡️', defense: 5, price: 200, rarity: RARITY.RARE, description: 'Grants +5 defense when worn.' },
+    LUCKY_CHARM: { name: 'Lucky Charm', type: 'accessory', icon: '🍀', special: 'luck', price: 150, rarity: RARITY.UNCOMMON, description: 'Increases luck in combat and gambling.' },
+    GOLD_RING: { name: 'Gold Ring', type: 'accessory', icon: '💍', price: 100, sellOnly: true, rarity: RARITY.COMMON, description: 'A simple gold ring. Valuable for selling.' }
 };
+
+// Fast Travel Locations
+const FAST_TRAVEL_LOCATIONS = [
+    { id: 'starting_village', name: 'Starting Village', icon: '🏘️', x: 50, y: 75, region: 'Starting Village' },
+    { id: 'forest', name: 'Dark Forest', icon: '🌲', x: 100, y: 75, region: 'Dark Forest' },
+    { id: 'pirate_cove', name: 'Pirate Cove', icon: '🏴‍☠️', x: 150, y: 90, region: 'Pirate Cove' },
+    { id: 'western_town', name: 'Western Town', icon: '🤠', x: 80, y: 40, region: 'Western Town' },
+    { id: 'medieval_castle', name: 'Medieval Castle', icon: '🏰', x: 30, y: 50, region: 'Medieval Castle' },
+    { id: 'mystic_swamp', name: 'Mystic Swamp', icon: '🐸', x: 120, y: 100, region: 'Mystic Swamp' },
+    { id: 'mountain_pass', name: 'Mountain Pass', icon: '⛰️', x: 100, y: 20, region: 'Mountain Pass' },
+    { id: 'dragon_lair', name: "Dragon's Lair", icon: '🐉', x: 180, y: 12, region: "Dragon's Lair" }
+];
 
 // Clues for scavenger hunt
 const CLUES = [
@@ -761,15 +782,24 @@ class Game {
         
         // New systems for replayability
         this.weather = 'sunny';
-        this.timeOfDay = 0; // 0-24 hours
+        this.timeOfDay = 8; // Start at 8 AM
+        this.dayCount = 1;
         this.dayNightCycle = true;
         this.eventCooldown = 0;
         this.treasureChests = [];
-        this.discoveredLocations = new Set();
+        this.discoveredLocations = new Set(['Starting Village']);
         this.playTime = 0;
         this.killCount = 0;
         this.distanceTraveled = 0;
         this.lastPosition = { x: 0, y: 0 };
+        
+        // QoL tracking variables
+        this.totalGoldEarned = 50; // Starting gold counts
+        this.totalXPGained = 0;
+        this.itemsBought = 0;
+        this.chestsOpened = 0;
+        this.fastTravelCooldown = 0;
+        this.inventorySortMode = 'type';
         
         this.combat = new CombatSystem(this);
         this.gambling = new GamblingSystem(this);
@@ -1376,14 +1406,15 @@ class Game {
             this.navigationState.mouseX = e.clientX - rect.left;
             this.navigationState.mouseY = e.clientY - rect.top;
             
-            // Check NPC hover for visual feedback
+            // Check NPC hover for visual feedback - INCREASED hitbox to 64 pixels for easier interaction
             const mouseWorldX = this.navigationState.mouseX + this.camera.x;
             const mouseWorldY = this.navigationState.mouseY + this.camera.y;
             this.hoveredNPC = null;
+            const NPC_INTERACTION_RADIUS = 64; // Increased from TILE_SIZE (48) for better UX
             for (const npc of this.npcs) {
                 if (!npc.alive) continue;
                 const dist = Math.hypot(mouseWorldX - npc.x, mouseWorldY - npc.y);
-                if (dist < TILE_SIZE) {
+                if (dist < NPC_INTERACTION_RADIUS) {
                     this.hoveredNPC = npc;
                     this.canvas.style.cursor = 'pointer';
                     break;
@@ -1445,11 +1476,14 @@ class Game {
         const clickX = e.clientX - rect.left + this.camera.x;
         const clickY = e.clientY - rect.top + this.camera.y;
         
+        // INCREASED detection radius from TILE_SIZE * 1.5 (72) to 80 pixels for easier NPC targeting
+        const NPC_DOUBLE_CLICK_RADIUS = 80;
+        
         // Check for distant NPCs to auto-approach and interact
         for (const npc of this.npcs) {
             if (!npc.alive) continue;
             const dist = Math.hypot(clickX - npc.x, clickY - npc.y);
-            if (dist < TILE_SIZE * 1.5) {
+            if (dist < NPC_DOUBLE_CLICK_RADIUS) {
                 // Set target to move to NPC and interact
                 const path = this.findPath(
                     Math.floor(this.player.x / TILE_SIZE),
@@ -1528,11 +1562,14 @@ class Game {
         // Add click ripple effect
         this.particles.addClickRipple(clickX, clickY);
         
+        // INCREASED NPC click detection radius from TILE_SIZE (48) to 64 pixels for easier interaction
+        const NPC_CLICK_RADIUS = 64;
+        
         // Check if clicking on NPC
         for (const npc of this.npcs) {
             if (!npc.alive) continue;
             const dist = Math.hypot(clickX - npc.x, clickY - npc.y);
-            if (dist < TILE_SIZE) {
+            if (dist < NPC_CLICK_RADIUS) {
                 const playerDist = Math.hypot(this.player.x - npc.x, this.player.y - npc.y);
                 if (playerDist < TILE_SIZE * 3) {
                     this.interactWithNPC(npc);
@@ -1728,6 +1765,24 @@ class Game {
             case 'q':
                 this.toggleQuestLog();
                 break;
+            case 'e':
+                // E key to interact with nearby NPCs
+                if (!this.inCombat && !this.currentDialogue) {
+                    this.interactWithNearbyNPC();
+                }
+                break;
+            case 's':
+                // S key for statistics (only when not in movement)
+                if (!this.inCombat && !this.currentDialogue && !this.navigationState.wasdMovement.s) {
+                    e.preventDefault();
+                }
+                break;
+            case 't':
+                // T key for fast travel
+                if (!this.inCombat && !this.currentDialogue) {
+                    this.toggleFastTravel();
+                }
+                break;
             case 'escape':
                 this.closeAllPanels();
                 break;
@@ -1752,6 +1807,26 @@ class Game {
             this.combat.start(npc);
         } else if (npc.dialogue) {
             this.startDialogue(npc);
+        }
+    }
+    
+    interactWithNearbyNPC() {
+        // Find the nearest NPC within interaction range
+        let nearestNPC = null;
+        let nearestDist = Infinity;
+        const INTERACT_RANGE = TILE_SIZE * 2;
+        
+        for (const npc of this.npcs) {
+            if (!npc.alive) continue;
+            const dist = Math.hypot(this.player.x - npc.x, this.player.y - npc.y);
+            if (dist < INTERACT_RANGE && dist < nearestDist) {
+                nearestDist = dist;
+                nearestNPC = npc;
+            }
+        }
+        
+        if (nearestNPC) {
+            this.interactWithNPC(nearestNPC);
         }
     }
     
@@ -2105,6 +2180,9 @@ class Game {
         
         if (!isVisible) {
             this.updateInventoryDisplay();
+            soundSystem.playMenuOpen();
+        } else {
+            soundSystem.playMenuClose();
         }
         
         panel.style.display = isVisible ? 'none' : 'block';
@@ -2202,9 +2280,58 @@ class Game {
         
         if (!isVisible) {
             this.updateQuestDisplay();
+            soundSystem.playMenuOpen();
+        } else {
+            soundSystem.playMenuClose();
         }
         
         panel.style.display = isVisible ? 'none' : 'block';
+    }
+    
+    toggleSoundPanel() {
+        const panel = document.getElementById('sound-panel');
+        const isVisible = panel.style.display === 'block';
+        
+        if (!isVisible) {
+            soundSystem.playMenuOpen();
+        } else {
+            soundSystem.playMenuClose();
+        }
+        
+        panel.style.display = isVisible ? 'none' : 'block';
+    }
+    
+    setMasterVolume(value) {
+        soundSystem.setMasterVolume(value / 100);
+        document.getElementById('master-vol-display').textContent = value + '%';
+        soundSystem.playClick();
+    }
+    
+    setMusicVolume(value) {
+        soundSystem.setMusicVolume(value / 100);
+        document.getElementById('music-vol-display').textContent = value + '%';
+    }
+    
+    setSFXVolume(value) {
+        soundSystem.setSFXVolume(value / 100);
+        document.getElementById('sfx-vol-display').textContent = value + '%';
+    }
+    
+    toggleMute() {
+        const isMuted = soundSystem.toggleMute();
+        const btn = document.getElementById('mute-btn');
+        const toggleBtn = document.getElementById('sound-toggle-btn');
+        
+        if (isMuted) {
+            btn.textContent = '🔇 Sound OFF';
+            btn.classList.add('muted');
+            if (toggleBtn) toggleBtn.textContent = '🔇';
+        } else {
+            btn.textContent = '🔊 Sound ON';
+            btn.classList.remove('muted');
+            if (toggleBtn) toggleBtn.textContent = '🔊';
+            soundSystem.playClick();
+        }
     }
     
     updateQuestDisplay() {
@@ -2278,16 +2405,38 @@ class Game {
         document.getElementById('quest-log').style.display = 'none';
         document.getElementById('shop-ui').style.display = 'none';
         document.getElementById('gambling-ui').style.display = 'none';
+        document.getElementById('fast-travel-panel').style.display = 'none';
+        document.getElementById('stats-panel').style.display = 'none';
         this.closeDialogue();
     }
     
-    notify(message) {
+    notify(message, type = 'default') {
         const notification = document.getElementById('notification');
-        notification.textContent = message;
+        
+        // Style based on notification type
+        if (type === 'save') {
+            const timestamp = new Date().toLocaleTimeString();
+            notification.innerHTML = `💾 <strong>Game Saved!</strong> <span style="opacity: 0.7; font-size: 12px;">${timestamp}</span>`;
+            notification.style.background = 'linear-gradient(180deg, rgba(50, 100, 50, 0.98) 0%, rgba(35, 75, 35, 0.98) 100%)';
+            notification.style.borderColor = '#6ab06a';
+        } else if (type === 'quest') {
+            notification.innerHTML = `📜 ${message}`;
+            notification.style.background = 'linear-gradient(180deg, rgba(100, 80, 50, 0.98) 0%, rgba(75, 60, 35, 0.98) 100%)';
+            notification.style.borderColor = '#c9a055';
+        } else if (type === 'combat') {
+            notification.innerHTML = `⚔️ ${message}`;
+            notification.style.background = 'linear-gradient(180deg, rgba(100, 50, 50, 0.98) 0%, rgba(75, 35, 35, 0.98) 100%)';
+            notification.style.borderColor = '#c96060';
+        } else {
+            notification.textContent = message;
+            notification.style.background = 'linear-gradient(180deg, rgba(50, 50, 100, 0.98) 0%, rgba(35, 35, 75, 0.98) 100%)';
+            notification.style.borderColor = '#8a8acc';
+        }
+        
         notification.style.display = 'block';
         notification.style.animation = 'none';
-        notification.offsetHeight; // Trigger reflow
-        notification.style.animation = 'fadeInOut 3s ease-in-out';
+        notification.offsetHeight;
+        notification.style.animation = 'notificationBounce 3s ease-in-out';
         
         setTimeout(() => {
             notification.style.display = 'none';
@@ -2924,6 +3073,31 @@ class Game {
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText(npc.type.sprite, screenX, screenY);
                 
+                // Enemy Level Display - color coded based on difficulty relative to player
+                if (npc.hostile && npc.level) {
+                    const levelDiff = npc.level - this.player.level;
+                    let levelColor;
+                    if (levelDiff <= -3) {
+                        levelColor = '#44ff44'; // Green - Easy
+                    } else if (levelDiff <= 0) {
+                        levelColor = '#ffff44'; // Yellow - Normal
+                    } else if (levelDiff <= 2) {
+                        levelColor = '#ff6644'; // Red - Hard
+                    } else {
+                        levelColor = '#cc44ff'; // Purple - Dangerous
+                    }
+                    
+                    // Level badge above NPC
+                    const levelText = `Lv.${npc.level}`;
+                    this.ctx.font = 'bold 11px Arial';
+                    const levelWidth = this.ctx.measureText(levelText).width;
+                    
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    this.ctx.fillRect(screenX - levelWidth / 2 - 4, screenY - 55, levelWidth + 8, 14);
+                    this.ctx.fillStyle = levelColor;
+                    this.ctx.fillText(levelText, screenX, screenY - 44);
+                }
+                
                 // NPC name with background
                 this.ctx.font = '12px Arial';
                 const nameWidth = this.ctx.measureText(npc.name).width;
@@ -2954,6 +3128,38 @@ class Game {
                     this.ctx.font = '14px Arial';
                     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                     this.ctx.fillText('💬', screenX + 25, screenY - 15 + bobOffset);
+                    
+                    // Show "Press E to interact" prompt when very close
+                    const playerDist = Math.hypot(this.player.x - npc.x, this.player.y - npc.y);
+                    if (playerDist < TILE_SIZE * 2) {
+                        this.ctx.font = 'bold 11px Arial';
+                        const promptText = 'Press E to talk';
+                        const promptWidth = this.ctx.measureText(promptText).width;
+                        
+                        // Background for prompt
+                        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                        this.ctx.fillRect(screenX - promptWidth / 2 - 6, screenY + 18, promptWidth + 12, 18);
+                        this.ctx.strokeStyle = 'rgba(68, 255, 136, 0.6)';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.strokeRect(screenX - promptWidth / 2 - 6, screenY + 18, promptWidth + 12, 18);
+                        
+                        // Prompt text
+                        this.ctx.fillStyle = '#88ffaa';
+                        this.ctx.fillText(promptText, screenX, screenY + 31);
+                    }
+                }
+                
+                // Hover highlight glow effect for interactable NPCs
+                if (isHovered) {
+                    this.ctx.save();
+                    this.ctx.shadowColor = npc.hostile ? '#ff4444' : '#44ff88';
+                    this.ctx.shadowBlur = 20;
+                    this.ctx.strokeStyle = npc.hostile ? 'rgba(255, 68, 68, 0.6)' : 'rgba(68, 255, 136, 0.6)';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    this.ctx.arc(screenX, screenY - 5, 30, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                    this.ctx.restore();
                 }
             }
         }
@@ -3062,6 +3268,9 @@ class Game {
             this.ctx.arc(targetScreenX, targetScreenY, 5, 0, Math.PI * 2);
             this.ctx.fill();
         }
+        
+        // Render quest markers on screen
+        this.renderQuestMarkers(time);
         
         // Update and render particles
         this.particles.update();
@@ -3363,6 +3572,191 @@ class Game {
         mmCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
         mmCtx.textAlign = 'left';
         mmCtx.fillText('Click to move', 4, 145);
+        
+        // Draw quest markers on minimap
+        const questTargets = this.getQuestObjectiveLocations();
+        for (const target of questTargets) {
+            const targetMmX = (target.x / TILE_SIZE) * tileScale / 3;
+            const targetMmY = (target.y / TILE_SIZE) * yScale;
+            const pulse = Math.sin(time / 300 + target.x) * 0.3 + 0.7;
+            
+            // Quest marker icon on minimap
+            mmCtx.fillStyle = target.isMain ? `rgba(255, 204, 68, ${pulse})` : `rgba(68, 170, 255, ${pulse})`;
+            mmCtx.beginPath();
+            mmCtx.arc(targetMmX, targetMmY, 3.5, 0, Math.PI * 2);
+            mmCtx.fill();
+            mmCtx.strokeStyle = target.isMain ? '#ffcc44' : '#44aaff';
+            mmCtx.lineWidth = 1;
+            mmCtx.stroke();
+        }
+    }
+    
+    getQuestObjectiveLocations() {
+        const objectives = [];
+        
+        // Define quest objective locations based on quest stages
+        const questLocations = {
+            'MAIN_QUEST': {
+                0: { x: 25 * TILE_SIZE, y: 30 * TILE_SIZE, desc: 'Village Elder' },
+                1: { x: 75 * TILE_SIZE, y: 55 * TILE_SIZE, desc: 'Gather clues' },
+                2: { x: 140 * TILE_SIZE, y: 15 * TILE_SIZE, desc: 'Mountain Pass' },
+                3: { x: 180 * TILE_SIZE, y: 12 * TILE_SIZE, desc: 'Dragon Lair' }
+            },
+            'PIRATE_SHIP': {
+                0: { x: 60 * TILE_SIZE, y: 115 * TILE_SIZE, desc: 'Pirate Captain' }
+            },
+            'SHERIFF_BOUNTY': {
+                0: { x: 155 * TILE_SIZE, y: 75 * TILE_SIZE, desc: 'Sheriff' },
+                1: { x: 130 * TILE_SIZE, y: 55 * TILE_SIZE, desc: 'Bandits' }
+            },
+            'GHOST_MYSTERY': {
+                0: { x: 75 * TILE_SIZE, y: 42 * TILE_SIZE, desc: 'Castle' },
+                1: { x: 78 * TILE_SIZE, y: 38 * TILE_SIZE, desc: 'Ghost' }
+            },
+            'WOLF_HUNT': {
+                1: { x: 95 * TILE_SIZE, y: 72 * TILE_SIZE, desc: 'Wolves' }
+            },
+            'GOLD_MINE': {
+                0: { x: 160 * TILE_SIZE, y: 60 * TILE_SIZE, desc: 'Mine' },
+                1: { x: 165 * TILE_SIZE, y: 58 * TILE_SIZE, desc: 'Rattlesnake Rogers' }
+            }
+        };
+        
+        // Find active quest objectives
+        for (const [questKey, quest] of Object.entries(this.quests)) {
+            const locations = questLocations[questKey];
+            if (!locations) continue;
+            
+            const isMain = questKey === 'MAIN_QUEST';
+            
+            // Find first incomplete stage
+            for (let i = 0; i < quest.stages.length; i++) {
+                const stage = quest.stages[i];
+                if (!stage.completed && locations[i]) {
+                    objectives.push({
+                        x: locations[i].x,
+                        y: locations[i].y,
+                        desc: locations[i].desc,
+                        questTitle: quest.title,
+                        isMain: isMain
+                    });
+                    break;
+                }
+            }
+        }
+        
+        return objectives;
+    }
+    
+    renderQuestMarkers(time) {
+        const objectives = this.getQuestObjectiveLocations();
+        if (objectives.length === 0) return;
+        
+        this.ctx.save();
+        
+        for (const objective of objectives) {
+            const screenX = objective.x - this.camera.x;
+            const screenY = objective.y - this.camera.y;
+            const distance = Math.hypot(objective.x - this.player.x, objective.y - this.player.y);
+            const distanceTiles = Math.round(distance / TILE_SIZE);
+            
+            // Determine if objective is on screen
+            const onScreenX = screenX > 30 && screenX < CANVAS_WIDTH - 30;
+            const onScreenY = screenY > 30 && screenY < CANVAS_HEIGHT - 30;
+            const onScreen = onScreenX && onScreenY;
+            
+            // Color based on quest type (Gold for main, Blue for side)
+            const markerColor = objective.isMain ? '#ffcc44' : '#44aaff';
+            const markerColorRGB = objective.isMain ? '255, 204, 68' : '68, 170, 255';
+            
+            if (onScreen) {
+                // Draw marker directly on objective
+                const pulse = Math.sin(time / 250) * 5 + 25;
+                const bobY = Math.sin(time / 400) * 5;
+                
+                // Glowing circle
+                this.ctx.strokeStyle = markerColor;
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.arc(screenX, screenY - 40 + bobY, pulse, 0, Math.PI * 2);
+                this.ctx.stroke();
+                
+                // Quest marker icon (star for main, diamond for side)
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillStyle = markerColor;
+                this.ctx.fillText(objective.isMain ? '⭐' : '◆', screenX, screenY - 35 + bobY);
+                
+                // Distance text
+                this.ctx.font = '10px Arial';
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                this.ctx.fillText(`${distanceTiles}m`, screenX, screenY - 55 + bobY);
+            } else {
+                // Draw arrow pointing to off-screen objective
+                const angle = Math.atan2(objective.y - this.player.y, objective.x - this.player.x);
+                const edgeMargin = 50;
+                
+                // Calculate arrow position at screen edge
+                let arrowX, arrowY;
+                const playerScreenX = this.player.x - this.camera.x;
+                const playerScreenY = this.player.y - this.camera.y;
+                
+                // Find intersection with screen edge
+                const slopes = [
+                    { edge: 'top', y: edgeMargin, x: playerScreenX + (edgeMargin - playerScreenY) / Math.tan(angle) },
+                    { edge: 'bottom', y: CANVAS_HEIGHT - edgeMargin, x: playerScreenX + (CANVAS_HEIGHT - edgeMargin - playerScreenY) / Math.tan(angle) },
+                    { edge: 'left', x: edgeMargin, y: playerScreenY + (edgeMargin - playerScreenX) * Math.tan(angle) },
+                    { edge: 'right', x: CANVAS_WIDTH - edgeMargin, y: playerScreenY + (CANVAS_WIDTH - edgeMargin - playerScreenX) * Math.tan(angle) }
+                ];
+                
+                // Find valid intersection point
+                for (const s of slopes) {
+                    if (s.x >= edgeMargin && s.x <= CANVAS_WIDTH - edgeMargin && 
+                        s.y >= edgeMargin && s.y <= CANVAS_HEIGHT - edgeMargin) {
+                        arrowX = s.x;
+                        arrowY = s.y;
+                        break;
+                    }
+                }
+                
+                if (arrowX === undefined) {
+                    arrowX = Math.max(edgeMargin, Math.min(CANVAS_WIDTH - edgeMargin, screenX));
+                    arrowY = Math.max(edgeMargin, Math.min(CANVAS_HEIGHT - edgeMargin, screenY));
+                }
+                
+                // Draw pointing arrow
+                const pulse = Math.sin(time / 200) * 3;
+                
+                this.ctx.save();
+                this.ctx.translate(arrowX, arrowY);
+                this.ctx.rotate(angle);
+                
+                // Arrow background glow
+                this.ctx.shadowColor = markerColor;
+                this.ctx.shadowBlur = 10;
+                
+                // Arrow shape
+                this.ctx.fillStyle = markerColor;
+                this.ctx.beginPath();
+                this.ctx.moveTo(15 + pulse, 0);
+                this.ctx.lineTo(-5, -10);
+                this.ctx.lineTo(-5, 10);
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                this.ctx.restore();
+                
+                // Distance label near arrow
+                this.ctx.font = 'bold 11px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                this.ctx.fillRect(arrowX - 25, arrowY + 12, 50, 16);
+                this.ctx.fillStyle = markerColor;
+                this.ctx.fillText(`${distanceTiles}m`, arrowX, arrowY + 24);
+            }
+        }
+        
+        this.ctx.restore();
     }
 }
 
@@ -3843,7 +4237,7 @@ class SaveSystem {
         
         try {
             localStorage.setItem('dragonQuestSave', JSON.stringify(saveData));
-            game.notify('Game saved!');
+            game.notify('Game Saved!', 'save');
             return true;
         } catch (e) {
             game.notify('Failed to save game!');
@@ -4030,6 +4424,1012 @@ class AchievementSystem {
         }
     }
 }
+
+// Sound System - Procedural Audio with Web Audio API
+class SoundSystem {
+    constructor() {
+        this.audioContext = null;
+        this.masterGain = null;
+        this.musicGain = null;
+        this.sfxGain = null;
+        
+        this.masterVolume = 0.7;
+        this.musicVolume = 0.4;
+        this.sfxVolume = 0.7;
+        this.muted = false;
+        
+        this.currentMusic = null;
+        this.currentAmbient = null;
+        this.musicOscillators = [];
+        this.ambientNodes = [];
+        
+        this.footstepTimer = 0;
+        this.lastTerrain = null;
+        
+        this.initialized = false;
+    }
+    
+    init() {
+        if (this.initialized) return;
+        
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            this.masterGain = this.audioContext.createGain();
+            this.masterGain.connect(this.audioContext.destination);
+            this.masterGain.gain.value = this.masterVolume;
+            
+            this.musicGain = this.audioContext.createGain();
+            this.musicGain.connect(this.masterGain);
+            this.musicGain.gain.value = this.musicVolume;
+            
+            this.sfxGain = this.audioContext.createGain();
+            this.sfxGain.connect(this.masterGain);
+            this.sfxGain.gain.value = this.sfxVolume;
+            
+            this.initialized = true;
+        } catch (e) {
+            console.warn('Web Audio API not supported:', e);
+        }
+    }
+    
+    resume() {
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+    }
+    
+    setMasterVolume(value) {
+        this.masterVolume = Math.max(0, Math.min(1, value));
+        if (this.masterGain) {
+            this.masterGain.gain.setTargetAtTime(this.muted ? 0 : this.masterVolume, this.audioContext.currentTime, 0.1);
+        }
+    }
+    
+    setMusicVolume(value) {
+        this.musicVolume = Math.max(0, Math.min(1, value));
+        if (this.musicGain) {
+            this.musicGain.gain.setTargetAtTime(this.musicVolume, this.audioContext.currentTime, 0.1);
+        }
+    }
+    
+    setSFXVolume(value) {
+        this.sfxVolume = Math.max(0, Math.min(1, value));
+        if (this.sfxGain) {
+            this.sfxGain.gain.setTargetAtTime(this.sfxVolume, this.audioContext.currentTime, 0.1);
+        }
+    }
+    
+    toggleMute() {
+        this.muted = !this.muted;
+        if (this.masterGain) {
+            this.masterGain.gain.setTargetAtTime(this.muted ? 0 : this.masterVolume, this.audioContext.currentTime, 0.1);
+        }
+        return this.muted;
+    }
+    
+    createNoise(duration, type = 'white') {
+        if (!this.audioContext) return null;
+        
+        const bufferSize = this.audioContext.sampleRate * duration;
+        const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+        
+        let lastOut = 0;
+        for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            if (type === 'white') {
+                data[i] = white;
+            } else if (type === 'pink') {
+                data[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = data[i];
+                data[i] *= 3.5;
+            } else if (type === 'brown') {
+                data[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = data[i];
+                data[i] *= 10;
+            }
+        }
+        
+        return buffer;
+    }
+    
+    // UI Sounds
+    playClick() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, this.audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, this.audioContext.currentTime + 0.05);
+        
+        gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.05);
+        
+        osc.start();
+        osc.stop(this.audioContext.currentTime + 0.05);
+    }
+    
+    playMenuOpen() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const notes = [400, 600, 800];
+        notes.forEach((freq, i) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            const startTime = this.audioContext.currentTime + i * 0.03;
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.15, startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.12);
+            
+            osc.start(startTime);
+            osc.stop(startTime + 0.12);
+        });
+    }
+    
+    playMenuClose() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const notes = [800, 600, 400];
+        notes.forEach((freq, i) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            const startTime = this.audioContext.currentTime + i * 0.03;
+            gain.gain.setValueAtTime(0.15, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.08);
+            
+            osc.start(startTime);
+            osc.stop(startTime + 0.08);
+        });
+    }
+    
+    playNotification() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const osc = this.audioContext.createOscillator();
+        const osc2 = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        osc.type = 'sine';
+        osc2.type = 'sine';
+        osc.frequency.value = 880;
+        osc2.frequency.value = 1320;
+        
+        gain.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+        
+        osc.start();
+        osc2.start();
+        osc.stop(this.audioContext.currentTime + 0.3);
+        osc2.stop(this.audioContext.currentTime + 0.3);
+    }
+    
+    // Combat Sounds
+    playSwordSwing() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const noiseBuffer = this.createNoise(0.15, 'white');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(2000, this.audioContext.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(8000, this.audioContext.currentTime + 0.1);
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.setValueAtTime(0.4, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        noise.start();
+        noise.stop(this.audioContext.currentTime + 0.15);
+    }
+    
+    playHitImpact() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const osc = this.audioContext.createOscillator();
+        const noiseBuffer = this.createNoise(0.1, 'brown');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        
+        const oscGain = this.audioContext.createGain();
+        const noiseGain = this.audioContext.createGain();
+        
+        osc.connect(oscGain);
+        noise.connect(noiseGain);
+        oscGain.connect(this.sfxGain);
+        noiseGain.connect(this.sfxGain);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(150, this.audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, this.audioContext.currentTime + 0.1);
+        
+        oscGain.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+        oscGain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+        
+        noiseGain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.08);
+        
+        osc.start();
+        noise.start();
+        osc.stop(this.audioContext.currentTime + 0.1);
+        noise.stop(this.audioContext.currentTime + 0.1);
+    }
+    
+    playShieldBlock() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const osc = this.audioContext.createOscillator();
+        const osc2 = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        osc.type = 'square';
+        osc2.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, this.audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + 0.15);
+        osc2.frequency.setValueAtTime(350, this.audioContext.currentTime);
+        osc2.frequency.exponentialRampToValueAtTime(120, this.audioContext.currentTime + 0.15);
+        
+        gain.gain.setValueAtTime(0.25, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
+        
+        osc.start();
+        osc2.start();
+        osc.stop(this.audioContext.currentTime + 0.15);
+        osc2.stop(this.audioContext.currentTime + 0.15);
+    }
+    
+    playHealChime() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((freq, i) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            const startTime = this.audioContext.currentTime + i * 0.08;
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.25);
+            
+            osc.start(startTime);
+            osc.stop(startTime + 0.25);
+        });
+    }
+    
+    playFleeWhoosh() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const noiseBuffer = this.createNoise(0.4, 'pink');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(500, this.audioContext.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(2000, this.audioContext.currentTime + 0.2);
+        filter.frequency.exponentialRampToValueAtTime(300, this.audioContext.currentTime + 0.4);
+        filter.Q.value = 2;
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        noise.start();
+        noise.stop(this.audioContext.currentTime + 0.4);
+    }
+    
+    playHeavyAttack() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        this.playSwordSwing();
+        
+        setTimeout(() => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, this.audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(30, this.audioContext.currentTime + 0.2);
+            
+            gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+            
+            osc.start();
+            osc.stop(this.audioContext.currentTime + 0.2);
+        }, 50);
+    }
+    
+    // Movement Sounds - Footsteps based on terrain
+    playFootstep(terrainType) {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const params = {
+            [TILES.GRASS]: { freq: 200, noise: 'brown', duration: 0.08, volume: 0.15 },
+            [TILES.STONE]: { freq: 400, noise: 'white', duration: 0.05, volume: 0.25 },
+            [TILES.SAND]: { freq: 150, noise: 'pink', duration: 0.12, volume: 0.12 },
+            [TILES.WOOD]: { freq: 300, noise: 'brown', duration: 0.06, volume: 0.2 },
+            [TILES.DIRT]: { freq: 180, noise: 'brown', duration: 0.1, volume: 0.15 },
+            [TILES.SNOW]: { freq: 100, noise: 'white', duration: 0.1, volume: 0.1 },
+            [TILES.BRIDGE]: { freq: 350, noise: 'brown', duration: 0.06, volume: 0.22 },
+            [TILES.DOCK]: { freq: 320, noise: 'brown', duration: 0.07, volume: 0.2 }
+        };
+        
+        const p = params[terrainType] || params[TILES.GRASS];
+        
+        const noiseBuffer = this.createNoise(p.duration, p.noise);
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = p.freq + Math.random() * 100;
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.setValueAtTime(p.volume, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + p.duration);
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        noise.start();
+        noise.stop(this.audioContext.currentTime + p.duration);
+    }
+    
+    playWaterSplash() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const noiseBuffer = this.createNoise(0.2, 'white');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 800;
+        filter.Q.value = 1;
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        noise.start();
+        noise.stop(this.audioContext.currentTime + 0.2);
+    }
+    
+    // Interaction Sounds
+    playChestOpen() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        // Creak sound
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(80, this.audioContext.currentTime);
+        osc.frequency.linearRampToValueAtTime(150, this.audioContext.currentTime + 0.15);
+        osc.frequency.linearRampToValueAtTime(100, this.audioContext.currentTime + 0.3);
+        
+        gain.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+        
+        osc.start();
+        osc.stop(this.audioContext.currentTime + 0.3);
+        
+        // Jingle
+        setTimeout(() => {
+            const notes = [784, 988, 1175, 1568];
+            notes.forEach((freq, i) => {
+                const jingleOsc = this.audioContext.createOscillator();
+                const jingleGain = this.audioContext.createGain();
+                
+                jingleOsc.connect(jingleGain);
+                jingleGain.connect(this.sfxGain);
+                
+                jingleOsc.type = 'sine';
+                jingleOsc.frequency.value = freq;
+                
+                const startTime = this.audioContext.currentTime + i * 0.06;
+                jingleGain.gain.setValueAtTime(0.2, startTime);
+                jingleGain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+                
+                jingleOsc.start(startTime);
+                jingleOsc.stop(startTime + 0.2);
+            });
+        }, 200);
+    }
+    
+    playGoldPickup() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const count = 3 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < count; i++) {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'sine';
+            osc.frequency.value = 2000 + Math.random() * 1000;
+            
+            const startTime = this.audioContext.currentTime + i * 0.04;
+            gain.gain.setValueAtTime(0.12, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.06);
+            
+            osc.start(startTime);
+            osc.stop(startTime + 0.06);
+        }
+    }
+    
+    playItemEquip() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const osc = this.audioContext.createOscillator();
+        const osc2 = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        osc.type = 'triangle';
+        osc2.type = 'sine';
+        osc.frequency.value = 440;
+        osc2.frequency.value = 660;
+        
+        gain.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
+        
+        osc.start();
+        osc2.start();
+        osc.stop(this.audioContext.currentTime + 0.15);
+        osc2.stop(this.audioContext.currentTime + 0.15);
+    }
+    
+    playPotionDrink() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const noiseBuffer = this.createNoise(0.3, 'pink');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(300, this.audioContext.currentTime);
+        filter.frequency.linearRampToValueAtTime(600, this.audioContext.currentTime + 0.3);
+        filter.Q.value = 3;
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+        
+        noise.start();
+        noise.stop(this.audioContext.currentTime + 0.3);
+    }
+    
+    // Ambient Sounds
+    startAmbient(region) {
+        this.stopAmbient();
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        this.currentAmbient = region;
+        
+        switch (region) {
+            case 'forest':
+                this.startForestAmbient();
+                break;
+            case 'water':
+            case 'pirate':
+                this.startWaterAmbient();
+                break;
+            case 'lava':
+            case 'dragon':
+                this.startFireAmbient();
+                break;
+            case 'wind':
+            case 'mountain':
+                this.startWindAmbient();
+                break;
+            default:
+                this.startDefaultAmbient();
+        }
+    }
+    
+    startForestAmbient() {
+        const createBirdChirp = () => {
+            if (!this.initialized || this.muted || this.currentAmbient !== 'forest') return;
+            
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.musicGain);
+            
+            osc.type = 'sine';
+            const baseFreq = 2000 + Math.random() * 2000;
+            osc.frequency.setValueAtTime(baseFreq, this.audioContext.currentTime);
+            osc.frequency.linearRampToValueAtTime(baseFreq * 1.2, this.audioContext.currentTime + 0.05);
+            osc.frequency.linearRampToValueAtTime(baseFreq * 0.9, this.audioContext.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.05, this.audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+            
+            osc.start();
+            osc.stop(this.audioContext.currentTime + 0.1);
+            
+            setTimeout(createBirdChirp, 2000 + Math.random() * 5000);
+        };
+        
+        setTimeout(createBirdChirp, 1000);
+    }
+    
+    startWaterAmbient() {
+        const noiseBuffer = this.createNoise(4, 'pink');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.value = 0.08;
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+        
+        this.ambientNodes.push(noise, gain);
+        noise.start();
+    }
+    
+    startFireAmbient() {
+        const noiseBuffer = this.createNoise(4, 'brown');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 200;
+        filter.Q.value = 0.5;
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.value = 0.12;
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+        
+        this.ambientNodes.push(noise, gain);
+        noise.start();
+        
+        // Crackle sounds
+        const createCrackle = () => {
+            if (!this.initialized || this.muted || this.currentAmbient !== 'lava' && this.currentAmbient !== 'dragon') return;
+            
+            const crackleNoise = this.createNoise(0.05, 'white');
+            const crackle = this.audioContext.createBufferSource();
+            crackle.buffer = crackleNoise;
+            
+            const crackleGain = this.audioContext.createGain();
+            crackleGain.gain.setValueAtTime(0.08, this.audioContext.currentTime);
+            crackleGain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.05);
+            
+            crackle.connect(crackleGain);
+            crackleGain.connect(this.musicGain);
+            
+            crackle.start();
+            crackle.stop(this.audioContext.currentTime + 0.05);
+            
+            setTimeout(createCrackle, 100 + Math.random() * 300);
+        };
+        
+        setTimeout(createCrackle, 500);
+    }
+    
+    startWindAmbient() {
+        const noiseBuffer = this.createNoise(4, 'pink');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 300;
+        filter.Q.value = 1;
+        
+        const lfo = this.audioContext.createOscillator();
+        const lfoGain = this.audioContext.createGain();
+        lfo.frequency.value = 0.2;
+        lfoGain.gain.value = 100;
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.value = 0.1;
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+        
+        this.ambientNodes.push(noise, lfo, gain);
+        noise.start();
+        lfo.start();
+    }
+    
+    startDefaultAmbient() {
+        // Light wind
+        const noiseBuffer = this.createNoise(4, 'pink');
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+        
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 200;
+        
+        const gain = this.audioContext.createGain();
+        gain.gain.value = 0.03;
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+        
+        this.ambientNodes.push(noise, gain);
+        noise.start();
+    }
+    
+    stopAmbient() {
+        this.ambientNodes.forEach(node => {
+            try {
+                if (node.stop) node.stop();
+                if (node.disconnect) node.disconnect();
+            } catch (e) {}
+        });
+        this.ambientNodes = [];
+        this.currentAmbient = null;
+    }
+    
+    // Background Music - Procedural Generation
+    startMusic(mood) {
+        this.stopMusic();
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        this.currentMusic = mood;
+        
+        const scales = {
+            adventurous: [261, 293, 329, 349, 392, 440, 493],
+            mysterious: [261, 293, 311, 349, 392, 415, 466],
+            dangerous: [261, 277, 311, 329, 370, 392, 466],
+            victory: [523, 587, 659, 698, 784, 880, 988],
+            peaceful: [261, 329, 392, 440, 523, 587, 659]
+        };
+        
+        const scale = scales[mood] || scales.peaceful;
+        const tempo = mood === 'dangerous' ? 180 : mood === 'victory' ? 140 : 100;
+        
+        this.playMusicLoop(scale, tempo, mood);
+    }
+    
+    playMusicLoop(scale, tempo, mood) {
+        if (!this.initialized || this.muted || this.currentMusic !== mood) return;
+        
+        const beatDuration = 60 / tempo;
+        const measureLength = 4;
+        
+        for (let beat = 0; beat < measureLength; beat++) {
+            const startTime = this.audioContext.currentTime + beat * beatDuration;
+            
+            // Bass note on beats 1 and 3
+            if (beat % 2 === 0) {
+                const bassOsc = this.audioContext.createOscillator();
+                const bassGain = this.audioContext.createGain();
+                
+                bassOsc.connect(bassGain);
+                bassGain.connect(this.musicGain);
+                
+                bassOsc.type = 'sine';
+                bassOsc.frequency.value = scale[0] / 2;
+                
+                bassGain.gain.setValueAtTime(0.12, startTime);
+                bassGain.gain.exponentialRampToValueAtTime(0.01, startTime + beatDuration * 0.9);
+                
+                bassOsc.start(startTime);
+                bassOsc.stop(startTime + beatDuration);
+                this.musicOscillators.push(bassOsc);
+            }
+            
+            // Melody note
+            const noteIndex = Math.floor(Math.random() * scale.length);
+            const melodyOsc = this.audioContext.createOscillator();
+            const melodyGain = this.audioContext.createGain();
+            
+            melodyOsc.connect(melodyGain);
+            melodyGain.connect(this.musicGain);
+            
+            melodyOsc.type = mood === 'mysterious' ? 'triangle' : 'sine';
+            melodyOsc.frequency.value = scale[noteIndex];
+            
+            melodyGain.gain.setValueAtTime(0.08, startTime);
+            melodyGain.gain.exponentialRampToValueAtTime(0.01, startTime + beatDuration * 0.8);
+            
+            melodyOsc.start(startTime);
+            melodyOsc.stop(startTime + beatDuration);
+            this.musicOscillators.push(melodyOsc);
+            
+            // Harmony on some beats
+            if (Math.random() < 0.4) {
+                const harmonyIndex = (noteIndex + 2) % scale.length;
+                const harmonyOsc = this.audioContext.createOscillator();
+                const harmonyGain = this.audioContext.createGain();
+                
+                harmonyOsc.connect(harmonyGain);
+                harmonyGain.connect(this.musicGain);
+                
+                harmonyOsc.type = 'sine';
+                harmonyOsc.frequency.value = scale[harmonyIndex];
+                
+                harmonyGain.gain.setValueAtTime(0.04, startTime);
+                harmonyGain.gain.exponentialRampToValueAtTime(0.01, startTime + beatDuration * 0.6);
+                
+                harmonyOsc.start(startTime);
+                harmonyOsc.stop(startTime + beatDuration);
+                this.musicOscillators.push(harmonyOsc);
+            }
+        }
+        
+        setTimeout(() => this.playMusicLoop(scale, tempo, mood), measureLength * beatDuration * 1000);
+    }
+    
+    stopMusic() {
+        this.musicOscillators.forEach(osc => {
+            try {
+                osc.stop();
+                osc.disconnect();
+            } catch (e) {}
+        });
+        this.musicOscillators = [];
+        this.currentMusic = null;
+    }
+    
+    // Combat Music
+    startCombatMusic() {
+        this.stopMusic();
+        if (!this.initialized || this.muted) return;
+        this.startMusic('dangerous');
+    }
+    
+    stopCombatMusic() {
+        this.stopMusic();
+    }
+    
+    // Victory/Defeat Jingles
+    playVictoryJingle() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        this.stopMusic();
+        
+        const notes = [523, 659, 784, 1047, 784, 1047];
+        notes.forEach((freq, i) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            const startTime = this.audioContext.currentTime + i * 0.15;
+            const duration = i === notes.length - 1 ? 0.5 : 0.15;
+            
+            gain.gain.setValueAtTime(0.25, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+            
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        });
+    }
+    
+    playDefeatJingle() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        this.stopMusic();
+        
+        const notes = [392, 349, 311, 261];
+        notes.forEach((freq, i) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            
+            const startTime = this.audioContext.currentTime + i * 0.25;
+            const duration = i === notes.length - 1 ? 0.6 : 0.25;
+            
+            gain.gain.setValueAtTime(0.2, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+            
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        });
+    }
+    
+    playLevelUp() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const notes = [523, 659, 784, 1047, 1319];
+        notes.forEach((freq, i) => {
+            const osc = this.audioContext.createOscillator();
+            const osc2 = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            osc2.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'sine';
+            osc2.type = 'triangle';
+            osc.frequency.value = freq;
+            osc2.frequency.value = freq * 2;
+            
+            const startTime = this.audioContext.currentTime + i * 0.1;
+            gain.gain.setValueAtTime(0.2, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+            
+            osc.start(startTime);
+            osc2.start(startTime);
+            osc.stop(startTime + 0.3);
+            osc2.stop(startTime + 0.3);
+        });
+    }
+    
+    playQuestComplete() {
+        if (!this.initialized || this.muted) return;
+        this.resume();
+        
+        const notes = [392, 523, 659, 784, 1047];
+        notes.forEach((freq, i) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            const startTime = this.audioContext.currentTime + i * 0.12;
+            gain.gain.setValueAtTime(0.18, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.25);
+            
+            osc.start(startTime);
+            osc.stop(startTime + 0.25);
+        });
+    }
+    
+    // Update method called each frame for footsteps
+    updateFootsteps(playerVelocity, terrainType, dt) {
+        if (!this.initialized || this.muted) return;
+        
+        const speed = Math.hypot(playerVelocity.x, playerVelocity.y);
+        if (speed < 0.5) {
+            this.footstepTimer = 0;
+            return;
+        }
+        
+        this.footstepTimer += dt;
+        const footstepInterval = 0.25 - (speed * 0.001);
+        
+        if (this.footstepTimer >= Math.max(0.15, footstepInterval)) {
+            this.footstepTimer = 0;
+            this.playFootstep(terrainType);
+        }
+    }
+    
+    // Get current region for ambient sounds
+    getAmbientForRegion(tileX, tileY) {
+        if (tileY < 20) return 'wind';
+        if (tileX > 165 && tileY < 25) return 'lava';
+        if (tileX > 90 && tileX < 115 && tileY > 65 && tileY < 85) return 'forest';
+        if (tileX > 110 && tileX < 135 && tileY > 95) return 'water';
+        if (tileX > 140 && tileX < 170 && tileY > 85 && tileY < 105) return 'water';
+        return 'default';
+    }
+    
+    // Get music mood for region
+    getMusicMoodForRegion(tileX, tileY) {
+        if (tileY < 20) return 'mysterious';
+        if (tileX > 165 && tileY < 25) return 'dangerous';
+        if (tileX > 110 && tileX < 135 && tileY > 95) return 'mysterious';
+        if (tileX > 90 && tileX < 115 && tileY > 65 && tileY < 85) return 'peaceful';
+        return 'adventurous';
+    }
+}
+
+// Global sound system instance
+const soundSystem = new SoundSystem();
 
 // Initialize game
 const game = new Game();

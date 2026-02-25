@@ -838,6 +838,102 @@
             font-size: 13px;
         }
         
+        #sound-panel {
+            position: absolute;
+            top: 50px;
+            right: 170px;
+            width: 220px;
+            background: linear-gradient(180deg, rgba(30, 35, 55, 0.98) 0%, rgba(20, 25, 40, 0.98) 100%);
+            border: 2px solid #6a8aaa;
+            border-radius: 15px;
+            padding: 18px;
+            color: white;
+            display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: panelSlideIn 0.3s ease-out;
+            z-index: 100;
+        }
+        
+        #sound-panel h3 {
+            color: #88ccff;
+            margin-bottom: 16px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(136, 204, 255, 0.4);
+        }
+        
+        .volume-control {
+            margin-bottom: 15px;
+        }
+        
+        .volume-control label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #aaccee;
+        }
+        
+        .volume-slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, rgba(50, 80, 120, 0.6) 0%, rgba(40, 60, 90, 0.6) 100%);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(180deg, #66aaff 0%, #4488dd 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 3px 10px rgba(100, 170, 255, 0.5);
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(180deg, #66aaff 0%, #4488dd 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mute-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(180deg, rgba(80, 100, 140, 0.7) 0%, rgba(60, 80, 110, 0.7) 100%);
+            border: 1px solid rgba(120, 160, 200, 0.4);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.25s ease;
+            margin-top: 10px;
+        }
+        
+        .mute-btn:hover {
+            background: linear-gradient(180deg, rgba(100, 130, 170, 0.8) 0%, rgba(80, 110, 140, 0.8) 100%);
+            transform: scale(1.02);
+        }
+        
+        .mute-btn.muted {
+            background: linear-gradient(180deg, rgba(140, 80, 80, 0.7) 0%, rgba(110, 60, 60, 0.7) 100%);
+            border-color: rgba(200, 120, 120, 0.4);
+        }
+        
         #notification {
             position: absolute;
             top: 80px;
@@ -1013,6 +1109,431 @@
             box-shadow: 0 6px 18px rgba(100, 170, 100, 0.4);
         }
         
+        /* Fast Travel Panel */
+        #fast-travel-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(180deg, rgba(25, 35, 55, 0.98) 0%, rgba(15, 25, 40, 0.98) 100%);
+            border: 2px solid #5588cc;
+            border-radius: 18px;
+            padding: 25px;
+            color: white;
+            display: none;
+            min-width: 400px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(85, 136, 204, 0.3);
+            z-index: 100;
+        }
+        
+        .fast-travel-title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #88ccff;
+            text-shadow: 0 0 15px rgba(136, 204, 255, 0.5);
+        }
+        
+        .fast-travel-info {
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        .fast-travel-locations {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .fast-travel-location {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: linear-gradient(180deg, rgba(50, 60, 80, 0.5) 0%, rgba(35, 45, 60, 0.5) 100%);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(100, 130, 180, 0.3);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .fast-travel-location:hover {
+            background: linear-gradient(180deg, rgba(70, 90, 120, 0.7) 0%, rgba(50, 70, 95, 0.7) 100%);
+            border-color: rgba(136, 204, 255, 0.5);
+            transform: translateX(5px);
+        }
+        
+        .fast-travel-location.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .fast-travel-location.disabled:hover {
+            transform: none;
+            background: linear-gradient(180deg, rgba(50, 60, 80, 0.5) 0%, rgba(35, 45, 60, 0.5) 100%);
+        }
+        
+        .location-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .location-icon {
+            font-size: 24px;
+        }
+        
+        .location-name {
+            font-weight: 500;
+        }
+        
+        .location-undiscovered {
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .travel-btn {
+            padding: 8px 16px;
+            background: linear-gradient(180deg, #4488cc 0%, #3377bb 100%);
+            border: 1px solid #55aaee;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .travel-btn:hover {
+            background: linear-gradient(180deg, #55aaee 0%, #4488cc 100%);
+            transform: scale(1.05);
+        }
+        
+        .travel-btn:disabled {
+            background: #555;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+        
+        /* Statistics Panel */
+        #stats-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(180deg, rgba(30, 25, 45, 0.98) 0%, rgba(20, 15, 35, 0.98) 100%);
+            border: 2px solid #9966cc;
+            border-radius: 18px;
+            padding: 25px;
+            color: white;
+            display: none;
+            min-width: 450px;
+            max-height: 80vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(153, 102, 204, 0.3);
+            z-index: 100;
+        }
+        
+        .stats-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #cc99ff;
+            text-shadow: 0 0 15px rgba(204, 153, 255, 0.5);
+        }
+        
+        .stats-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stats-section h4 {
+            color: #bb88ee;
+            margin-bottom: 12px;
+            font-size: 15px;
+            border-bottom: 1px solid rgba(150, 100, 200, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(100, 100, 150, 0.2);
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #aaa;
+        }
+        
+        .stat-value {
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .achievement-item {
+            background: rgba(50, 40, 70, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid rgba(100, 80, 140, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .achievement-item.unlocked {
+            background: rgba(100, 80, 140, 0.4);
+            border-color: rgba(180, 140, 220, 0.5);
+        }
+        
+        .achievement-item.locked {
+            opacity: 0.5;
+        }
+        
+        .achievement-name {
+            font-weight: 500;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+        
+        .achievement-desc {
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .achievement-item.unlocked .achievement-name {
+            color: #ffcc44;
+        }
+        
+        /* Time Display Styling */
+        #time-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .time-icon {
+            font-size: 16px;
+        }
+        
+        .time-text {
+            font-size: 13px;
+        }
+        
+        /* Teleport Effect Overlay */
+        #teleport-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(100, 150, 255, 0.9) 0%, rgba(20, 40, 80, 0.95) 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        #teleport-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        #teleport-overlay.fade-out {
+            opacity: 0;
+        }
+        
+        .teleport-text {
+            font-size: 28px;
+            color: white;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+            animation: teleportPulse 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes teleportPulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+        
+        /* Inventory Enhancements */
+        .inventory-slot.rarity-common { border-color: #888; }
+        .inventory-slot.rarity-uncommon { border-color: #44cc44; box-shadow: 0 0 8px rgba(68, 204, 68, 0.3); }
+        .inventory-slot.rarity-rare { border-color: #4488ff; box-shadow: 0 0 8px rgba(68, 136, 255, 0.4); }
+        .inventory-slot.rarity-epic { border-color: #aa44ff; box-shadow: 0 0 10px rgba(170, 68, 255, 0.5); }
+        .inventory-slot.rarity-legendary { border-color: #ffaa00; box-shadow: 0 0 12px rgba(255, 170, 0, 0.6); animation: legendaryGlow 2s ease-in-out infinite alternate; }
+        
+        @keyframes legendaryGlow {
+            0% { box-shadow: 0 0 12px rgba(255, 170, 0, 0.6); }
+            100% { box-shadow: 0 0 20px rgba(255, 200, 50, 0.8); }
+        }
+        
+        /* Item Tooltip */
+        #item-tooltip {
+            position: fixed;
+            background: linear-gradient(180deg, rgba(25, 25, 45, 0.98) 0%, rgba(15, 15, 30, 0.98) 100%);
+            border: 2px solid #6a6aaa;
+            border-radius: 10px;
+            padding: 12px 15px;
+            color: white;
+            font-size: 13px;
+            max-width: 250px;
+            z-index: 1000;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .tooltip-name {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+        
+        .tooltip-name.common { color: #aaa; }
+        .tooltip-name.uncommon { color: #44ff44; }
+        .tooltip-name.rare { color: #4499ff; }
+        .tooltip-name.epic { color: #bb66ff; }
+        .tooltip-name.legendary { color: #ffaa00; }
+        
+        .tooltip-type {
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .tooltip-stats {
+            margin-bottom: 8px;
+        }
+        
+        .tooltip-stat {
+            color: #88ff88;
+            margin: 3px 0;
+        }
+        
+        .tooltip-compare {
+            border-top: 1px solid rgba(100, 100, 150, 0.4);
+            padding-top: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+        
+        .compare-better { color: #44ff44; }
+        .compare-worse { color: #ff4444; }
+        
+        .tooltip-description {
+            color: #cc99ff;
+            font-style: italic;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        
+        .tooltip-price {
+            color: #ffcc44;
+            margin-top: 6px;
+        }
+        
+        /* Inventory Sort Controls */
+        #inventory-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .sort-btn {
+            padding: 6px 12px;
+            background: linear-gradient(180deg, rgba(60, 60, 90, 0.7) 0%, rgba(40, 40, 60, 0.7) 100%);
+            border: 1px solid rgba(100, 100, 150, 0.5);
+            border-radius: 5px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        
+        .sort-btn:hover {
+            background: linear-gradient(180deg, rgba(80, 80, 120, 0.8) 0%, rgba(60, 60, 90, 0.8) 100%);
+            border-color: rgba(150, 150, 200, 0.6);
+            color: white;
+        }
+        
+        .sort-btn.active {
+            background: linear-gradient(180deg, rgba(100, 80, 140, 0.8) 0%, rgba(70, 50, 100, 0.8) 100%);
+            border-color: rgba(180, 140, 220, 0.6);
+            color: white;
+        }
+        
+        /* Combat Log Enhancements */
+        #combat-log {
+            max-height: 150px;
+        }
+        
+        .combat-log-entry {
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .combat-log-entry.turn-start {
+            background: rgba(100, 100, 150, 0.3);
+            border-left: 3px solid #8888cc;
+            font-weight: 500;
+        }
+        
+        .combat-log-entry.damage {
+            color: #ff6666;
+        }
+        
+        .combat-log-entry.heal {
+            color: #66ff66;
+        }
+        
+        .combat-log-entry.buff {
+            color: #ffcc44;
+        }
+        
+        .combat-log-entry.info {
+            color: #88ccff;
+        }
+        
+        .combat-log-entry.critical {
+            color: #ff8844;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 136, 68, 0.5);
+        }
+        
+        .turn-number {
+            display: inline-block;
+            background: rgba(100, 100, 150, 0.4);
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-right: 6px;
+            font-size: 10px;
+            color: #aaa;
+        }
+        
         /* Global scrollbar styling */
         ::-webkit-scrollbar {
             width: 8px;
@@ -1068,9 +1589,16 @@
                 <div class="hud-section">
                     💰 <span id="gold-text">50</span> Gold
                 </div>
+                <div class="hud-section" id="time-display">
+                    <span class="time-icon" id="time-icon">☀️</span>
+                    <span class="time-text" id="time-text">Day 1, 8:00 AM</span>
+                </div>
                 <div class="hud-section" style="display: flex; gap: 15px;">
-                    <span style="cursor: pointer;" onclick="game.toggleInventory()" title="Inventory">🎒 [I]</span>
-                    <span style="cursor: pointer;" onclick="game.toggleQuestLog()" title="Quest Log">📜 [Q]</span>
+                    <span style="cursor: pointer;" onclick="game.toggleInventory()" title="Inventory [I]">🎒</span>
+                    <span style="cursor: pointer;" onclick="game.toggleQuestLog()" title="Quest Log [Q]">📜</span>
+                    <span style="cursor: pointer;" onclick="game.toggleStats()" title="Statistics [S]">📊</span>
+                    <span style="cursor: pointer;" onclick="game.toggleFastTravel()" title="Fast Travel [T]">🗺️</span>
+                    <span style="cursor: pointer;" onclick="game.toggleSoundPanel()" title="Sound Settings [M]" id="sound-toggle-btn">🔊</span>
                     <span style="cursor: pointer;" onclick="SaveSystem.save(game)" title="Save Game (F5)">💾</span>
                     <span style="cursor: pointer;" onclick="SaveSystem.load(game)" title="Load Game (F9)">📂</span>
                 </div>
@@ -1117,6 +1645,12 @@
             <div id="inventory-panel">
                 <button class="close-btn" onclick="game.toggleInventory()">×</button>
                 <div id="inventory-title">🎒 Inventory</div>
+                <div id="inventory-controls">
+                    <button class="sort-btn" onclick="game.sortInventory('type')" data-sort="type">By Type</button>
+                    <button class="sort-btn" onclick="game.sortInventory('rarity')" data-sort="rarity">By Rarity</button>
+                    <button class="sort-btn" onclick="game.sortInventory('value')" data-sort="value">By Value</button>
+                    <button class="sort-btn" onclick="game.sortInventory('name')" data-sort="name">By Name</button>
+                </div>
                 <div id="inventory-grid"></div>
                 <div id="equipment-section">
                     <h4>Equipment</h4>
@@ -1135,6 +1669,27 @@
                 <div id="quest-list"></div>
                 <h4 style="margin-top: 15px; color: #aa8844;">🔍 Clues Found</h4>
                 <div id="clue-list"></div>
+            </div>
+            
+            <div id="sound-panel">
+                <button class="close-btn" onclick="game.toggleSoundPanel()">×</button>
+                <h3>🔊 Sound Settings</h3>
+                <div class="volume-control">
+                    <label>Master Volume: <span id="master-vol-display">70%</span></label>
+                    <input type="range" class="volume-slider" id="master-volume" min="0" max="100" value="70" 
+                           oninput="game.setMasterVolume(this.value)">
+                </div>
+                <div class="volume-control">
+                    <label>Music Volume: <span id="music-vol-display">40%</span></label>
+                    <input type="range" class="volume-slider" id="music-volume" min="0" max="100" value="40"
+                           oninput="game.setMusicVolume(this.value)">
+                </div>
+                <div class="volume-control">
+                    <label>SFX Volume: <span id="sfx-vol-display">70%</span></label>
+                    <input type="range" class="volume-slider" id="sfx-volume" min="0" max="100" value="70"
+                           oninput="game.setSFXVolume(this.value)">
+                </div>
+                <button class="mute-btn" id="mute-btn" onclick="game.toggleMute()">🔊 Sound ON</button>
             </div>
             
             <div id="shop-ui">
@@ -1168,6 +1723,67 @@
             <div id="notification"></div>
             
             <div class="ally-indicator" id="ally-indicator"></div>
+            
+            <!-- Fast Travel Panel -->
+            <div id="fast-travel-panel">
+                <button class="close-btn" onclick="game.closeFastTravel()">×</button>
+                <div class="fast-travel-title">🗺️ Fast Travel</div>
+                <div class="fast-travel-info">
+                    <span id="fast-travel-cost-info">Cost: 10 gold per travel</span>
+                    <span id="fast-travel-cooldown" style="display: none;"></span>
+                </div>
+                <div class="fast-travel-locations" id="fast-travel-locations"></div>
+            </div>
+            
+            <!-- Statistics Panel -->
+            <div id="stats-panel">
+                <button class="close-btn" onclick="game.closeStats()">×</button>
+                <div class="stats-title">📊 Statistics</div>
+                <div class="stats-section">
+                    <h4>⏱️ General</h4>
+                    <div class="stat-row"><span class="stat-label">Time Played</span><span class="stat-value" id="stat-time-played">0:00:00</span></div>
+                    <div class="stat-row"><span class="stat-label">Current Day</span><span class="stat-value" id="stat-current-day">Day 1</span></div>
+                    <div class="stat-row"><span class="stat-label">Distance Traveled</span><span class="stat-value" id="stat-distance">0 tiles</span></div>
+                </div>
+                <div class="stats-section">
+                    <h4>⚔️ Combat</h4>
+                    <div class="stat-row"><span class="stat-label">Enemies Defeated</span><span class="stat-value" id="stat-kills">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Current Level</span><span class="stat-value" id="stat-level">1</span></div>
+                    <div class="stat-row"><span class="stat-label">Total XP Gained</span><span class="stat-value" id="stat-total-xp">0</span></div>
+                </div>
+                <div class="stats-section">
+                    <h4>💰 Economy</h4>
+                    <div class="stat-row"><span class="stat-label">Current Gold</span><span class="stat-value" id="stat-current-gold">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Total Gold Earned</span><span class="stat-value" id="stat-total-gold">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Items Purchased</span><span class="stat-value" id="stat-items-bought">0</span></div>
+                </div>
+                <div class="stats-section">
+                    <h4>🗺️ Exploration</h4>
+                    <div class="stat-row"><span class="stat-label">Regions Discovered</span><span class="stat-value" id="stat-regions">0 / 8</span></div>
+                    <div class="stat-row"><span class="stat-label">Clues Found</span><span class="stat-value" id="stat-clues">0 / 6</span></div>
+                    <div class="stat-row"><span class="stat-label">Quests Completed</span><span class="stat-value" id="stat-quests">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Chests Opened</span><span class="stat-value" id="stat-chests">0</span></div>
+                </div>
+                <div class="stats-section">
+                    <h4>🏆 Achievements</h4>
+                    <div class="achievement-grid" id="achievement-grid"></div>
+                </div>
+            </div>
+            
+            <!-- Teleport Effect Overlay -->
+            <div id="teleport-overlay">
+                <div class="teleport-text">⚡ Traveling... ⚡</div>
+            </div>
+            
+            <!-- Item Tooltip -->
+            <div id="item-tooltip">
+                <div class="tooltip-name"></div>
+                <div class="tooltip-type"></div>
+                <div class="tooltip-stats"></div>
+                <div class="tooltip-compare"></div>
+                <div class="tooltip-description"></div>
+                <div class="tooltip-price"></div>
+            </div>
             
             <div id="hotbar">
                 <div class="hotbar-slot"><span class="hotbar-key">1</span>🗡️</div>
