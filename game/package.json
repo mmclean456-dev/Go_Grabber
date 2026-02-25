@@ -1,0 +1,18 @@
+{
+  "name": "game",
+  "version": "1.0.0",
+  "description": "A cross-genre point-and-click adventure game featuring knights, pirates, cowboys, and medieval fantasy elements. Built with vanilla HTML5 Canvas and JavaScript.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^24.37.5"
+  }
+}
