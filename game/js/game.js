@@ -2144,6 +2144,10 @@ class Game {
         this.player.gold -= item.price;
         this.itemsBought++;
         
+        // Play purchase sound
+        soundSystem.playGoldPickup();
+        soundSystem.playClick();
+        
         // Add to inventory
         if (item.stackable) {
             const existing = this.player.inventory.find(i => i.item && i.item.name === item.name);
