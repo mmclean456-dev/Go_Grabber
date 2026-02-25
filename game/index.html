@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest of the Dragon's Gold - A Cross-Genre Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            position: relative;
+            border: 4px solid #4a4a6a;
+            border-radius: 8px;
+            box-shadow: 0 0 40px rgba(100, 100, 200, 0.3);
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: #2d2d44;
+            cursor: crosshair;
+        }
+        
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        #ui-overlay > * {
+            pointer-events: auto;
+        }
+        
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .hud-section {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        #health-bar, #xp-bar {
+            width: 150px;
+            height: 12px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        #health-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff4444, #ff6666);
+            transition: width 0.3s;
+        }
+        
+        #xp-fill {
+            height: 100%;
+            background: linear-gradient(to right, #44ff44, #66ff66);
+            transition: width 0.3s;
+        }
+        
+        #minimap {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+        }
+        
+        #minimap-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        #dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 600px;
+            background: rgba(20, 20, 40, 0.95);
+            border: 2px solid #6a6a9a;
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: white;
+            display: none;
+        }
+        
+        #dialogue-speaker {
+            font-weight: bold;
+            color: #aaccff;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        #dialogue-text {
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        #dialogue-choices {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .dialogue-choice {
+            background: rgba(100, 100, 150, 0.5);
+            border: 1px solid #6a6a9a;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            text-align: left;
+        }
+        
+        .dialogue-choice:hover {
+            background: rgba(120, 120, 180, 0.7);
+            transform: translateX(5px);
+        }
+        
+        #combat-ui {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 40, 0.95);
+            border: 3px solid #8a4444;
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            display: none;
+            min-width: 500px;
+        }
+        
+        #combat-title {
+            text-align: center;
+            font-size: 24px;
+            color: #ff6666;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        #combat-arena {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .combatant {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            min-width: 150px;
+        }
+        
+        .combatant-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .combatant-sprite {
+            font-size: 48px;
+            margin: 10px 0;
+        }
+        
+        .combat-health-bar {
+            width: 120px;
+            height: 15px;
+            background: #333;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        
+        .combat-health-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff4444, #ff8888);
+            transition: width 0.5s;
+        }
+        
+        #combat-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .combat-btn {
+            padding: 10px 20px;
+            background: linear-gradient(to bottom, #5555aa, #444488);
+            border: 2px solid #7777cc;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .combat-btn:hover {
+            background: linear-gradient(to bottom, #6666bb, #555599);
+            transform: scale(1.05);
+        }
+        
+        .combat-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #combat-log {
+            max-height: 100px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        
+        #inventory-panel {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            width: 250px;
+            background: rgba(20, 20, 40, 0.95);
+            border: 2px solid #6a6a9a;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            display: none;
+        }
+        
+        #inventory-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #aaccff;
+        }
+        
+        #inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .inventory-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #4a4a6a;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .inventory-slot:hover {
+            border-color: #8a8aba;
+            background: rgba(50,50,80,0.5);
+        }
+        
+        .inventory-slot .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        
+        #equipment-section {
+            border-top: 1px solid #4a4a6a;
+            padding-top: 10px;
+        }
+        
+        #equipment-section h4 {
+            margin-bottom: 10px;
+            color: #aaccff;
+        }
+        
+        .equipment-slot {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .equipment-slot span:first-child {
+            font-size: 20px;
+        }
+        
+        #shop-ui, #gambling-ui {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 40, 0.95);
+            border: 2px solid #6a6a9a;
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            display: none;
+            min-width: 400px;
+        }
+        
+        .shop-title, .gambling-title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ffcc44;
+        }
+        
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .shop-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .shop-item-icon {
+            font-size: 28px;
+        }
+        
+        .buy-btn {
+            padding: 8px 15px;
+            background: linear-gradient(to bottom, #44aa44, #338833);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .buy-btn:hover {
+            background: linear-gradient(to bottom, #55bb55, #449944);
+        }
+        
+        .buy-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(150, 50, 50, 0.8);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .close-btn:hover {
+            background: rgba(200, 80, 80, 0.9);
+        }
+        
+        #card-game {
+            text-align: center;
+        }
+        
+        #card-hand {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .playing-card {
+            width: 60px;
+            height: 90px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            color: black;
+        }
+        
+        .playing-card.red {
+            color: #cc0000;
+        }
+        
+        .playing-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .playing-card.selected {
+            transform: translateY(-15px);
+            box-shadow: 0 0 15px gold;
+        }
+        
+        .playing-card.face-down {
+            background: linear-gradient(45deg, #2244aa, #1133aa);
+            color: transparent;
+        }
+        
+        #gambling-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .gamble-btn {
+            padding: 10px 25px;
+            background: linear-gradient(to bottom, #aa8844, #886633);
+            border: 2px solid #ccaa66;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .gamble-btn:hover {
+            background: linear-gradient(to bottom, #bb9955, #997744);
+        }
+        
+        #quest-log {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            width: 280px;
+            background: rgba(20, 20, 40, 0.95);
+            border: 2px solid #6a6a9a;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        #quest-log h3 {
+            color: #ffcc44;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .quest-item {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .quest-item.main-quest {
+            border-left: 3px solid #ffcc44;
+        }
+        
+        .quest-item.side-quest {
+            border-left: 3px solid #44ccff;
+        }
+        
+        .quest-item.completed {
+            opacity: 0.6;
+        }
+        
+        .quest-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .quest-desc {
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .clue-item {
+            background: rgba(80, 60, 20, 0.5);
+            border: 1px solid #aa8844;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-style: italic;
+            font-size: 13px;
+        }
+        
+        #notification {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(40, 40, 80, 0.95);
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 14px;
+            display: none;
+            animation: fadeInOut 3s ease-in-out;
+            border: 2px solid #6a6aaa;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+        
+        #hotbar {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+        }
+        
+        .hotbar-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(30, 30, 50, 0.9);
+            border: 2px solid #5a5a8a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            position: relative;
+        }
+        
+        .hotbar-key {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            font-size: 10px;
+            color: #888;
+        }
+        
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #1a1a2e, #0f0f1a);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 1000;
+        }
+        
+        #loading-screen h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #ffcc44;
+            text-shadow: 0 0 20px rgba(255, 200, 50, 0.5);
+        }
+        
+        #loading-screen p {
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        #start-btn {
+            padding: 15px 50px;
+            font-size: 20px;
+            background: linear-gradient(to bottom, #44aa44, #338833);
+            border: 3px solid #66cc66;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(100, 200, 100, 0.5);
+        }
+        
+        .ally-indicator {
+            position: absolute;
+            display: flex;
+            gap: 5px;
+            bottom: 70px;
+            left: 10px;
+        }
+        
+        .ally-portrait {
+            width: 40px;
+            height: 40px;
+            background: rgba(30, 30, 50, 0.9);
+            border: 2px solid #5a8a5a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="1200" height="700"></canvas>
+        
+        <div id="ui-overlay">
+            <div id="loading-screen">
+                <h1>⚔️ Quest of the Dragon's Gold ⚔️</h1>
+                <p>A Cross-Genre Adventure</p>
+                <button id="start-btn">Begin Your Quest</button>
+            </div>
+            
+            <div id="hud">
+                <div class="hud-section">
+                    <div>❤️ <span id="health-text">100/100</span></div>
+                    <div id="health-bar"><div id="health-fill" style="width: 100%"></div></div>
+                </div>
+                <div class="hud-section">
+                    <div>⭐ Level: <span id="level-text">1</span></div>
+                    <div id="xp-bar"><div id="xp-fill" style="width: 0%"></div></div>
+                </div>
+                <div class="hud-section">
+                    💰 <span id="gold-text">50</span> Gold
+                </div>
+                <div class="hud-section" style="display: flex; gap: 15px;">
+                    <span style="cursor: pointer;" onclick="game.toggleInventory()">🎒 [I]</span>
+                    <span style="cursor: pointer;" onclick="game.toggleQuestLog()">📜 [Q]</span>
+                </div>
+            </div>
+            
+            <canvas id="minimap-canvas" width="150" height="150"></canvas>
+            <div id="minimap"></div>
+            
+            <div id="dialogue-box">
+                <div id="dialogue-speaker"></div>
+                <div id="dialogue-text"></div>
+                <div id="dialogue-choices"></div>
+            </div>
+            
+            <div id="combat-ui">
+                <div id="combat-title">⚔️ COMBAT ⚔️</div>
+                <div id="combat-arena">
+                    <div class="combatant" id="player-combatant">
+                        <div class="combatant-name">Knight</div>
+                        <div class="combatant-sprite">🤺</div>
+                        <div class="combat-health-bar">
+                            <div class="combat-health-fill" id="player-combat-health" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div style="font-size: 30px;">⚔️</div>
+                    <div class="combatant" id="enemy-combatant">
+                        <div class="combatant-name" id="enemy-name">Enemy</div>
+                        <div class="combatant-sprite" id="enemy-sprite">👹</div>
+                        <div class="combat-health-bar">
+                            <div class="combat-health-fill" id="enemy-combat-health" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="combat-actions">
+                    <button class="combat-btn" onclick="game.combat.playerAction('attack')">⚔️ Attack</button>
+                    <button class="combat-btn" onclick="game.combat.playerAction('heavy')">💥 Heavy Strike</button>
+                    <button class="combat-btn" onclick="game.combat.playerAction('defend')">🛡️ Defend</button>
+                    <button class="combat-btn" onclick="game.combat.playerAction('heal')">❤️ Heal</button>
+                    <button class="combat-btn" onclick="game.combat.playerAction('flee')">🏃 Flee</button>
+                </div>
+                <div id="combat-log"></div>
+            </div>
+            
+            <div id="inventory-panel">
+                <button class="close-btn" onclick="game.toggleInventory()">×</button>
+                <div id="inventory-title">🎒 Inventory</div>
+                <div id="inventory-grid"></div>
+                <div id="equipment-section">
+                    <h4>Equipment</h4>
+                    <div id="equipped-items"></div>
+                </div>
+                <div id="player-stats" style="margin-top: 10px; font-size: 12px;">
+                    <div>⚔️ Attack: <span id="stat-attack">10</span></div>
+                    <div>🛡️ Defense: <span id="stat-defense">5</span></div>
+                    <div>💨 Speed: <span id="stat-speed">10</span></div>
+                </div>
+            </div>
+            
+            <div id="quest-log">
+                <button class="close-btn" onclick="game.toggleQuestLog()">×</button>
+                <h3>📜 Quest Log</h3>
+                <div id="quest-list"></div>
+                <h4 style="margin-top: 15px; color: #aa8844;">🔍 Clues Found</h4>
+                <div id="clue-list"></div>
+            </div>
+            
+            <div id="shop-ui">
+                <button class="close-btn" onclick="game.closeShop()">×</button>
+                <div class="shop-title" id="shop-title">🏪 Shop</div>
+                <div id="shop-items"></div>
+            </div>
+            
+            <div id="gambling-ui">
+                <button class="close-btn" onclick="game.closeGambling()">×</button>
+                <div class="gambling-title">🎰 Saloon - Card Game</div>
+                <div id="card-game">
+                    <div id="bet-display">Current Bet: <span id="current-bet">10</span> gold</div>
+                    <div id="opponent-hand" style="margin-bottom: 20px;">
+                        <p>Opponent's Hand:</p>
+                        <div id="opponent-cards" style="display: flex; justify-content: center; gap: 10px;"></div>
+                    </div>
+                    <div id="player-card-hand">
+                        <p>Your Hand:</p>
+                        <div id="card-hand"></div>
+                    </div>
+                    <div id="gambling-controls">
+                        <button class="gamble-btn" onclick="game.gambling.deal()">Deal (10 gold)</button>
+                        <button class="gamble-btn" onclick="game.gambling.raise()">Raise</button>
+                        <button class="gamble-btn" onclick="game.gambling.fold()">Fold</button>
+                    </div>
+                    <div id="gambling-result" style="margin-top: 15px; font-size: 18px;"></div>
+                </div>
+            </div>
+            
+            <div id="notification"></div>
+            
+            <div class="ally-indicator" id="ally-indicator"></div>
+            
+            <div id="hotbar">
+                <div class="hotbar-slot"><span class="hotbar-key">1</span>🗡️</div>
+                <div class="hotbar-slot"><span class="hotbar-key">2</span>🛡️</div>
+                <div class="hotbar-slot"><span class="hotbar-key">3</span>🧪</div>
+                <div class="hotbar-slot"><span class="hotbar-key">4</span>🗺️</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/game.js"></script>
+</body>
+</html>
