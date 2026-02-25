@@ -1,0 +1,16 @@
+{
+  "name": "dragons-gold-tests",
+  "version": "1.0.0",
+  "description": "Automated test suite for Quest of the Dragon's Gold",
+  "main": "run-tests.js",
+  "scripts": {
+    "test": "node run-tests.js",
+    "test:debug": "DEBUG=puppeteer:* node run-tests.js"
+  },
+  "keywords": ["game", "testing", "puppeteer"],
+  "author": "QA Team",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  }
+}

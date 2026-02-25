@@ -101,6 +101,11 @@
         #minimap-canvas {
             width: 100%;
             height: 100%;
+            cursor: pointer;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            border-radius: 5px;
         }
         
         #dialogue-box {
@@ -666,7 +671,10 @@
                     <p style="color: #ffcc44; margin-bottom: 10px;"><strong>Your Quest:</strong></p>
                     <p style="color: #ccc;">Explore a vast world mixing <strong>pirates</strong>, <strong>cowboys</strong>, and <strong>medieval knights</strong>. Gather clues, make allies, fight monsters, and find the Dragon's Lair to claim its legendary gold!</p>
                     <p style="color: #aaccff; margin: 15px 0 10px;"><strong>Controls:</strong></p>
-                    <p style="color: #aaa;">🖱️ <strong>Click</strong> to move | <strong>I</strong> = Inventory | <strong>Q</strong> = Quests</p>
+                    <p style="color: #aaa;">🖱️ <strong>Click</strong> to move | <strong>Double-click</strong> NPCs to auto-approach</p>
+                    <p style="color: #aaa;">⌨️ <strong>WASD</strong> / Arrow keys for direct movement</p>
+                    <p style="color: #aaa;">🖱️ <strong>Hold click</strong> to follow cursor | <strong>Right-click</strong> to cancel</p>
+                    <p style="color: #aaa;">🗺️ <strong>Click minimap</strong> to fast travel | <strong>I</strong> = Inventory | <strong>Q</strong> = Quests</p>
                     <p style="color: #aaa;">💾 <strong>F5</strong> = Save | 📂 <strong>F9</strong> = Load</p>
                 </div>
                 <button id="start-btn">Begin Your Quest</button>

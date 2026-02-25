@@ -487,12 +487,206 @@ const QUESTS = {
     }
 };
 
+// Visual Effects - Particle System
+class ParticleSystem {
+    constructor() {
+        this.particles = [];
+        this.ambientParticles = [];
+        this.clickRipples = [];
+    }
+    
+    emit(x, y, type, count = 10) {
+        const configs = {
+            combat_hit: { colors: ['#ff4444', '#ff8844', '#ffcc44'], life: 30, speed: 4, size: 6, gravity: 0.15 },
+            treasure: { colors: ['#ffd700', '#ffec8b', '#fff8dc'], life: 50, speed: 3, size: 5, gravity: -0.05 },
+            levelup: { colors: ['#44ff44', '#88ff88', '#aaffaa', '#ffd700'], life: 60, speed: 5, size: 8, gravity: -0.08 },
+            heal: { colors: ['#44ff88', '#88ffaa', '#aaffcc'], life: 40, speed: 2, size: 4, gravity: -0.1 },
+            magic: { colors: ['#8844ff', '#aa66ff', '#cc88ff'], life: 45, speed: 3, size: 5, gravity: 0 },
+            death: { colors: ['#444444', '#666666', '#888888', '#aa4444'], life: 50, speed: 4, size: 7, gravity: 0.2 },
+            sparkle: { colors: ['#ffffff', '#ffffaa', '#ffff66'], life: 25, speed: 1, size: 3, gravity: 0 },
+            fire: { colors: ['#ff4400', '#ff6600', '#ff8800', '#ffaa00'], life: 35, speed: 3, size: 5, gravity: -0.15 }
+        };
+        
+        const config = configs[type] || configs.sparkle;
+        
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = config.speed * (0.5 + Math.random() * 0.5);
+            this.particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: config.life * (0.7 + Math.random() * 0.3),
+                maxLife: config.life,
+                color: config.colors[Math.floor(Math.random() * config.colors.length)],
+                size: config.size * (0.6 + Math.random() * 0.4),
+                gravity: config.gravity,
+                type: type
+            });
+        }
+    }
+    
+    addClickRipple(x, y) {
+        this.clickRipples.push({
+            x, y,
+            radius: 5,
+            maxRadius: 40,
+            alpha: 0.8,
+            life: 20
+        });
+    }
+    
+    updateAmbientParticles(cameraX, cameraY, region, weather, timeOfDay) {
+        const targetCount = weather === 'rainy' ? 80 : (weather === 'stormy' ? 120 : 40);
+        
+        while (this.ambientParticles.length < targetCount) {
+            const regionConfigs = {
+                forest: { colors: ['#88cc88', '#66aa66'], type: 'leaf' },
+                swamp: { colors: ['#88aa66', '#669944'], type: 'bubble' },
+                snow: { colors: ['#ffffff', '#eeeeff'], type: 'snow' },
+                lava: { colors: ['#ff4400', '#ff6600', '#ff8800'], type: 'ember' },
+                default: { colors: ['#ffffff', '#ffffcc'], type: 'dust' }
+            };
+            
+            const config = regionConfigs[region] || regionConfigs.default;
+            
+            this.ambientParticles.push({
+                x: cameraX + Math.random() * 1200,
+                y: cameraY + Math.random() * 700,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: weather === 'rainy' || weather === 'stormy' ? 3 + Math.random() * 2 : (Math.random() - 0.5) * 0.3,
+                size: weather === 'rainy' ? 2 : 2 + Math.random() * 3,
+                color: config.colors[Math.floor(Math.random() * config.colors.length)],
+                alpha: 0.3 + Math.random() * 0.4,
+                type: config.type,
+                oscillate: Math.random() * Math.PI * 2
+            });
+        }
+    }
+    
+    update() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            p.life--;
+            p.vx *= 0.98;
+            
+            if (p.life <= 0) {
+                this.particles.splice(i, 1);
+            }
+        }
+        
+        for (let i = this.ambientParticles.length - 1; i >= 0; i--) {
+            const p = this.ambientParticles[i];
+            p.oscillate += 0.05;
+            p.x += p.vx + Math.sin(p.oscillate) * 0.3;
+            p.y += p.vy;
+            
+            if (p.y > p.startY + 800 || p.x < p.startX - 100 || p.x > p.startX + 1300) {
+                this.ambientParticles.splice(i, 1);
+            }
+        }
+        
+        for (let i = this.clickRipples.length - 1; i >= 0; i--) {
+            const r = this.clickRipples[i];
+            r.radius += 2;
+            r.alpha -= 0.04;
+            r.life--;
+            
+            if (r.life <= 0 || r.alpha <= 0) {
+                this.clickRipples.splice(i, 1);
+            }
+        }
+    }
+    
+    render(ctx, cameraX, cameraY) {
+        for (const p of this.particles) {
+            const screenX = p.x - cameraX;
+            const screenY = p.y - cameraY;
+            const alpha = p.life / p.maxLife;
+            
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = p.color;
+            
+            if (p.type === 'levelup' || p.type === 'magic') {
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 10;
+            }
+            
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, p.size * alpha, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        for (const r of this.clickRipples) {
+            const screenX = r.x - cameraX;
+            const screenY = r.y - cameraY;
+            
+            ctx.save();
+            ctx.globalAlpha = r.alpha;
+            ctx.strokeStyle = '#ffff88';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, r.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+    
+    renderAmbient(ctx, cameraX, cameraY, weather) {
+        for (const p of this.ambientParticles) {
+            const screenX = p.x - cameraX;
+            const screenY = p.y - cameraY;
+            
+            if (screenX < -10 || screenX > 1210 || screenY < -10 || screenY > 710) continue;
+            
+            ctx.save();
+            ctx.globalAlpha = p.alpha;
+            
+            if (weather === 'rainy' || weather === 'stormy') {
+                ctx.strokeStyle = 'rgba(150, 180, 255, 0.6)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(screenX, screenY);
+                ctx.lineTo(screenX + 2, screenY + 12);
+                ctx.stroke();
+            } else if (p.type === 'ember') {
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (p.type === 'snow') {
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, p.size * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+    }
+}
+
 class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.minimapCanvas = document.getElementById('minimap-canvas');
         this.minimapCtx = this.minimapCanvas.getContext('2d');
+        
+        this.particles = new ParticleSystem();
+        this.hoveredNPC = null;
+        this.lastClickTime = 0;
         
         this.world = generateWorld();
         this.camera = { x: 0, y: 0 };
@@ -504,6 +698,11 @@ class Game {
             targetX: 50 * TILE_SIZE,
             targetY: 75 * TILE_SIZE,
             speed: 4,
+            maxSpeed: 6,
+            acceleration: 0.3,
+            deceleration: 0.15,
+            velocityX: 0,
+            velocityY: 0,
             sprite: '🤺',
             health: 100,
             maxHealth: 100,
@@ -531,6 +730,21 @@ class Game {
                 kingdom: 50,
                 outlaws: 0
             }
+        };
+        
+        // Navigation state
+        this.navigationState = {
+            path: [],
+            pathIndex: 0,
+            isMoving: false,
+            mouseDown: false,
+            mouseX: 0,
+            mouseY: 0,
+            lastClickTime: 0,
+            doubleClickTarget: null,
+            showPathPreview: false,
+            previewPath: [],
+            wasdMovement: { w: false, a: false, s: false, d: false }
         };
         
         this.npcs = [];
@@ -1129,12 +1343,162 @@ class Game {
     
     setupEventListeners() {
         this.canvas.addEventListener('click', (e) => this.handleClick(e));
+        this.canvas.addEventListener('dblclick', (e) => this.handleDoubleClick(e));
         this.canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             this.handleRightClick(e);
         });
         
-        document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+        // Click-and-hold for continuous movement
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {
+                this.navigationState.mouseDown = true;
+                const rect = this.canvas.getBoundingClientRect();
+                this.navigationState.mouseX = e.clientX - rect.left;
+                this.navigationState.mouseY = e.clientY - rect.top;
+            }
+        });
+        
+        this.canvas.addEventListener('mouseup', (e) => {
+            if (e.button === 0) {
+                this.navigationState.mouseDown = false;
+            }
+        });
+        
+        this.canvas.addEventListener('mouseleave', () => {
+            this.navigationState.mouseDown = false;
+            this.navigationState.showPathPreview = false;
+        });
+        
+        // Path preview on hover
+        this.canvas.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.navigationState.mouseX = e.clientX - rect.left;
+            this.navigationState.mouseY = e.clientY - rect.top;
+            
+            // Update path preview
+            if (!this.inCombat && !this.currentDialogue) {
+                this.updatePathPreview(e);
+            }
+        });
+        
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+        
+        // Minimap click-to-move
+        this.minimapCanvas.addEventListener('click', (e) => this.handleMinimapClick(e));
+    }
+    
+    handleKeyDown(e) {
+        // WASD movement
+        const key = e.key.toLowerCase();
+        if (key === 'w' || key === 'arrowup') {
+            this.navigationState.wasdMovement.w = true;
+            e.preventDefault();
+        }
+        if (key === 'a' || key === 'arrowleft') {
+            this.navigationState.wasdMovement.a = true;
+            e.preventDefault();
+        }
+        if (key === 's' || key === 'arrowdown') {
+            this.navigationState.wasdMovement.s = true;
+            e.preventDefault();
+        }
+        if (key === 'd' || key === 'arrowright') {
+            this.navigationState.wasdMovement.d = true;
+            e.preventDefault();
+        }
+        
+        // Other key actions
+        this.handleKeyPress(e);
+    }
+    
+    handleKeyUp(e) {
+        const key = e.key.toLowerCase();
+        if (key === 'w' || key === 'arrowup') this.navigationState.wasdMovement.w = false;
+        if (key === 'a' || key === 'arrowleft') this.navigationState.wasdMovement.a = false;
+        if (key === 's' || key === 'arrowdown') this.navigationState.wasdMovement.s = false;
+        if (key === 'd' || key === 'arrowright') this.navigationState.wasdMovement.d = false;
+    }
+    
+    handleDoubleClick(e) {
+        if (this.inCombat || this.currentDialogue) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left + this.camera.x;
+        const clickY = e.clientY - rect.top + this.camera.y;
+        
+        // Check for distant NPCs to auto-approach and interact
+        for (const npc of this.npcs) {
+            if (!npc.alive) continue;
+            const dist = Math.hypot(clickX - npc.x, clickY - npc.y);
+            if (dist < TILE_SIZE * 1.5) {
+                // Set target to move to NPC and interact
+                const path = this.findPath(
+                    Math.floor(this.player.x / TILE_SIZE),
+                    Math.floor(this.player.y / TILE_SIZE),
+                    Math.floor(npc.x / TILE_SIZE),
+                    Math.floor(npc.y / TILE_SIZE)
+                );
+                if (path.length > 0) {
+                    this.navigationState.path = path;
+                    this.navigationState.pathIndex = 0;
+                    this.player.interactTarget = npc;
+                    this.navigationState.isMoving = true;
+                }
+                return;
+            }
+        }
+    }
+    
+    updatePathPreview(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left + this.camera.x;
+        const clickY = e.clientY - rect.top + this.camera.y;
+        const tileX = Math.floor(clickX / TILE_SIZE);
+        const tileY = Math.floor(clickY / TILE_SIZE);
+        
+        if (this.isWalkable(tileX, tileY)) {
+            this.navigationState.showPathPreview = true;
+            this.navigationState.previewPath = this.findPath(
+                Math.floor(this.player.x / TILE_SIZE),
+                Math.floor(this.player.y / TILE_SIZE),
+                tileX,
+                tileY
+            );
+        } else {
+            this.navigationState.showPathPreview = false;
+            this.navigationState.previewPath = [];
+        }
+    }
+    
+    handleMinimapClick(e) {
+        if (this.inCombat || this.currentDialogue) return;
+        
+        const rect = this.minimapCanvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        
+        // Convert minimap coordinates to world coordinates
+        const worldX = Math.floor((clickX / 150) * this.world.width);
+        const worldY = Math.floor((clickY / 150) * this.world.height);
+        
+        if (this.isWalkable(worldX, worldY)) {
+            const path = this.findPath(
+                Math.floor(this.player.x / TILE_SIZE),
+                Math.floor(this.player.y / TILE_SIZE),
+                worldX,
+                worldY
+            );
+            
+            if (path.length > 0) {
+                this.navigationState.path = path;
+                this.navigationState.pathIndex = 0;
+                this.navigationState.isMoving = true;
+                this.player.interactTarget = null;
+                this.notify(`Moving to (${worldX}, ${worldY})`);
+            }
+        }
     }
     
     handleClick(e) {
@@ -1143,6 +1507,9 @@ class Game {
         const rect = this.canvas.getBoundingClientRect();
         const clickX = e.clientX - rect.left + this.camera.x;
         const clickY = e.clientY - rect.top + this.camera.y;
+        
+        // Add click ripple effect
+        this.particles.addClickRipple(clickX, clickY);
         
         // Check if clicking on NPC
         for (const npc of this.npcs) {
@@ -1154,28 +1521,183 @@ class Game {
                     this.interactWithNPC(npc);
                     return;
                 } else {
-                    // Move towards NPC first
-                    this.player.targetX = npc.x;
-                    this.player.targetY = npc.y - TILE_SIZE;
+                    // Use pathfinding to move towards NPC
+                    const npcTileX = Math.floor(npc.x / TILE_SIZE);
+                    const npcTileY = Math.floor(npc.y / TILE_SIZE);
+                    const path = this.findPath(
+                        Math.floor(this.player.x / TILE_SIZE),
+                        Math.floor(this.player.y / TILE_SIZE),
+                        npcTileX,
+                        npcTileY - 1
+                    );
+                    if (path.length > 0) {
+                        this.navigationState.path = path;
+                        this.navigationState.pathIndex = 0;
+                        this.navigationState.isMoving = true;
+                    }
                     this.player.interactTarget = npc;
                     return;
                 }
             }
         }
         
-        // Point and click movement
+        // Point and click movement with pathfinding
         const tileX = Math.floor(clickX / TILE_SIZE);
         const tileY = Math.floor(clickY / TILE_SIZE);
         
         if (this.isWalkable(tileX, tileY)) {
-            this.player.targetX = tileX * TILE_SIZE + TILE_SIZE / 2;
-            this.player.targetY = tileY * TILE_SIZE + TILE_SIZE / 2;
+            const path = this.findPath(
+                Math.floor(this.player.x / TILE_SIZE),
+                Math.floor(this.player.y / TILE_SIZE),
+                tileX,
+                tileY
+            );
+            
+            if (path.length > 0) {
+                this.navigationState.path = path;
+                this.navigationState.pathIndex = 0;
+                this.navigationState.isMoving = true;
+            } else {
+                // Fallback to direct movement if path not found
+                this.player.targetX = tileX * TILE_SIZE + TILE_SIZE / 2;
+                this.player.targetY = tileY * TILE_SIZE + TILE_SIZE / 2;
+            }
             this.player.interactTarget = null;
         }
     }
     
+    // A* Pathfinding implementation
+    findPath(startX, startY, endX, endY) {
+        if (!this.isWalkable(endX, endY)) {
+            // Find nearest walkable tile
+            const alternatives = [
+                {x: endX, y: endY - 1}, {x: endX, y: endY + 1},
+                {x: endX - 1, y: endY}, {x: endX + 1, y: endY},
+                {x: endX - 1, y: endY - 1}, {x: endX + 1, y: endY - 1},
+                {x: endX - 1, y: endY + 1}, {x: endX + 1, y: endY + 1}
+            ];
+            for (const alt of alternatives) {
+                if (this.isWalkable(alt.x, alt.y)) {
+                    endX = alt.x;
+                    endY = alt.y;
+                    break;
+                }
+            }
+        }
+        
+        const openSet = [];
+        const closedSet = new Set();
+        const cameFrom = new Map();
+        const gScore = new Map();
+        const fScore = new Map();
+        
+        const startKey = `${startX},${startY}`;
+        const endKey = `${endX},${endY}`;
+        
+        openSet.push({ x: startX, y: startY });
+        gScore.set(startKey, 0);
+        fScore.set(startKey, this.heuristic(startX, startY, endX, endY));
+        
+        const maxIterations = 1000;
+        let iterations = 0;
+        
+        while (openSet.length > 0 && iterations < maxIterations) {
+            iterations++;
+            
+            // Get node with lowest fScore
+            openSet.sort((a, b) => {
+                const fA = fScore.get(`${a.x},${a.y}`) || Infinity;
+                const fB = fScore.get(`${b.x},${b.y}`) || Infinity;
+                return fA - fB;
+            });
+            
+            const current = openSet.shift();
+            const currentKey = `${current.x},${current.y}`;
+            
+            if (current.x === endX && current.y === endY) {
+                // Reconstruct path
+                return this.reconstructPath(cameFrom, current);
+            }
+            
+            closedSet.add(currentKey);
+            
+            // Check neighbors (8-directional)
+            const neighbors = [
+                {x: current.x, y: current.y - 1},
+                {x: current.x, y: current.y + 1},
+                {x: current.x - 1, y: current.y},
+                {x: current.x + 1, y: current.y},
+                {x: current.x - 1, y: current.y - 1},
+                {x: current.x + 1, y: current.y - 1},
+                {x: current.x - 1, y: current.y + 1},
+                {x: current.x + 1, y: current.y + 1}
+            ];
+            
+            for (const neighbor of neighbors) {
+                const neighborKey = `${neighbor.x},${neighbor.y}`;
+                
+                if (closedSet.has(neighborKey)) continue;
+                if (!this.isWalkable(neighbor.x, neighbor.y)) continue;
+                
+                // Diagonal movement check - don't cut corners
+                if (neighbor.x !== current.x && neighbor.y !== current.y) {
+                    if (!this.isWalkable(current.x, neighbor.y) || 
+                        !this.isWalkable(neighbor.x, current.y)) {
+                        continue;
+                    }
+                }
+                
+                const isDiagonal = neighbor.x !== current.x && neighbor.y !== current.y;
+                const moveCost = isDiagonal ? 1.414 : 1;
+                const tentativeG = (gScore.get(currentKey) || 0) + moveCost;
+                
+                const existingG = gScore.get(neighborKey);
+                if (existingG === undefined || tentativeG < existingG) {
+                    cameFrom.set(neighborKey, current);
+                    gScore.set(neighborKey, tentativeG);
+                    fScore.set(neighborKey, tentativeG + this.heuristic(neighbor.x, neighbor.y, endX, endY));
+                    
+                    if (!openSet.find(n => n.x === neighbor.x && n.y === neighbor.y)) {
+                        openSet.push(neighbor);
+                    }
+                }
+            }
+        }
+        
+        return []; // No path found
+    }
+    
+    heuristic(x1, y1, x2, y2) {
+        // Diagonal distance heuristic
+        const dx = Math.abs(x1 - x2);
+        const dy = Math.abs(y1 - y2);
+        return dx + dy + (1.414 - 2) * Math.min(dx, dy);
+    }
+    
+    reconstructPath(cameFrom, current) {
+        const path = [{ x: current.x, y: current.y }];
+        let currentKey = `${current.x},${current.y}`;
+        
+        while (cameFrom.has(currentKey)) {
+            const prev = cameFrom.get(currentKey);
+            path.unshift({ x: prev.x, y: prev.y });
+            currentKey = `${prev.x},${prev.y}`;
+        }
+        
+        return path;
+    }
+    
     handleRightClick(e) {
-        // Right click for info/cancel
+        // Right click to cancel movement
+        this.navigationState.path = [];
+        this.navigationState.pathIndex = 0;
+        this.navigationState.isMoving = false;
+        this.player.targetX = this.player.x;
+        this.player.targetY = this.player.y;
+        this.player.velocityX = 0;
+        this.player.velocityY = 0;
+        this.player.interactTarget = null;
+        
         if (this.currentDialogue) {
             this.closeDialogue();
         }
@@ -1777,6 +2299,10 @@ class Game {
             this.player.attack += 2;
             this.player.defense += 1;
             
+            // Level up particle burst!
+            this.particles.emit(this.player.x, this.player.y - 20, 'levelup', 30);
+            this.particles.emit(this.player.x, this.player.y, 'magic', 20);
+            
             this.notify(`Level Up! Now level ${this.player.level}!`);
         }
         
@@ -1803,48 +2329,217 @@ class Game {
     }
     
     update(dt) {
-        // Smooth player movement towards target
+        // Handle WASD keyboard movement
+        const wasd = this.navigationState.wasdMovement;
+        let wasdActive = wasd.w || wasd.a || wasd.s || wasd.d;
+        
+        if (wasdActive && !this.inCombat && !this.currentDialogue) {
+            // Cancel pathfinding when using WASD
+            this.navigationState.path = [];
+            this.navigationState.isMoving = false;
+            this.player.interactTarget = null;
+            
+            // Calculate WASD direction
+            let dirX = 0, dirY = 0;
+            if (wasd.w) dirY -= 1;
+            if (wasd.s) dirY += 1;
+            if (wasd.a) dirX -= 1;
+            if (wasd.d) dirX += 1;
+            
+            // Normalize diagonal movement
+            if (dirX !== 0 && dirY !== 0) {
+                dirX *= 0.707;
+                dirY *= 0.707;
+            }
+            
+            // Apply acceleration
+            this.player.velocityX += dirX * this.player.acceleration * 60 * dt;
+            this.player.velocityY += dirY * this.player.acceleration * 60 * dt;
+            
+            // Clamp to max speed
+            const speed = Math.hypot(this.player.velocityX, this.player.velocityY);
+            if (speed > this.player.maxSpeed) {
+                this.player.velocityX = (this.player.velocityX / speed) * this.player.maxSpeed;
+                this.player.velocityY = (this.player.velocityY / speed) * this.player.maxSpeed;
+            }
+        }
+        
+        // Handle click-and-hold continuous movement
+        if (this.navigationState.mouseDown && !wasdActive && !this.inCombat && !this.currentDialogue) {
+            const targetX = this.navigationState.mouseX + this.camera.x;
+            const targetY = this.navigationState.mouseY + this.camera.y;
+            const tileX = Math.floor(targetX / TILE_SIZE);
+            const tileY = Math.floor(targetY / TILE_SIZE);
+            
+            if (this.isWalkable(tileX, tileY)) {
+                this.player.targetX = tileX * TILE_SIZE + TILE_SIZE / 2;
+                this.player.targetY = tileY * TILE_SIZE + TILE_SIZE / 2;
+                this.navigationState.path = [];
+                this.navigationState.isMoving = true;
+            }
+        }
+        
+        // Handle pathfinding movement
+        if (this.navigationState.path.length > 0 && this.navigationState.pathIndex < this.navigationState.path.length) {
+            const currentTarget = this.navigationState.path[this.navigationState.pathIndex];
+            this.player.targetX = currentTarget.x * TILE_SIZE + TILE_SIZE / 2;
+            this.player.targetY = currentTarget.y * TILE_SIZE + TILE_SIZE / 2;
+            
+            const distToWaypoint = Math.hypot(
+                this.player.x - this.player.targetX,
+                this.player.y - this.player.targetY
+            );
+            
+            if (distToWaypoint < TILE_SIZE / 2) {
+                this.navigationState.pathIndex++;
+                if (this.navigationState.pathIndex >= this.navigationState.path.length) {
+                    this.navigationState.path = [];
+                    this.navigationState.isMoving = false;
+                }
+            }
+        }
+        
+        // Movement with acceleration/deceleration
         const dx = this.player.targetX - this.player.x;
         const dy = this.player.targetY - this.player.y;
         const dist = Math.hypot(dx, dy);
         
-        if (dist > 5) {
-            const moveX = (dx / dist) * this.player.speed * 60 * dt;
-            const moveY = (dy / dist) * this.player.speed * 60 * dt;
+        if (dist > 5 && !wasdActive) {
+            // Calculate desired direction
+            const dirX = dx / dist;
+            const dirY = dy / dist;
             
-            // Check collision before moving
-            const newX = this.player.x + moveX;
-            const newY = this.player.y + moveY;
-            const tileX = Math.floor(newX / TILE_SIZE);
-            const tileY = Math.floor(newY / TILE_SIZE);
+            // Apply acceleration towards target
+            this.player.velocityX += dirX * this.player.acceleration * 60 * dt;
+            this.player.velocityY += dirY * this.player.acceleration * 60 * dt;
             
-            if (this.isWalkable(tileX, tileY)) {
-                this.player.x = newX;
-                this.player.y = newY;
-            } else {
-                // Try to move around obstacle
-                if (this.isWalkable(Math.floor((this.player.x + moveX) / TILE_SIZE), Math.floor(this.player.y / TILE_SIZE))) {
-                    this.player.x += moveX;
-                } else if (this.isWalkable(Math.floor(this.player.x / TILE_SIZE), Math.floor((this.player.y + moveY) / TILE_SIZE))) {
-                    this.player.y += moveY;
+            // Clamp to max speed
+            const speed = Math.hypot(this.player.velocityX, this.player.velocityY);
+            if (speed > this.player.maxSpeed) {
+                this.player.velocityX = (this.player.velocityX / speed) * this.player.maxSpeed;
+                this.player.velocityY = (this.player.velocityY / speed) * this.player.maxSpeed;
+            }
+            
+            // Decelerate when approaching target
+            if (dist < 100) {
+                const slowFactor = dist / 100;
+                const targetSpeed = this.player.maxSpeed * slowFactor;
+                if (speed > targetSpeed) {
+                    this.player.velocityX *= 0.95;
+                    this.player.velocityY *= 0.95;
                 }
             }
-        } else if (this.player.interactTarget) {
-            this.interactWithNPC(this.player.interactTarget);
-            this.player.interactTarget = null;
+        } else if (!wasdActive) {
+            // Decelerate when not moving
+            this.player.velocityX *= (1 - this.player.deceleration);
+            this.player.velocityY *= (1 - this.player.deceleration);
+            
+            // Stop completely when slow enough
+            if (Math.abs(this.player.velocityX) < 0.01) this.player.velocityX = 0;
+            if (Math.abs(this.player.velocityY) < 0.01) this.player.velocityY = 0;
+            
+            // Interact with target when reached
+            if (dist <= 5 && this.player.interactTarget) {
+                this.interactWithNPC(this.player.interactTarget);
+                this.player.interactTarget = null;
+            }
         }
         
-        // Smooth camera following
-        this.targetCamera.x = this.player.x - CANVAS_WIDTH / 2;
-        this.targetCamera.y = this.player.y - CANVAS_HEIGHT / 2;
+        // Apply velocity with improved collision detection
+        const newX = this.player.x + this.player.velocityX;
+        const newY = this.player.y + this.player.velocityY;
+        
+        // Check multiple points for better collision
+        const halfSize = TILE_SIZE / 4;
+        const checkPoints = [
+            { x: newX, y: newY },
+            { x: newX - halfSize, y: newY - halfSize },
+            { x: newX + halfSize, y: newY - halfSize },
+            { x: newX - halfSize, y: newY + halfSize },
+            { x: newX + halfSize, y: newY + halfSize }
+        ];
+        
+        let canMoveX = true, canMoveY = true;
+        
+        // Check X movement
+        for (const point of checkPoints) {
+            const tileX = Math.floor((this.player.x + this.player.velocityX + (point.x - newX)) / TILE_SIZE);
+            const tileY = Math.floor((this.player.y + (point.y - newY)) / TILE_SIZE);
+            if (!this.isWalkable(tileX, tileY)) {
+                canMoveX = false;
+                break;
+            }
+        }
+        
+        // Check Y movement
+        for (const point of checkPoints) {
+            const tileX = Math.floor((this.player.x + (point.x - newX)) / TILE_SIZE);
+            const tileY = Math.floor((this.player.y + this.player.velocityY + (point.y - newY)) / TILE_SIZE);
+            if (!this.isWalkable(tileX, tileY)) {
+                canMoveY = false;
+                break;
+            }
+        }
+        
+        // Apply movement with edge sliding
+        if (canMoveX) {
+            this.player.x += this.player.velocityX;
+        } else {
+            this.player.velocityX = 0;
+            // Try to slide along edges
+            if (this.player.velocityX !== 0) {
+                const slideDir = this.player.velocityX > 0 ? 1 : -1;
+                for (let offset = 1; offset <= 3; offset++) {
+                    const testX = this.player.x + slideDir * offset;
+                    const tileX = Math.floor(testX / TILE_SIZE);
+                    const tileY = Math.floor(this.player.y / TILE_SIZE);
+                    if (this.isWalkable(tileX, tileY)) {
+                        this.player.x = testX;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (canMoveY) {
+            this.player.y += this.player.velocityY;
+        } else {
+            this.player.velocityY = 0;
+            // Try to slide along edges
+            if (this.player.velocityY !== 0) {
+                const slideDir = this.player.velocityY > 0 ? 1 : -1;
+                for (let offset = 1; offset <= 3; offset++) {
+                    const testY = this.player.y + slideDir * offset;
+                    const tileX = Math.floor(this.player.x / TILE_SIZE);
+                    const tileY = Math.floor(testY / TILE_SIZE);
+                    if (this.isWalkable(tileX, tileY)) {
+                        this.player.y = testY;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Smooth camera following with dynamic lookahead
+        const lookAheadAmount = 50;
+        const velocityInfluence = 0.3;
+        const lookAheadX = this.player.velocityX * lookAheadAmount * velocityInfluence;
+        const lookAheadY = this.player.velocityY * lookAheadAmount * velocityInfluence;
+        
+        this.targetCamera.x = this.player.x - CANVAS_WIDTH / 2 + lookAheadX;
+        this.targetCamera.y = this.player.y - CANVAS_HEIGHT / 2 + lookAheadY;
         
         // Clamp camera to world bounds
         this.targetCamera.x = Math.max(0, Math.min(this.targetCamera.x, this.world.width * TILE_SIZE - CANVAS_WIDTH));
         this.targetCamera.y = Math.max(0, Math.min(this.targetCamera.y, this.world.height * TILE_SIZE - CANVAS_HEIGHT));
         
-        // Smooth camera interpolation
-        this.camera.x += (this.targetCamera.x - this.camera.x) * 0.08;
-        this.camera.y += (this.targetCamera.y - this.camera.y) * 0.08;
+        // Smoother camera interpolation with damping
+        const cameraSpeed = 0.12;
+        const cameraDist = Math.hypot(this.targetCamera.x - this.camera.x, this.targetCamera.y - this.camera.y);
+        const dynamicSpeed = Math.min(cameraSpeed, cameraDist * 0.01 + 0.05);
+        
+        this.camera.x += (this.targetCamera.x - this.camera.x) * dynamicSpeed;
+        this.camera.y += (this.targetCamera.y - this.camera.y) * dynamicSpeed;
         
         // Check for hostile NPCs in range
         for (const npc of this.npcs) {
@@ -1898,6 +2593,10 @@ class Game {
         chest.opened = true;
         chest.sprite = '📭';
         
+        // Treasure particle burst!
+        this.particles.emit(chest.x, chest.y - 10, 'treasure', 25);
+        this.particles.emit(chest.x, chest.y, 'sparkle', 15);
+        
         let message = 'You opened a treasure chest! ';
         
         if (chest.loot === 'gold') {
@@ -1913,9 +2612,11 @@ class Game {
                 }
             }
             message += `Found ${chest.amount} Health Potion${chest.amount > 1 ? 's' : ''}!`;
+            this.particles.emit(chest.x, chest.y, 'heal', 10);
         } else if (chest.loot === 'weapon' || chest.loot === 'armor') {
             this.player.inventory.push({ item: chest.item });
             message += `Found ${chest.item.name}!`;
+            this.particles.emit(chest.x, chest.y, 'magic', 15);
         }
         
         this.notify(message);
@@ -1962,6 +2663,8 @@ class Game {
     }
     
     render() {
+        const time = performance.now();
+        
         // Fill entire canvas with dark background first
         this.ctx.fillStyle = '#1a1a2e';
         this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -1972,7 +2675,7 @@ class Game {
         const endTileX = Math.ceil((this.camera.x + CANVAS_WIDTH) / TILE_SIZE);
         const endTileY = Math.ceil((this.camera.y + CANVAS_HEIGHT) / TILE_SIZE);
         
-        // Render tiles
+        // Render tiles with enhanced textures
         for (let y = startTileY; y <= endTileY && y < this.world.height; y++) {
             for (let x = startTileX; x <= endTileX && x < this.world.width; x++) {
                 if (y < 0 || x < 0) continue;
@@ -1984,33 +2687,175 @@ class Game {
                 this.ctx.fillStyle = TILE_COLORS[tile];
                 this.ctx.fillRect(screenX, screenY, TILE_SIZE + 1, TILE_SIZE + 1);
                 
-                // Add texture
+                // Enhanced tile textures
                 if (tile === TILES.GRASS) {
-                    this.ctx.fillStyle = 'rgba(0, 50, 0, 0.2)';
-                    if ((x + y) % 3 === 0) {
-                        this.ctx.fillRect(screenX + 10, screenY + 10, 5, 5);
+                    const hash = (x * 31 + y * 17) % 100;
+                    if (hash < 30) {
+                        this.ctx.fillStyle = 'rgba(0, 60, 0, 0.25)';
+                        this.ctx.fillRect(screenX + (hash % 20) + 5, screenY + (hash % 15) + 5, 4, 4);
+                    }
+                    if (hash > 70) {
+                        this.ctx.fillStyle = 'rgba(100, 180, 100, 0.2)';
+                        this.ctx.fillRect(screenX + (hash % 25) + 10, screenY + (hash % 20) + 8, 3, 3);
+                    }
+                    if (hash > 85) {
+                        this.ctx.fillStyle = 'rgba(255, 255, 100, 0.15)';
+                        this.ctx.beginPath();
+                        this.ctx.arc(screenX + 24, screenY + 24, 2, 0, Math.PI * 2);
+                        this.ctx.fill();
                     }
                 } else if (tile === TILES.WATER) {
-                    this.ctx.fillStyle = 'rgba(100, 150, 255, 0.3)';
-                    const waveOffset = Math.sin((x + y + performance.now() / 500) * 0.5) * 5;
-                    this.ctx.fillRect(screenX + waveOffset, screenY + 20, 30, 3);
+                    const wave1 = Math.sin((x * 0.8 + y * 0.5 + time / 400) * 0.8) * 8;
+                    const wave2 = Math.sin((x * 0.5 + y * 0.8 + time / 600) * 0.6) * 5;
+                    this.ctx.fillStyle = 'rgba(80, 140, 255, 0.35)';
+                    this.ctx.fillRect(screenX + wave1 + 5, screenY + 15, 25, 4);
+                    this.ctx.fillStyle = 'rgba(150, 200, 255, 0.25)';
+                    this.ctx.fillRect(screenX + wave2 + 18, screenY + 32, 20, 3);
+                    const shimmer = Math.sin(time / 300 + x + y) * 0.3 + 0.2;
+                    if (shimmer > 0.3) {
+                        this.ctx.fillStyle = `rgba(255, 255, 255, ${shimmer * 0.3})`;
+                        this.ctx.fillRect(screenX + ((x * 13 + y * 7) % 30) + 8, screenY + ((x * 7 + y * 11) % 25) + 10, 3, 2);
+                    }
+                } else if (tile === TILES.SAND) {
+                    const hash = (x * 23 + y * 31) % 100;
+                    if (hash < 40) {
+                        this.ctx.fillStyle = 'rgba(180, 150, 100, 0.2)';
+                        this.ctx.fillRect(screenX + (hash % 30) + 5, screenY + (hash % 25) + 5, 3, 3);
+                    }
+                    if (hash > 60) {
+                        this.ctx.fillStyle = 'rgba(255, 240, 200, 0.15)';
+                        this.ctx.fillRect(screenX + (hash % 20) + 15, screenY + (hash % 18) + 12, 2, 2);
+                    }
+                } else if (tile === TILES.SNOW) {
+                    const sparkle = Math.sin(time / 200 + x * 3 + y * 2) * 0.5 + 0.5;
+                    if (sparkle > 0.7) {
+                        this.ctx.fillStyle = `rgba(255, 255, 255, ${sparkle * 0.6})`;
+                        this.ctx.beginPath();
+                        this.ctx.arc(screenX + ((x * 17 + y * 13) % 35) + 8, screenY + ((x * 11 + y * 19) % 30) + 8, 2, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                    const hash = (x * 29 + y * 37) % 100;
+                    if (hash < 25) {
+                        this.ctx.fillStyle = 'rgba(200, 210, 230, 0.25)';
+                        this.ctx.fillRect(screenX + (hash % 25) + 10, screenY + (hash % 20) + 10, 4, 4);
+                    }
+                } else if (tile === TILES.LAVA) {
+                    const glow = Math.sin(time / 150 + x * 2 + y) * 0.4 + 0.6;
+                    this.ctx.fillStyle = `rgba(255, 150, 0, ${glow * 0.4})`;
+                    this.ctx.fillRect(screenX, screenY, TILE_SIZE + 1, TILE_SIZE + 1);
+                    const bubble = Math.sin(time / 100 + x * 5 + y * 3);
+                    if (bubble > 0.8) {
+                        this.ctx.fillStyle = 'rgba(255, 200, 50, 0.7)';
+                        this.ctx.beginPath();
+                        this.ctx.arc(screenX + ((x * 13 + y * 17) % 30) + 10, screenY + ((x * 7 + y * 11) % 25) + 10, 4 + bubble * 3, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                } else if (tile === TILES.STONE) {
+                    const hash = (x * 41 + y * 47) % 100;
+                    if (hash < 35) {
+                        this.ctx.fillStyle = 'rgba(80, 80, 90, 0.3)';
+                        this.ctx.fillRect(screenX + (hash % 25) + 8, screenY + (hash % 20) + 8, 6, 4);
+                    }
+                    if (hash > 65) {
+                        this.ctx.fillStyle = 'rgba(120, 120, 130, 0.2)';
+                        this.ctx.fillRect(screenX + (hash % 18) + 18, screenY + (hash % 22) + 15, 5, 5);
+                    }
+                } else if (tile === TILES.DIRT) {
+                    const hash = (x * 37 + y * 43) % 100;
+                    if (hash < 30) {
+                        this.ctx.fillStyle = 'rgba(100, 70, 50, 0.25)';
+                        this.ctx.fillRect(screenX + (hash % 28) + 6, screenY + (hash % 24) + 6, 4, 3);
+                    }
                 }
             }
         }
         
-        // Render decorations
+        // Render path preview (when hovering)
+        if (this.navigationState.showPathPreview && this.navigationState.previewPath.length > 1) {
+            this.ctx.strokeStyle = 'rgba(100, 200, 255, 0.4)';
+            this.ctx.lineWidth = 3;
+            this.ctx.setLineDash([8, 8]);
+            this.ctx.beginPath();
+            
+            const firstNode = this.navigationState.previewPath[0];
+            this.ctx.moveTo(
+                firstNode.x * TILE_SIZE + TILE_SIZE / 2 - this.camera.x,
+                firstNode.y * TILE_SIZE + TILE_SIZE / 2 - this.camera.y
+            );
+            
+            for (let i = 1; i < this.navigationState.previewPath.length; i++) {
+                const node = this.navigationState.previewPath[i];
+                this.ctx.lineTo(
+                    node.x * TILE_SIZE + TILE_SIZE / 2 - this.camera.x,
+                    node.y * TILE_SIZE + TILE_SIZE / 2 - this.camera.y
+                );
+            }
+            
+            this.ctx.stroke();
+            this.ctx.setLineDash([]);
+            
+            // Draw destination marker
+            const lastNode = this.navigationState.previewPath[this.navigationState.previewPath.length - 1];
+            const destX = lastNode.x * TILE_SIZE + TILE_SIZE / 2 - this.camera.x;
+            const destY = lastNode.y * TILE_SIZE + TILE_SIZE / 2 - this.camera.y;
+            
+            this.ctx.fillStyle = 'rgba(100, 200, 255, 0.6)';
+            this.ctx.beginPath();
+            this.ctx.arc(destX, destY, 8 + Math.sin(time / 200) * 2, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        
+        // Render active path (when moving via pathfinding)
+        if (this.navigationState.path.length > this.navigationState.pathIndex) {
+            this.ctx.strokeStyle = 'rgba(255, 255, 100, 0.3)';
+            this.ctx.lineWidth = 2;
+            this.ctx.setLineDash([5, 5]);
+            this.ctx.beginPath();
+            
+            this.ctx.moveTo(this.player.x - this.camera.x, this.player.y - this.camera.y);
+            
+            for (let i = this.navigationState.pathIndex; i < this.navigationState.path.length; i++) {
+                const node = this.navigationState.path[i];
+                this.ctx.lineTo(
+                    node.x * TILE_SIZE + TILE_SIZE / 2 - this.camera.x,
+                    node.y * TILE_SIZE + TILE_SIZE / 2 - this.camera.y
+                );
+            }
+            
+            this.ctx.stroke();
+            this.ctx.setLineDash([]);
+            
+            // Draw current waypoint
+            if (this.navigationState.pathIndex < this.navigationState.path.length) {
+                const current = this.navigationState.path[this.navigationState.pathIndex];
+                this.ctx.fillStyle = 'rgba(255, 255, 100, 0.5)';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    current.x * TILE_SIZE + TILE_SIZE / 2 - this.camera.x,
+                    current.y * TILE_SIZE + TILE_SIZE / 2 - this.camera.y,
+                    6, 0, Math.PI * 2
+                );
+                this.ctx.fill();
+            }
+        }
+        
+        // Render decorations with shadow
         for (const deco of this.decorations) {
             const screenX = deco.x - this.camera.x;
             const screenY = deco.y - this.camera.y;
             
             if (screenX > -TILE_SIZE && screenX < CANVAS_WIDTH + TILE_SIZE &&
                 screenY > -TILE_SIZE && screenY < CANVAS_HEIGHT + TILE_SIZE) {
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                this.ctx.beginPath();
+                this.ctx.ellipse(screenX, screenY + 12, 12, 6, 0, 0, Math.PI * 2);
+                this.ctx.fill();
                 this.ctx.font = '32px Arial';
                 this.ctx.fillText(deco.sprite, screenX, screenY);
             }
         }
         
-        // Render NPCs
+        // Render NPCs with enhanced visuals
         for (const npc of this.npcs) {
             if (!npc.alive) continue;
             
@@ -2020,129 +2865,342 @@ class Game {
             if (screenX > -TILE_SIZE && screenX < CANVAS_WIDTH + TILE_SIZE &&
                 screenY > -TILE_SIZE && screenY < CANVAS_HEIGHT + TILE_SIZE) {
                 
+                const dist = Math.hypot(npc.x - this.player.x, npc.y - this.player.y);
+                const isNearby = dist < 120;
+                const isHovered = this.hoveredNPC === npc;
+                
                 // NPC shadow
-                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
                 this.ctx.beginPath();
-                this.ctx.ellipse(screenX, screenY + 15, 15, 8, 0, 0, Math.PI * 2);
+                this.ctx.ellipse(screenX, screenY + 15, 16, 9, 0, 0, Math.PI * 2);
                 this.ctx.fill();
                 
-                // NPC sprite
-                this.ctx.font = '36px Arial';
+                // Interaction glow for nearby friendly NPCs
+                if (isNearby && !npc.hostile) {
+                    const pulse = Math.sin(time / 300) * 0.2 + 0.4;
+                    this.ctx.save();
+                    this.ctx.shadowColor = '#44ff88';
+                    this.ctx.shadowBlur = 15 + Math.sin(time / 200) * 5;
+                    this.ctx.fillStyle = `rgba(68, 255, 136, ${pulse * 0.3})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(screenX, screenY - 5, 25, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.restore();
+                }
+                
+                // Hostile indicator
+                if (npc.hostile && isNearby) {
+                    const pulse = Math.sin(time / 200) * 0.3 + 0.5;
+                    this.ctx.save();
+                    this.ctx.shadowColor = '#ff4444';
+                    this.ctx.shadowBlur = 12;
+                    this.ctx.strokeStyle = `rgba(255, 68, 68, ${pulse})`;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.arc(screenX, screenY - 5, 28, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                    this.ctx.restore();
+                }
+                
+                // NPC sprite with hover effect
+                this.ctx.font = isHovered ? '40px Arial' : '36px Arial';
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText(npc.type.sprite, screenX, screenY);
                 
-                // NPC name
+                // NPC name with background
                 this.ctx.font = '12px Arial';
-                this.ctx.fillStyle = npc.hostile ? '#ff6666' : '#ffffff';
+                const nameWidth = this.ctx.measureText(npc.name).width;
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                this.ctx.fillRect(screenX - nameWidth / 2 - 4, screenY - 37, nameWidth + 8, 16);
+                this.ctx.fillStyle = npc.hostile ? '#ff6666' : (npc.type.name === 'Shopkeeper' ? '#ffcc44' : '#ffffff');
                 this.ctx.fillText(npc.name, screenX, screenY - 25);
                 
-                // Health bar for hostile NPCs
-                if (npc.hostile && npc.health < npc.maxHealth) {
-                    this.ctx.fillStyle = '#333';
-                    this.ctx.fillRect(screenX - 20, screenY - 40, 40, 6);
-                    this.ctx.fillStyle = '#ff4444';
-                    this.ctx.fillRect(screenX - 20, screenY - 40, 40 * (npc.health / npc.maxHealth), 6);
+                // Health bar for all NPCs when damaged
+                if (npc.health < npc.maxHealth) {
+                    const barWidth = 44;
+                    const healthPercent = npc.health / npc.maxHealth;
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                    this.ctx.fillRect(screenX - barWidth / 2 - 2, screenY - 52, barWidth + 4, 10);
+                    this.ctx.fillStyle = '#222';
+                    this.ctx.fillRect(screenX - barWidth / 2, screenY - 50, barWidth, 6);
+                    const healthColor = healthPercent > 0.5 ? '#44cc44' : (healthPercent > 0.25 ? '#cccc44' : '#cc4444');
+                    this.ctx.fillStyle = healthColor;
+                    this.ctx.fillRect(screenX - barWidth / 2, screenY - 50, barWidth * healthPercent, 6);
+                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.strokeRect(screenX - barWidth / 2, screenY - 50, barWidth, 6);
+                }
+                
+                // Interaction hint for nearby friendly NPCs
+                if (isNearby && !npc.hostile) {
+                    const bobOffset = Math.sin(time / 250) * 3;
+                    this.ctx.font = '14px Arial';
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    this.ctx.fillText('💬', screenX + 25, screenY - 15 + bobOffset);
                 }
             }
         }
         
-        // Render treasure chests
+        // Render treasure chests with enhanced effects
         for (const chest of this.treasureChests) {
             const screenX = chest.x - this.camera.x;
             const screenY = chest.y - this.camera.y;
             
             if (screenX > -TILE_SIZE && screenX < CANVAS_WIDTH + TILE_SIZE &&
                 screenY > -TILE_SIZE && screenY < CANVAS_HEIGHT + TILE_SIZE) {
+                
+                // Chest shadow
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                this.ctx.beginPath();
+                this.ctx.ellipse(screenX, screenY + 10, 14, 7, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Chest glow for unopened
+                if (!chest.opened) {
+                    const glow = Math.sin(time / 300) * 0.3 + 0.5;
+                    this.ctx.save();
+                    this.ctx.shadowColor = '#ffd700';
+                    this.ctx.shadowBlur = 15 + Math.sin(time / 200) * 8;
+                    this.ctx.fillStyle = `rgba(255, 215, 0, ${glow * 0.2})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(screenX, screenY, 22, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.restore();
+                }
+                
                 this.ctx.font = '28px Arial';
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText(chest.sprite, screenX, screenY);
                 
-                // Sparkle effect for unopened chests
+                // Enhanced sparkle effect for unopened chests
                 if (!chest.opened) {
-                    const sparkleOffset = Math.sin(performance.now() / 200) * 3;
-                    this.ctx.fillText('✨', screenX + sparkleOffset, screenY - 15);
+                    const sparkle1 = Math.sin(time / 200) * 5;
+                    const sparkle2 = Math.cos(time / 250) * 4;
+                    this.ctx.fillText('✨', screenX + sparkle1, screenY - 18);
+                    this.ctx.font = '16px Arial';
+                    this.ctx.fillText('✨', screenX - 15 + sparkle2, screenY - 8);
+                    this.ctx.fillText('✨', screenX + 15 - sparkle2, screenY - 5);
                 }
             }
         }
         
-        // Render player
+        // Render player with enhanced visuals
         const playerScreenX = this.player.x - this.camera.x;
         const playerScreenY = this.player.y - this.camera.y;
         
         // Player shadow
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
         this.ctx.beginPath();
-        this.ctx.ellipse(playerScreenX, playerScreenY + 18, 18, 10, 0, 0, Math.PI * 2);
+        this.ctx.ellipse(playerScreenX, playerScreenY + 18, 20, 11, 0, 0, Math.PI * 2);
         this.ctx.fill();
+        
+        // Player glow based on health
+        const healthPercent = this.player.health / this.player.maxHealth;
+        if (healthPercent < 0.3) {
+            const pulse = Math.sin(time / 150) * 0.3 + 0.5;
+            this.ctx.save();
+            this.ctx.shadowColor = '#ff4444';
+            this.ctx.shadowBlur = 20;
+            this.ctx.fillStyle = `rgba(255, 68, 68, ${pulse * 0.15})`;
+            this.ctx.beginPath();
+            this.ctx.arc(playerScreenX, playerScreenY, 30, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        }
         
         // Player sprite
         this.ctx.font = '42px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.fillText(this.player.sprite, playerScreenX, playerScreenY);
         
-        // Movement indicator
+        // Movement indicator with enhanced visuals
         if (Math.hypot(this.player.targetX - this.player.x, this.player.targetY - this.player.y) > 10) {
             const targetScreenX = this.player.targetX - this.camera.x;
             const targetScreenY = this.player.targetY - this.camera.y;
             
-            this.ctx.strokeStyle = 'rgba(255, 255, 100, 0.5)';
+            // Animated dashed line
+            const dashOffset = (time / 50) % 20;
+            this.ctx.strokeStyle = 'rgba(255, 255, 100, 0.4)';
             this.ctx.lineWidth = 2;
-            this.ctx.setLineDash([5, 5]);
+            this.ctx.setLineDash([8, 8]);
+            this.ctx.lineDashOffset = -dashOffset;
             this.ctx.beginPath();
             this.ctx.moveTo(playerScreenX, playerScreenY);
             this.ctx.lineTo(targetScreenX, targetScreenY);
             this.ctx.stroke();
             this.ctx.setLineDash([]);
+            this.ctx.lineDashOffset = 0;
             
-            // Target marker
-            this.ctx.strokeStyle = 'rgba(255, 255, 100, 0.8)';
+            // Pulsing target marker
+            const pulse = Math.sin(time / 200) * 3 + 12;
+            this.ctx.strokeStyle = 'rgba(255, 255, 100, 0.7)';
+            this.ctx.lineWidth = 2;
             this.ctx.beginPath();
-            this.ctx.arc(targetScreenX, targetScreenY, 10, 0, Math.PI * 2);
+            this.ctx.arc(targetScreenX, targetScreenY, pulse, 0, Math.PI * 2);
             this.ctx.stroke();
+            
+            // Inner marker
+            this.ctx.fillStyle = 'rgba(255, 255, 100, 0.3)';
+            this.ctx.beginPath();
+            this.ctx.arc(targetScreenX, targetScreenY, 5, 0, Math.PI * 2);
+            this.ctx.fill();
         }
         
-        // Day/night cycle overlay
+        // Update and render particles
+        this.particles.update();
+        this.particles.render(this.ctx, this.camera.x, this.camera.y);
+        
+        // Determine current region for ambient particles
+        const tileX = Math.floor(this.player.x / TILE_SIZE);
+        const tileY = Math.floor(this.player.y / TILE_SIZE);
+        let currentRegion = 'default';
+        if (tileY < 20) currentRegion = 'snow';
+        else if (tileX > 165 && tileY < 25) currentRegion = 'lava';
+        else if (tileX > 90 && tileX < 115 && tileY > 65 && tileY < 85) currentRegion = 'forest';
+        else if (tileX > 110 && tileX < 135 && tileY > 95) currentRegion = 'swamp';
+        
+        // Update ambient particles
+        this.particles.updateAmbientParticles(this.camera.x, this.camera.y, currentRegion, this.weather, this.timeOfDay);
+        for (const p of this.particles.ambientParticles) {
+            if (p.startX === undefined) {
+                p.startX = this.camera.x;
+                p.startY = this.camera.y;
+            }
+        }
+        this.particles.renderAmbient(this.ctx, this.camera.x, this.camera.y, this.weather);
+        
+        // Enhanced day/night cycle overlay
         if (this.dayNightCycle) {
             let alpha = 0;
+            let overlayColor = '';
+            
             if (this.timeOfDay >= 20 || this.timeOfDay < 6) {
-                // Night time
+                // Night time - deep blue overlay with stars
                 const nightHour = this.timeOfDay >= 20 ? this.timeOfDay - 20 : this.timeOfDay + 4;
-                alpha = Math.min(0.5, nightHour < 5 ? 0.5 : (10 - nightHour) / 10);
-                this.ctx.fillStyle = `rgba(20, 20, 60, ${alpha})`;
+                alpha = Math.min(0.55, nightHour < 5 ? 0.55 : (10 - nightHour) / 10);
+                
+                // Create gradient for night
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+                gradient.addColorStop(0, `rgba(10, 10, 40, ${alpha})`);
+                gradient.addColorStop(1, `rgba(20, 25, 60, ${alpha * 0.8})`);
+                this.ctx.fillStyle = gradient;
                 this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                
+                // Stars at night
+                if (alpha > 0.3) {
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${(alpha - 0.2) * 0.8})`;
+                    for (let i = 0; i < 30; i++) {
+                        const starX = ((i * 47 + 13) % CANVAS_WIDTH);
+                        const starY = ((i * 31 + 7) % (CANVAS_HEIGHT * 0.4));
+                        const twinkle = Math.sin(time / 500 + i) * 0.5 + 0.5;
+                        this.ctx.globalAlpha = twinkle * (alpha - 0.2);
+                        this.ctx.beginPath();
+                        this.ctx.arc(starX, starY, 1 + (i % 2), 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                    this.ctx.globalAlpha = 1;
+                }
             } else if (this.timeOfDay >= 6 && this.timeOfDay < 8) {
-                // Dawn
-                alpha = (8 - this.timeOfDay) / 4 * 0.3;
-                this.ctx.fillStyle = `rgba(255, 150, 100, ${alpha})`;
+                // Dawn - warm orange/pink gradient
+                alpha = (8 - this.timeOfDay) / 4 * 0.35;
+                const gradient = this.ctx.createLinearGradient(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                gradient.addColorStop(0, `rgba(255, 180, 120, ${alpha})`);
+                gradient.addColorStop(0.5, `rgba(255, 150, 100, ${alpha * 0.7})`);
+                gradient.addColorStop(1, `rgba(255, 200, 150, ${alpha * 0.5})`);
+                this.ctx.fillStyle = gradient;
                 this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             } else if (this.timeOfDay >= 18 && this.timeOfDay < 20) {
-                // Dusk
-                alpha = (this.timeOfDay - 18) / 4 * 0.3;
-                this.ctx.fillStyle = `rgba(255, 100, 50, ${alpha})`;
+                // Dusk - warm red/orange gradient
+                alpha = (this.timeOfDay - 18) / 4 * 0.4;
+                const gradient = this.ctx.createLinearGradient(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                gradient.addColorStop(0, `rgba(255, 100, 50, ${alpha})`);
+                gradient.addColorStop(0.5, `rgba(255, 80, 60, ${alpha * 0.8})`);
+                gradient.addColorStop(1, `rgba(200, 60, 80, ${alpha * 0.6})`);
+                this.ctx.fillStyle = gradient;
                 this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
         }
         
-        // Weather effects
+        // Enhanced weather effects
         if (this.weather === 'foggy') {
-            this.ctx.fillStyle = 'rgba(200, 200, 220, 0.3)';
+            // Layered fog effect
+            const fogGradient = this.ctx.createRadialGradient(
+                CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 100,
+                CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_WIDTH
+            );
+            fogGradient.addColorStop(0, 'rgba(200, 200, 220, 0.15)');
+            fogGradient.addColorStop(0.5, 'rgba(180, 180, 200, 0.25)');
+            fogGradient.addColorStop(1, 'rgba(150, 150, 180, 0.35)');
+            this.ctx.fillStyle = fogGradient;
             this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Drifting fog wisps
+            for (let i = 0; i < 5; i++) {
+                const wispX = ((time / 50 + i * 300) % (CANVAS_WIDTH + 200)) - 100;
+                const wispY = 200 + i * 100 + Math.sin(time / 1000 + i) * 50;
+                const gradient = this.ctx.createRadialGradient(wispX, wispY, 0, wispX, wispY, 150);
+                gradient.addColorStop(0, 'rgba(200, 200, 220, 0.2)');
+                gradient.addColorStop(1, 'rgba(200, 200, 220, 0)');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(wispX - 150, wispY - 150, 300, 300);
+            }
         } else if (this.weather === 'rainy') {
-            this.ctx.strokeStyle = 'rgba(100, 150, 200, 0.4)';
-            this.ctx.lineWidth = 1;
-            for (let i = 0; i < 100; i++) {
-                const x = (Math.random() * CANVAS_WIDTH);
-                const y = (Math.random() * CANVAS_HEIGHT);
+            // Rain overlay tint
+            this.ctx.fillStyle = 'rgba(100, 120, 150, 0.1)';
+            this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Enhanced rain drops with varying lengths
+            for (let i = 0; i < 150; i++) {
+                const x = (i * 37 + (time / 10)) % CANVAS_WIDTH;
+                const y = (i * 23 + (time / 3)) % CANVAS_HEIGHT;
+                const length = 10 + (i % 8);
+                const alpha = 0.3 + (i % 3) * 0.1;
+                
+                this.ctx.strokeStyle = `rgba(150, 180, 220, ${alpha})`;
+                this.ctx.lineWidth = 1;
                 this.ctx.beginPath();
                 this.ctx.moveTo(x, y);
-                this.ctx.lineTo(x + 5, y + 15);
+                this.ctx.lineTo(x + 3, y + length);
+                this.ctx.stroke();
+            }
+            
+            // Puddle reflections on ground
+            for (let i = 0; i < 8; i++) {
+                const px = ((i * 157 + 50) % CANVAS_WIDTH);
+                const py = 500 + ((i * 73) % 150);
+                const ripple = Math.sin(time / 200 + i * 2) * 2 + 10;
+                this.ctx.strokeStyle = 'rgba(150, 180, 220, 0.15)';
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.ellipse(px, py, ripple, ripple * 0.4, 0, 0, Math.PI * 2);
                 this.ctx.stroke();
             }
         } else if (this.weather === 'stormy') {
-            this.ctx.fillStyle = 'rgba(50, 50, 80, 0.2)';
+            // Dark storm overlay
+            this.ctx.fillStyle = 'rgba(40, 40, 60, 0.25)';
             this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            if (Math.random() < 0.01) {
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            
+            // Heavy rain
+            for (let i = 0; i < 200; i++) {
+                const x = (i * 31 + (time / 8)) % CANVAS_WIDTH;
+                const y = (i * 19 + (time / 2.5)) % CANVAS_HEIGHT;
+                const length = 15 + (i % 10);
+                
+                this.ctx.strokeStyle = `rgba(150, 170, 200, ${0.25 + (i % 4) * 0.08})`;
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y);
+                this.ctx.lineTo(x + 4, y + length);
+                this.ctx.stroke();
+            }
+            
+            // Lightning flash
+            if (Math.random() < 0.008) {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            } else if (Math.random() < 0.015) {
+                // Distant lightning glow
+                this.ctx.fillStyle = 'rgba(200, 200, 255, 0.2)';
                 this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
         }
@@ -2153,42 +3211,141 @@ class Game {
     
     renderMinimap() {
         const mmCtx = this.minimapCtx;
-        const scale = 150 / (this.world.width * TILE_SIZE);
+        const time = performance.now();
         
-        mmCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        // Background with gradient
+        const bgGradient = mmCtx.createLinearGradient(0, 0, 150, 150);
+        bgGradient.addColorStop(0, 'rgba(20, 20, 40, 0.85)');
+        bgGradient.addColorStop(1, 'rgba(10, 10, 30, 0.9)');
+        mmCtx.fillStyle = bgGradient;
         mmCtx.fillRect(0, 0, 150, 150);
         
         // Draw simplified map
         const tileScale = 150 / this.world.width;
+        const yScale = 150 / this.world.height;
         for (let y = 0; y < this.world.height; y += 3) {
             for (let x = 0; x < this.world.width; x += 3) {
                 const tile = this.world.map[y][x];
                 mmCtx.fillStyle = TILE_COLORS[tile];
-                mmCtx.fillRect(x * tileScale / 3, y * tileScale / 3 * (150 / this.world.height), 
-                              tileScale, tileScale);
+                mmCtx.fillRect(x * tileScale / 3, y * yScale, tileScale, tileScale);
             }
         }
         
-        // Draw player position
-        const playerMmX = (this.player.x / TILE_SIZE) * tileScale / 3;
-        const playerMmY = (this.player.y / TILE_SIZE) * tileScale / 3 * (150 / this.world.height);
+        // Location markers
+        const locations = [
+            { name: 'Village', x: 50, y: 75, icon: '🏘️', discovered: this.discoveredLocations.has('Starting Village') },
+            { name: 'Forest', x: 100, y: 75, icon: '🌲', discovered: this.discoveredLocations.has('Dark Forest') },
+            { name: 'Pirate', x: 150, y: 90, icon: '🏴‍☠️', discovered: this.discoveredLocations.has('Pirate Cove') },
+            { name: 'Western', x: 80, y: 40, icon: '🤠', discovered: this.discoveredLocations.has('Western Town') },
+            { name: 'Castle', x: 30, y: 50, icon: '🏰', discovered: this.discoveredLocations.has('Medieval Castle') },
+            { name: 'Swamp', x: 120, y: 100, icon: '🐸', discovered: this.discoveredLocations.has('Mystic Swamp') },
+            { name: 'Mountain', x: 100, y: 20, icon: '⛰️', discovered: this.discoveredLocations.has('Mountain Pass') },
+            { name: 'Dragon', x: 180, y: 12, icon: '🐉', discovered: this.discoveredLocations.has("Dragon's Lair") }
+        ];
         
-        mmCtx.fillStyle = '#ffff00';
-        mmCtx.beginPath();
-        mmCtx.arc(playerMmX, playerMmY, 4, 0, Math.PI * 2);
-        mmCtx.fill();
+        for (const loc of locations) {
+            const locX = loc.x * tileScale / 3;
+            const locY = loc.y * yScale;
+            
+            if (loc.discovered) {
+                mmCtx.font = '10px Arial';
+                mmCtx.textAlign = 'center';
+                mmCtx.fillText(loc.icon, locX, locY + 4);
+            } else {
+                const pulse = Math.sin(time / 500 + loc.x) * 0.3 + 0.7;
+                mmCtx.fillStyle = `rgba(100, 100, 100, ${pulse * 0.5})`;
+                mmCtx.beginPath();
+                mmCtx.arc(locX, locY, 3, 0, Math.PI * 2);
+                mmCtx.fill();
+            }
+        }
+        
+        // Draw treasure chests on minimap
+        for (const chest of this.treasureChests) {
+            if (chest.opened) continue;
+            const chestX = (chest.x / TILE_SIZE) * tileScale / 3;
+            const chestY = (chest.y / TILE_SIZE) * yScale;
+            const sparkle = Math.sin(time / 300 + chest.x) * 0.5 + 0.5;
+            
+            mmCtx.fillStyle = `rgba(255, 215, 0, ${0.4 + sparkle * 0.4})`;
+            mmCtx.beginPath();
+            mmCtx.arc(chestX, chestY, 2, 0, Math.PI * 2);
+            mmCtx.fill();
+        }
         
         // Draw NPCs as dots
         for (const npc of this.npcs) {
             if (!npc.alive) continue;
             const npcMmX = (npc.x / TILE_SIZE) * tileScale / 3;
-            const npcMmY = (npc.y / TILE_SIZE) * tileScale / 3 * (150 / this.world.height);
+            const npcMmY = (npc.y / TILE_SIZE) * yScale;
             
-            mmCtx.fillStyle = npc.hostile ? '#ff4444' : '#44ff44';
+            if (npc.hostile) {
+                const pulse = Math.sin(time / 200 + npc.x) * 0.3 + 0.7;
+                mmCtx.fillStyle = `rgba(255, 68, 68, ${pulse})`;
+            } else {
+                mmCtx.fillStyle = '#44ff88';
+            }
             mmCtx.beginPath();
-            mmCtx.arc(npcMmX, npcMmY, 2, 0, Math.PI * 2);
+            mmCtx.arc(npcMmX, npcMmY, npc.hostile ? 2.5 : 2, 0, Math.PI * 2);
             mmCtx.fill();
         }
+        
+        // Draw player position with glow
+        const playerMmX = (this.player.x / TILE_SIZE) * tileScale / 3;
+        const playerMmY = (this.player.y / TILE_SIZE) * yScale;
+        
+        // Player glow
+        const playerPulse = Math.sin(time / 300) * 2 + 6;
+        mmCtx.save();
+        mmCtx.shadowColor = '#ffff00';
+        mmCtx.shadowBlur = 8;
+        mmCtx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+        mmCtx.beginPath();
+        mmCtx.arc(playerMmX, playerMmY, playerPulse, 0, Math.PI * 2);
+        mmCtx.fill();
+        mmCtx.restore();
+        
+        // Player dot
+        mmCtx.fillStyle = '#ffff00';
+        mmCtx.beginPath();
+        mmCtx.arc(playerMmX, playerMmY, 4, 0, Math.PI * 2);
+        mmCtx.fill();
+        
+        // Direction indicator
+        const angle = Math.atan2(this.player.targetY - this.player.y, this.player.targetX - this.player.x);
+        mmCtx.strokeStyle = 'rgba(255, 255, 0, 0.6)';
+        mmCtx.lineWidth = 2;
+        mmCtx.beginPath();
+        mmCtx.moveTo(playerMmX, playerMmY);
+        mmCtx.lineTo(playerMmX + Math.cos(angle) * 8, playerMmY + Math.sin(angle) * 8);
+        mmCtx.stroke();
+        
+        // Camera viewport indicator
+        const viewX = (this.camera.x / TILE_SIZE) * tileScale / 3;
+        const viewY = (this.camera.y / TILE_SIZE) * yScale;
+        const viewW = (CANVAS_WIDTH / TILE_SIZE) * tileScale / 3;
+        const viewH = (CANVAS_HEIGHT / TILE_SIZE) * yScale;
+        
+        mmCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        mmCtx.lineWidth = 1;
+        mmCtx.strokeRect(viewX, viewY, viewW, viewH);
+        
+        // Minimap border
+        mmCtx.strokeStyle = 'rgba(100, 100, 150, 0.6)';
+        mmCtx.lineWidth = 2;
+        mmCtx.strokeRect(1, 1, 148, 148);
+        
+        // Compass indicator
+        mmCtx.font = '10px Arial';
+        mmCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        mmCtx.textAlign = 'center';
+        mmCtx.fillText('N', 75, 12);
+        
+        // Click-to-move hint
+        mmCtx.font = '8px Arial';
+        mmCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        mmCtx.textAlign = 'left';
+        mmCtx.fillText('Click to move', 4, 145);
     }
 }
 
@@ -2237,6 +3394,7 @@ class CombatSystem {
                     this.game.player.health + healAmount,
                     this.game.player.maxHealth
                 );
+                this.game.particles.emit(this.game.player.x, this.game.player.y - 10, 'heal', 20);
                 this.log(`You heal for ${healAmount} HP!`);
                 break;
             case 'flee':
@@ -2282,12 +3440,21 @@ class CombatSystem {
         damage = Math.floor(damage * (0.8 + Math.random() * 0.4));
         
         // Critical hit
-        if (Math.random() < 0.1) {
+        const isCritical = Math.random() < 0.1;
+        if (isCritical) {
             damage *= 2;
             this.log('CRITICAL HIT!');
         }
         
         defender.health -= damage;
+        
+        // Combat hit particles
+        const targetX = defender === this.game.player ? this.game.player.x : this.enemy.x;
+        const targetY = defender === this.game.player ? this.game.player.y : this.enemy.y;
+        this.game.particles.emit(targetX, targetY - 10, 'combat_hit', isCritical ? 20 : 12);
+        if (isHeavy) {
+            this.game.particles.emit(targetX, targetY, 'fire', 8);
+        }
         
         const attackerName = attacker === this.game.player ? 'You' : attacker.name;
         const defenderName = defender === this.game.player ? 'you' : defender.name;
