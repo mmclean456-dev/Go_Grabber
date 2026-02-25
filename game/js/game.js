@@ -815,6 +815,9 @@ class Game {
         
         document.getElementById('start-btn').addEventListener('click', () => {
             document.getElementById('loading-screen').style.display = 'none';
+            // Initialize sound system on user interaction
+            soundSystem.init();
+            soundSystem.playClick();
             this.start();
         });
     }
@@ -2139,6 +2142,7 @@ class Game {
         if (!item || this.player.gold < item.price) return;
         
         this.player.gold -= item.price;
+        this.itemsBought++;
         
         // Add to inventory
         if (item.stackable) {
@@ -2248,6 +2252,7 @@ class Game {
             // Equip new weapon
             this.player.equipment.weapon = item;
             this.player.attack += item.attack;
+            soundSystem.playItemEquip();
             this.notify(`Equipped ${item.name}`);
         } else if (item.type === 'armor') {
             if (this.player.equipment.armor) {
@@ -2255,10 +2260,13 @@ class Game {
             }
             this.player.equipment.armor = item;
             this.player.defense += item.defense;
+            soundSystem.playItemEquip();
             this.notify(`Equipped ${item.name}`);
         } else if (item.type === 'consumable') {
             if (item.heal) {
                 this.player.health = Math.min(this.player.health + item.heal, this.player.maxHealth);
+                soundSystem.playPotionDrink();
+                soundSystem.playHealChime();
                 this.notify(`+${item.heal} Health`);
             }
             
@@ -2410,8 +2418,343 @@ class Game {
         this.closeDialogue();
     }
     
+    // ==================== FAST TRAVEL SYSTEM ====================
+    
+    toggleFastTravel() {
+        const panel = document.getElementById('fast-travel-panel');
+        const isVisible = panel.style.display === 'block';
+        
+        if (!isVisible) {
+            this.updateFastTravelDisplay();
+        }
+        
+        panel.style.display = isVisible ? 'none' : 'block';
+    }
+    
+    closeFastTravel() {
+        document.getElementById('fast-travel-panel').style.display = 'none';
+    }
+    
+    updateFastTravelDisplay() {
+        const container = document.getElementById('fast-travel-locations');
+        const costInfo = document.getElementById('fast-travel-cost-info');
+        const cooldownInfo = document.getElementById('fast-travel-cooldown');
+        
+        // Update cost/cooldown info
+        if (this.fastTravelCooldown > 0) {
+            costInfo.style.display = 'none';
+            cooldownInfo.style.display = 'inline';
+            cooldownInfo.textContent = `Cooldown: ${Math.ceil(this.fastTravelCooldown)}s`;
+        } else {
+            costInfo.style.display = 'inline';
+            cooldownInfo.style.display = 'none';
+        }
+        
+        container.innerHTML = '';
+        
+        FAST_TRAVEL_LOCATIONS.forEach(loc => {
+            const isDiscovered = this.discoveredLocations.has(loc.region);
+            const canAfford = this.player.gold >= 10;
+            const canTravel = isDiscovered && (canAfford || this.fastTravelCooldown <= 0);
+            const isCurrentLocation = this.isPlayerAtLocation(loc);
+            
+            const div = document.createElement('div');
+            div.className = `fast-travel-location ${(!isDiscovered || isCurrentLocation) ? 'disabled' : ''}`;
+            
+            div.innerHTML = `
+                <div class="location-info">
+                    <span class="location-icon">${isDiscovered ? loc.icon : '❓'}</span>
+                    <div>
+                        <div class="location-name">${isDiscovered ? loc.name : 'Undiscovered'}</div>
+                        ${!isDiscovered ? '<div class="location-undiscovered">Explore to discover</div>' : ''}
+                        ${isCurrentLocation ? '<div class="location-undiscovered">You are here</div>' : ''}
+                    </div>
+                </div>
+                ${isDiscovered && !isCurrentLocation ? `
+                    <button class="travel-btn" ${!canAfford && this.fastTravelCooldown > 0 ? 'disabled' : ''}>
+                        ${this.fastTravelCooldown > 0 ? 'Free' : '10 gold'}
+                    </button>
+                ` : ''}
+            `;
+            
+            if (isDiscovered && !isCurrentLocation) {
+                div.addEventListener('click', () => this.fastTravelTo(loc));
+            }
+            
+            container.appendChild(div);
+        });
+    }
+    
+    isPlayerAtLocation(loc) {
+        const playerTileX = Math.floor(this.player.x / TILE_SIZE);
+        const playerTileY = Math.floor(this.player.y / TILE_SIZE);
+        const dist = Math.hypot(playerTileX - loc.x, playerTileY - loc.y);
+        return dist < 15;
+    }
+    
+    fastTravelTo(location) {
+        const canAfford = this.player.gold >= 10;
+        const freeTravelAvailable = this.fastTravelCooldown <= 0;
+        
+        if (!canAfford && !freeTravelAvailable) {
+            this.notify('Not enough gold and cooldown not ready!');
+            return;
+        }
+        
+        // Deduct cost or use cooldown
+        if (freeTravelAvailable) {
+            this.fastTravelCooldown = 60; // 60 second cooldown
+        } else {
+            this.player.gold -= 10;
+        }
+        
+        this.closeFastTravel();
+        
+        // Show teleport effect
+        const overlay = document.getElementById('teleport-overlay');
+        overlay.classList.add('active');
+        
+        setTimeout(() => {
+            // Teleport player
+            this.player.x = location.x * TILE_SIZE + TILE_SIZE / 2;
+            this.player.y = location.y * TILE_SIZE + TILE_SIZE / 2;
+            this.player.targetX = this.player.x;
+            this.player.targetY = this.player.y;
+            this.player.velocityX = 0;
+            this.player.velocityY = 0;
+            this.navigationState.path = [];
+            this.navigationState.isMoving = false;
+            
+            // Update camera
+            this.camera.x = this.player.x - CANVAS_WIDTH / 2;
+            this.camera.y = this.player.y - CANVAS_HEIGHT / 2;
+            
+            this.updateHUD();
+            
+            // Fade out
+            overlay.classList.add('fade-out');
+            
+            setTimeout(() => {
+                overlay.classList.remove('active', 'fade-out');
+                this.notify(`Arrived at ${location.name}!`);
+                this.particles.emit(this.player.x, this.player.y, 'magic', 25);
+            }, 400);
+        }, 600);
+    }
+    
+    // ==================== STATISTICS PANEL ====================
+    
+    toggleStats() {
+        const panel = document.getElementById('stats-panel');
+        const isVisible = panel.style.display === 'block';
+        
+        if (!isVisible) {
+            this.updateStatsDisplay();
+        }
+        
+        panel.style.display = isVisible ? 'none' : 'block';
+    }
+    
+    closeStats() {
+        document.getElementById('stats-panel').style.display = 'none';
+    }
+    
+    updateStatsDisplay() {
+        // Time played
+        const hours = Math.floor(this.playTime / 3600);
+        const minutes = Math.floor((this.playTime % 3600) / 60);
+        const seconds = Math.floor(this.playTime % 60);
+        document.getElementById('stat-time-played').textContent = 
+            `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Current day
+        document.getElementById('stat-current-day').textContent = `Day ${this.dayCount}`;
+        
+        // Distance
+        document.getElementById('stat-distance').textContent = `${Math.floor(this.distanceTraveled)} tiles`;
+        
+        // Combat stats
+        document.getElementById('stat-kills').textContent = this.killCount;
+        document.getElementById('stat-level').textContent = this.player.level;
+        document.getElementById('stat-total-xp').textContent = this.totalXPGained;
+        
+        // Economy stats
+        document.getElementById('stat-current-gold').textContent = this.player.gold;
+        document.getElementById('stat-total-gold').textContent = this.totalGoldEarned;
+        document.getElementById('stat-items-bought').textContent = this.itemsBought;
+        
+        // Exploration stats
+        document.getElementById('stat-regions').textContent = `${this.discoveredLocations.size} / 8`;
+        document.getElementById('stat-clues').textContent = `${this.cluesFound.length} / 6`;
+        
+        // Count completed quests
+        let completedQuests = 0;
+        Object.values(this.quests).forEach(quest => {
+            if (quest.stages.every(s => s.completed)) completedQuests++;
+        });
+        document.getElementById('stat-quests').textContent = completedQuests;
+        document.getElementById('stat-chests').textContent = this.chestsOpened;
+        
+        // Achievements
+        this.updateAchievementDisplay();
+    }
+    
+    updateAchievementDisplay() {
+        const grid = document.getElementById('achievement-grid');
+        grid.innerHTML = '';
+        
+        ACHIEVEMENTS.forEach(achievement => {
+            const isUnlocked = this.achievements.unlocked.has(achievement.id);
+            const div = document.createElement('div');
+            div.className = `achievement-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+            div.innerHTML = `
+                <div class="achievement-name">${isUnlocked ? '🏆' : '🔒'} ${achievement.name}</div>
+                <div class="achievement-desc">${achievement.desc}</div>
+            `;
+            grid.appendChild(div);
+        });
+    }
+    
+    // ==================== TIME DISPLAY FORMATTING ====================
+    
+    formatTimeDisplay() {
+        const hour = Math.floor(this.timeOfDay);
+        const minute = Math.floor((this.timeOfDay % 1) * 60);
+        
+        // Convert to 12-hour format
+        let displayHour = hour % 12;
+        if (displayHour === 0) displayHour = 12;
+        const ampm = hour < 12 ? 'AM' : 'PM';
+        
+        const timeString = `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
+        const dayString = `Day ${this.dayCount}`;
+        
+        // Determine time icon
+        let icon = '☀️';
+        if (this.timeOfDay >= 6 && this.timeOfDay < 8) {
+            icon = '🌅'; // Sunrise
+        } else if (this.timeOfDay >= 8 && this.timeOfDay < 18) {
+            icon = '☀️'; // Day
+        } else if (this.timeOfDay >= 18 && this.timeOfDay < 20) {
+            icon = '🌇'; // Sunset
+        } else {
+            icon = '🌙'; // Night
+        }
+        
+        document.getElementById('time-icon').textContent = icon;
+        document.getElementById('time-text').textContent = `${dayString}, ${timeString}`;
+    }
+    
+    // ==================== INVENTORY ENHANCEMENTS ====================
+    
+    getItemRarity(item) {
+        return item.rarity || RARITY.COMMON;
+    }
+    
+    sortInventory(sortMode) {
+        this.inventorySortMode = sortMode;
+        
+        // Update button styles
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.sort === sortMode);
+        });
+        
+        // Sort inventory
+        this.player.inventory.sort((a, b) => {
+            const itemA = a.item;
+            const itemB = b.item;
+            
+            if (!itemA || !itemB) return 0;
+            
+            switch (sortMode) {
+                case 'type':
+                    return (itemA.type || '').localeCompare(itemB.type || '');
+                case 'rarity':
+                    const rarityA = this.getItemRarity(itemA).order || 0;
+                    const rarityB = this.getItemRarity(itemB).order || 0;
+                    return rarityB - rarityA;
+                case 'value':
+                    return (itemB.price || 0) - (itemA.price || 0);
+                case 'name':
+                    return (itemA.name || '').localeCompare(itemB.name || '');
+                default:
+                    return 0;
+            }
+        });
+        
+        this.updateInventoryDisplay();
+    }
+    
+    showItemTooltip(item, event, slotIndex) {
+        const tooltip = document.getElementById('item-tooltip');
+        const rarity = this.getItemRarity(item);
+        
+        // Set tooltip content
+        tooltip.querySelector('.tooltip-name').textContent = item.name;
+        tooltip.querySelector('.tooltip-name').className = `tooltip-name ${rarity.name}`;
+        
+        tooltip.querySelector('.tooltip-type').textContent = item.type.toUpperCase();
+        
+        // Stats
+        let statsHtml = '';
+        if (item.attack) statsHtml += `<div class="tooltip-stat">⚔️ +${item.attack} Attack</div>`;
+        if (item.defense) statsHtml += `<div class="tooltip-stat">🛡️ +${item.defense} Defense</div>`;
+        if (item.heal) statsHtml += `<div class="tooltip-stat">❤️ Restores ${item.heal} HP</div>`;
+        if (item.tempAttack) statsHtml += `<div class="tooltip-stat">⚡ +${item.tempAttack} Temp Attack</div>`;
+        if (item.tempDefense) statsHtml += `<div class="tooltip-stat">⚡ +${item.tempDefense} Temp Defense</div>`;
+        tooltip.querySelector('.tooltip-stats').innerHTML = statsHtml;
+        
+        // Compare with equipped item
+        let compareHtml = '';
+        if (item.type === 'weapon' && this.player.equipment.weapon) {
+            const diff = item.attack - this.player.equipment.weapon.attack;
+            if (diff !== 0) {
+                compareHtml = `<div class="${diff > 0 ? 'compare-better' : 'compare-worse'}">
+                    vs Equipped: ${diff > 0 ? '+' : ''}${diff} Attack
+                </div>`;
+            }
+        } else if (item.type === 'armor' && this.player.equipment.armor) {
+            const diff = item.defense - this.player.equipment.armor.defense;
+            if (diff !== 0) {
+                compareHtml = `<div class="${diff > 0 ? 'compare-better' : 'compare-worse'}">
+                    vs Equipped: ${diff > 0 ? '+' : ''}${diff} Defense
+                </div>`;
+            }
+        }
+        tooltip.querySelector('.tooltip-compare').innerHTML = compareHtml;
+        
+        // Description
+        tooltip.querySelector('.tooltip-description').textContent = item.description || '';
+        
+        // Price
+        if (item.price > 0) {
+            tooltip.querySelector('.tooltip-price').textContent = `💰 Value: ${item.price} gold`;
+        } else {
+            tooltip.querySelector('.tooltip-price').textContent = '';
+        }
+        
+        // Position tooltip
+        const rect = event.target.getBoundingClientRect();
+        tooltip.style.left = `${rect.right + 10}px`;
+        tooltip.style.top = `${rect.top}px`;
+        
+        // Ensure tooltip stays in viewport
+        if (rect.right + 260 > window.innerWidth) {
+            tooltip.style.left = `${rect.left - 260}px`;
+        }
+        
+        tooltip.style.display = 'block';
+    }
+    
+    hideItemTooltip() {
+        document.getElementById('item-tooltip').style.display = 'none';
+    }
+    
     notify(message, type = 'default') {
         const notification = document.getElementById('notification');
+        
+        // Play notification sound
+        soundSystem.playNotification();
         
         // Style based on notification type
         if (type === 'save') {
@@ -2423,6 +2766,7 @@ class Game {
             notification.innerHTML = `📜 ${message}`;
             notification.style.background = 'linear-gradient(180deg, rgba(100, 80, 50, 0.98) 0%, rgba(75, 60, 35, 0.98) 100%)';
             notification.style.borderColor = '#c9a055';
+            soundSystem.playQuestComplete();
         } else if (type === 'combat') {
             notification.innerHTML = `⚔️ ${message}`;
             notification.style.background = 'linear-gradient(180deg, rgba(100, 50, 50, 0.98) 0%, rgba(75, 35, 35, 0.98) 100%)';
@@ -2449,6 +2793,9 @@ class Game {
         document.getElementById('level-text').textContent = this.player.level;
         document.getElementById('xp-fill').style.width = `${(this.player.xp / this.player.xpToLevel) * 100}%`;
         document.getElementById('gold-text').textContent = this.player.gold;
+        
+        // Update time display
+        this.formatTimeDisplay();
     }
     
     gainXP(amount) {
@@ -2469,6 +2816,9 @@ class Game {
             this.particles.emit(this.player.x, this.player.y - 20, 'levelup', 30);
             this.particles.emit(this.player.x, this.player.y, 'magic', 20);
             
+            // Play level up sound
+            soundSystem.playLevelUp();
+            
             this.notify(`Level Up! Now level ${this.player.level}!`);
         }
         
@@ -2479,6 +2829,11 @@ class Game {
         this.running = true;
         this.lastTime = performance.now();
         this.updateHUD();
+        
+        // Start background music and ambient sounds
+        soundSystem.startMusic('adventurous');
+        soundSystem.startAmbient('default');
+        
         requestAnimationFrame((t) => this.gameLoop(t));
     }
     
@@ -2745,19 +3100,60 @@ class Game {
         // Day/night cycle (1 game minute = 1 real second)
         if (this.dayNightCycle) {
             this.timeOfDay += dt / 60; // 24 game hours = 24 real minutes
-            if (this.timeOfDay >= 24) this.timeOfDay = 0;
+            if (this.timeOfDay >= 24) {
+                this.timeOfDay = 0;
+                this.dayCount++;
+            }
         }
         
         // Track play time
         this.playTime += dt;
         
+        // Fast travel cooldown
+        if (this.fastTravelCooldown > 0) {
+            this.fastTravelCooldown = Math.max(0, this.fastTravelCooldown - dt);
+        }
+        
         // Discover locations
         this.checkLocationDiscovery();
+        
+        // Sound updates - footsteps and ambient
+        if (!this.inCombat) {
+            const tileX = Math.floor(this.player.x / TILE_SIZE);
+            const tileY = Math.floor(this.player.y / TILE_SIZE);
+            const currentTile = this.world.map[tileY] ? this.world.map[tileY][tileX] : TILES.GRASS;
+            
+            // Update footsteps based on movement
+            soundSystem.updateFootsteps(
+                { x: this.player.velocityX, y: this.player.velocityY },
+                currentTile,
+                dt
+            );
+            
+            // Update ambient sounds based on region (check every few seconds)
+            if (!this.lastAmbientCheck || this.playTime - this.lastAmbientCheck > 3) {
+                this.lastAmbientCheck = this.playTime;
+                const newAmbient = soundSystem.getAmbientForRegion(tileX, tileY);
+                if (newAmbient !== soundSystem.currentAmbient) {
+                    soundSystem.startAmbient(newAmbient);
+                }
+                
+                // Update music based on region
+                const newMood = soundSystem.getMusicMoodForRegion(tileX, tileY);
+                if (newMood !== soundSystem.currentMusic) {
+                    soundSystem.startMusic(newMood);
+                }
+            }
+        }
     }
     
     openTreasureChest(chest) {
         chest.opened = true;
         chest.sprite = '📭';
+        this.chestsOpened++;
+        
+        // Play chest opening sound
+        soundSystem.playChestOpen();
         
         // Treasure particle burst!
         this.particles.emit(chest.x, chest.y - 10, 'treasure', 25);
@@ -2767,7 +3163,9 @@ class Game {
         
         if (chest.loot === 'gold') {
             this.player.gold += chest.amount;
+            this.totalGoldEarned += chest.amount;
             message += `Found ${chest.amount} gold!`;
+            soundSystem.playGoldPickup();
         } else if (chest.loot === 'potion') {
             for (let i = 0; i < chest.amount; i++) {
                 const existing = this.player.inventory.find(inv => inv.item && inv.item.name === 'Health Potion');
@@ -2783,6 +3181,7 @@ class Game {
             this.player.inventory.push({ item: chest.item });
             message += `Found ${chest.item.name}!`;
             this.particles.emit(chest.x, chest.y, 'magic', 15);
+            soundSystem.playItemEquip();
         }
         
         this.notify(message);
@@ -3768,6 +4167,7 @@ class CombatSystem {
         this.playerTurn = true;
         this.defending = false;
         this.combatLog = [];
+        this.turnNumber = 0;
     }
     
     start(npc) {
@@ -3776,13 +4176,18 @@ class CombatSystem {
         this.playerTurn = true;
         this.defending = false;
         this.combatLog = [];
+        this.turnNumber = 1;
+        
+        // Start combat music
+        soundSystem.startCombatMusic();
         
         document.getElementById('combat-ui').style.display = 'block';
         document.getElementById('enemy-name').textContent = npc.name;
         document.getElementById('enemy-sprite').textContent = npc.type.sprite;
         
         this.updateCombatUI();
-        this.log(`Battle started against ${npc.name}!`);
+        this.log(`Battle started against ${npc.name}!`, 'info');
+        this.log(`--- Turn ${this.turnNumber} ---`, 'turn-start');
     }
     
     playerAction(action) {
@@ -3790,14 +4195,17 @@ class CombatSystem {
         
         switch(action) {
             case 'attack':
+                soundSystem.playSwordSwing();
                 this.attack(this.game.player, this.enemy, false);
                 break;
             case 'heavy':
+                soundSystem.playHeavyAttack();
                 this.attack(this.game.player, this.enemy, true);
                 break;
             case 'defend':
                 this.defending = true;
-                this.log('You take a defensive stance!');
+                soundSystem.playShieldBlock();
+                this.log('You take a defensive stance!', 'buff');
                 break;
             case 'heal':
                 const healAmount = 30;
@@ -3806,15 +4214,18 @@ class CombatSystem {
                     this.game.player.maxHealth
                 );
                 this.game.particles.emit(this.game.player.x, this.game.player.y - 10, 'heal', 20);
-                this.log(`You heal for ${healAmount} HP!`);
+                soundSystem.playHealChime();
+                this.log(`You heal for ${healAmount} HP!`, 'heal');
                 break;
             case 'flee':
+                soundSystem.playFleeWhoosh();
                 if (Math.random() < 0.5) {
-                    this.log('You escaped!');
+                    this.log('You escaped!', 'info');
+                    soundSystem.stopCombatMusic();
                     this.endCombat(false);
                     return;
                 } else {
-                    this.log('Failed to escape!');
+                    this.log('Failed to escape!', 'info');
                 }
                 break;
         }
@@ -3837,7 +4248,7 @@ class CombatSystem {
         if (isHeavy) {
             damage *= 1.5;
             if (Math.random() < 0.3) {
-                this.log('Heavy attack missed!');
+                this.log('Heavy attack missed!', 'info');
                 return;
             }
         }
@@ -3854,10 +4265,13 @@ class CombatSystem {
         const isCritical = Math.random() < 0.1;
         if (isCritical) {
             damage *= 2;
-            this.log('CRITICAL HIT!');
+            this.log('CRITICAL HIT!', 'critical');
         }
         
         defender.health -= damage;
+        
+        // Play hit impact sound
+        soundSystem.playHitImpact();
         
         // Combat hit particles
         const targetX = defender === this.game.player ? this.game.player.x : this.enemy.x;
@@ -3869,7 +4283,7 @@ class CombatSystem {
         
         const attackerName = attacker === this.game.player ? 'You' : attacker.name;
         const defenderName = defender === this.game.player ? 'you' : defender.name;
-        this.log(`${attackerName} ${isHeavy ? 'heavily strike' : 'attack'} ${defenderName} for ${Math.floor(damage)} damage!`);
+        this.log(`${attackerName} ${isHeavy ? 'heavily strike' : 'attack'} ${defenderName} for ${Math.floor(damage)} damage!`, 'damage');
         
         this.defending = false;
     }
@@ -3885,7 +4299,7 @@ class CombatSystem {
         } else if (action < 0.9) {
             this.attack(this.enemy, this.game.player, true);
         } else {
-            this.log(`${this.enemy.name} prepares to attack...`);
+            this.log(`${this.enemy.name} prepares to attack...`, 'buff');
         }
         
         this.updateCombatUI();
@@ -3896,6 +4310,10 @@ class CombatSystem {
             return;
         }
         
+        // Increment turn number and log new turn
+        this.turnNumber++;
+        this.log(`--- Turn ${this.turnNumber} ---`, 'turn-start');
+        
         this.playerTurn = true;
     }
     
@@ -3903,14 +4321,21 @@ class CombatSystem {
         const xpGain = this.enemy.level * 25;
         const goldGain = this.enemy.level * 10 + Math.floor(Math.random() * 20);
         
+        // Play victory sounds
+        soundSystem.stopCombatMusic();
+        soundSystem.playVictoryJingle();
+        soundSystem.playGoldPickup();
+        
         // Enemy death particles
         this.game.particles.emit(this.enemy.x, this.enemy.y, 'death', 25);
         this.game.particles.emit(this.enemy.x, this.enemy.y - 10, 'treasure', 15);
         
-        this.log(`Victory! Gained ${xpGain} XP and ${goldGain} gold!`);
+        this.log(`Victory! Gained ${xpGain} XP and ${goldGain} gold!`, 'heal');
         
         this.game.gainXP(xpGain);
+        this.game.totalXPGained += xpGain;
         this.game.player.gold += goldGain;
+        this.game.totalGoldEarned += goldGain;
         this.game.killCount++;
         
         // Notify spawner if this was a spawned enemy
@@ -4002,6 +4427,10 @@ class CombatSystem {
     defeat() {
         this.log('You have been defeated...');
         
+        // Play defeat sounds
+        soundSystem.stopCombatMusic();
+        soundSystem.playDefeatJingle();
+        
         setTimeout(() => {
             alert('You have fallen in battle!\n\nBut your journey is not over...\n\nYou wake up at the village, weakened but alive.');
             
@@ -4023,10 +4452,47 @@ class CombatSystem {
         this.enemy = null;
     }
     
-    log(message) {
-        this.combatLog.push(message);
+    log(message, type = 'info') {
+        const entry = {
+            turn: this.turnNumber,
+            message: message,
+            type: type
+        };
+        this.combatLog.push(entry);
+        this.updateCombatLog();
+    }
+    
+    updateCombatLog() {
         const logDiv = document.getElementById('combat-log');
-        logDiv.innerHTML = this.combatLog.slice(-5).join('<br>');
+        const visibleEntries = this.combatLog.slice(-10);
+        
+        logDiv.innerHTML = visibleEntries.map(entry => {
+            let cssClass = 'combat-log-entry';
+            
+            // Add type-based styling
+            if (entry.type === 'turn-start') {
+                cssClass += ' turn-start';
+            } else if (entry.type === 'damage' || entry.message.includes('damage')) {
+                cssClass += ' damage';
+            } else if (entry.type === 'heal' || entry.message.includes('heal') || entry.message.includes('HP')) {
+                cssClass += ' heal';
+            } else if (entry.type === 'buff' || entry.message.includes('stance') || entry.message.includes('boost')) {
+                cssClass += ' buff';
+            } else if (entry.type === 'critical' || entry.message.includes('CRITICAL')) {
+                cssClass += ' critical';
+            } else {
+                cssClass += ' info';
+            }
+            
+            // Format the message
+            let displayMsg = entry.message;
+            if (entry.type !== 'turn-start' && entry.turn > 0) {
+                displayMsg = `<span class="turn-number">T${entry.turn}</span>${entry.message}`;
+            }
+            
+            return `<div class="${cssClass}">${displayMsg}</div>`;
+        }).join('');
+        
         logDiv.scrollTop = logDiv.scrollHeight;
     }
     
@@ -4204,7 +4670,7 @@ class GamblingSystem {
 class SaveSystem {
     static save(game) {
         const saveData = {
-            version: '1.0',
+            version: '1.1',
             timestamp: Date.now(),
             playTime: game.playTime,
             player: {
@@ -4232,7 +4698,14 @@ class SaveSystem {
             killCount: game.killCount,
             distanceTraveled: game.distanceTraveled,
             deadNPCs: game.npcs.filter(n => !n.alive).map(n => n.name),
-            openedChests: game.treasureChests.filter(c => c.opened).map((c, i) => i)
+            openedChests: game.treasureChests.filter(c => c.opened).map((c, i) => i),
+            // QoL tracking data
+            dayCount: game.dayCount,
+            timeOfDay: game.timeOfDay,
+            totalGoldEarned: game.totalGoldEarned,
+            totalXPGained: game.totalXPGained,
+            itemsBought: game.itemsBought,
+            chestsOpened: game.chestsOpened
         };
         
         try {
@@ -4266,6 +4739,14 @@ class SaveSystem {
             game.killCount = saveData.killCount;
             game.distanceTraveled = saveData.distanceTraveled;
             game.playTime = saveData.playTime;
+            
+            // Restore QoL tracking data (with defaults for old saves)
+            game.dayCount = saveData.dayCount || 1;
+            game.timeOfDay = saveData.timeOfDay || 8;
+            game.totalGoldEarned = saveData.totalGoldEarned || game.player.gold;
+            game.totalXPGained = saveData.totalXPGained || 0;
+            game.itemsBought = saveData.itemsBought || 0;
+            game.chestsOpened = saveData.chestsOpened || 0;
             
             // Mark dead NPCs
             saveData.deadNPCs.forEach(name => {
