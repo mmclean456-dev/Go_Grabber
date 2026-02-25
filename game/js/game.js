@@ -310,7 +310,34 @@ const ITEMS = {
     SHIP_DEED: { name: 'Ship Deed', type: 'key', icon: '🚢', description: 'Proof of ship ownership' },
     DRAGON_MAP: { name: 'Dragon Map', type: 'key', icon: '🗺️', description: 'Shows path to dragon lair' },
     CASTLE_KEY: { name: 'Castle Key', type: 'key', icon: '🔑', description: 'Opens the castle gate' },
-    MYSTIC_AMULET: { name: 'Mystic Amulet', type: 'accessory', icon: '📿', special: 'reveal_clues' }
+    MYSTIC_AMULET: { name: 'Mystic Amulet', type: 'accessory', icon: '📿', special: 'reveal_clues' },
+    
+    // Additional weapons
+    DAGGER: { name: 'Dagger', type: 'weapon', icon: '🗡️', attack: 8, price: 40 },
+    RAPIER: { name: 'Rapier', type: 'weapon', icon: '🤺', attack: 14, price: 100 },
+    BATTLE_AXE: { name: 'Battle Axe', type: 'weapon', icon: '🪓', attack: 22, price: 220 },
+    CROSSBOW: { name: 'Crossbow', type: 'weapon', icon: '🏹', attack: 16, price: 130 },
+    ROYAL_SWORD: { name: 'Royal Sword', type: 'weapon', icon: '👑', attack: 28, price: 350 },
+    DRAGON_SLAYER: { name: 'Dragon Slayer', type: 'weapon', icon: '🐲', attack: 45, price: 800, special: 'dragon_bonus' },
+    HEIRLOOM_SWORD: { name: 'Ruby Heirloom Sword', type: 'weapon', icon: '💎', attack: 25, price: 0 },
+    
+    // Additional armor
+    KNIGHT_ARMOR: { name: 'Knight Armor', type: 'armor', icon: '⚔️', defense: 18, price: 280 },
+    ROYAL_ARMOR: { name: 'Royal Plate', type: 'armor', icon: '👑', defense: 32, price: 550 },
+    FIRE_CLOAK: { name: 'Fire Resistant Cloak', type: 'armor', icon: '🔥', defense: 15, price: 300, special: 'fire_resist' },
+    
+    // Additional consumables
+    ANTIDOTE: { name: 'Antidote', type: 'consumable', icon: '🧴', cure: 'poison', price: 30, stackable: true },
+    FIRE_RESIST_POTION: { name: 'Fire Resistance Potion', type: 'consumable', icon: '🔥', special: 'fire_resist', duration: 5, price: 150, stackable: true },
+    MEGA_POTION: { name: 'Mega Health Potion', type: 'consumable', icon: '💉', heal: 150, price: 120, stackable: true },
+    ATTACK_BOOST: { name: 'Attack Boost', type: 'consumable', icon: '⚡', tempAttack: 15, duration: 5, price: 80, stackable: true },
+    DEFENSE_BOOST: { name: 'Defense Boost', type: 'consumable', icon: '🛡️', tempDefense: 15, duration: 5, price: 80, stackable: true },
+    
+    // Accessories
+    RING_OF_STRENGTH: { name: 'Ring of Strength', type: 'accessory', icon: '💪', attack: 5, price: 200 },
+    RING_OF_PROTECTION: { name: 'Ring of Protection', type: 'accessory', icon: '🛡️', defense: 5, price: 200 },
+    LUCKY_CHARM: { name: 'Lucky Charm', type: 'accessory', icon: '🍀', special: 'luck', price: 150 },
+    GOLD_RING: { name: 'Gold Ring', type: 'accessory', icon: '💍', price: 100, sellOnly: true }
 };
 
 // Clues for scavenger hunt
@@ -364,6 +391,55 @@ const QUESTS = {
             { id: 'enter_castle', description: 'Enter the Medieval Castle', completed: false },
             { id: 'find_ghost', description: 'Find the Ghost', completed: false },
             { id: 'complete_task', description: 'Complete the Ghost\'s request', completed: false }
+        ]
+    },
+    WOLF_HUNT: {
+        id: 'wolf_hunt',
+        title: 'Wolf Problem',
+        description: 'Clear the wolves from the farmer\'s land.',
+        stages: [
+            { id: 'accept', description: 'Accept the farmer\'s request', completed: false },
+            { id: 'kill_wolves', description: 'Kill the wolves (0/5)', completed: false, count: 0, required: 5 },
+            { id: 'return_farmer', description: 'Return to the farmer', completed: false }
+        ]
+    },
+    LOST_HEIRLOOM: {
+        id: 'lost_heirloom',
+        title: 'The Lost Heirloom',
+        description: 'Recover the wounded knight\'s family sword.',
+        stages: [
+            { id: 'find_bandits', description: 'Find the bandits who took the sword', completed: false },
+            { id: 'recover_sword', description: 'Defeat the bandits and recover the sword', completed: false },
+            { id: 'return_sword', description: 'Return the sword to the knight', completed: false }
+        ]
+    },
+    GOLD_MINE: {
+        id: 'gold_mine',
+        title: 'Gold Rush',
+        description: 'Clear the bandits from the gold mine.',
+        stages: [
+            { id: 'find_mine', description: 'Find the gold mine', completed: false },
+            { id: 'defeat_boss', description: 'Defeat Rattlesnake Rogers', completed: false },
+            { id: 'claim_reward', description: 'Claim your share of the gold', completed: false }
+        ]
+    },
+    RESCUE_PRINCE: {
+        id: 'rescue_prince',
+        title: 'The Lost Prince',
+        description: 'Rescue the prince from the dragon\'s lair.',
+        stages: [
+            { id: 'learn_truth', description: 'Learn about the captured prince', completed: false },
+            { id: 'defeat_dragon', description: 'Defeat the dragon', completed: false },
+            { id: 'save_prince', description: 'Free the prince', completed: false }
+        ]
+    },
+    ESCORT_MISSION: {
+        id: 'escort_mission',
+        title: 'Swamp Rescue',
+        description: 'Help the lost traveler escape the swamp.',
+        stages: [
+            { id: 'find_traveler', description: 'Find the lost traveler', completed: false },
+            { id: 'escort_safely', description: 'Escort them to safety', completed: false }
         ]
     }
 };
@@ -724,6 +800,193 @@ class Game {
             { text: "Then return when you are prepared. The clues are scattered across the lands - the village, the pirates, the west, the castle, the swamp.", end: true }
         ], { clueGiver: true });
         
+        // Additional Village NPCs
+        this.addNPC(55, 70, NPC_TYPES.VILLAGER, 'Worried Farmer', [
+            { text: "My farm to the east is overrun by wolves! Please, brave knight, help me!", choices: [
+                { text: "I'll clear out the wolves.", action: 'startWolfQuest', next: 1 },
+                { text: "I'm busy with other matters.", end: true }
+            ]},
+            { text: "Thank you! There should be about 5 of them. Return to me when they're dealt with.", end: true }
+        ], { questGiver: true });
+        
+        // Add more wolves for the quest
+        for (let i = 0; i < 5; i++) {
+            this.addNPC(65 + Math.floor(seededRandom() * 10), 70 + Math.floor(seededRandom() * 8), 
+                NPC_TYPES.BEAST, 'Farm Wolf', null, { hostile: true, level: 2, farmWolf: true });
+        }
+        
+        // Tavern in village
+        this.addNPC(47, 77, NPC_TYPES.BARTENDER, 'Village Barkeep', [
+            { text: "Welcome to the Golden Mug! Best ale in the realm!", choices: [
+                { text: "I'd like to gamble. [Dice Game]", action: 'openGambling', gamblingType: 'tavern' },
+                { text: "Any rumors worth hearing?", next: 1 },
+                { text: "Just passing through.", end: true }
+            ]},
+            { text: "Well... *leans in* They say the old wizard in the forest knows where treasures are hidden. And the pirates? Their captain has a map to something big.", choices: [
+                { text: "Interesting. Thanks.", end: true }
+            ]}
+        ], { gambling: true });
+        
+        // Forest additional NPCs
+        this.addNPC(92, 82, NPC_TYPES.MYSTERIOUS_STRANGER, 'Hooded Figure', [
+            { text: "*speaks in whispers* I know things... secrets... for the right price.", choices: [
+                { text: "What kind of secrets?", next: 1 },
+                { text: "I don't trust you.", end: true }
+            ]},
+            { text: "The dragon's lair... the treasure... 100 gold and I'll tell you something valuable.", choices: [
+                { text: "Here's 100 gold. [Pay]", action: 'paySecret', cost: 100, next: 2 },
+                { text: "Too rich for my blood.", end: true }
+            ]},
+            { text: "The dragon sleeps from noon to dusk. Strike then, and you'll catch it off guard. Also... check the old well near the castle. Something valuable lies within.", end: true }
+        ]);
+        
+        this.addNPC(115, 68, NPC_TYPES.KNIGHT, 'Wounded Knight', [
+            { text: "*coughs* Traveler... I was ambushed by bandits... they took my family heirloom sword.", choices: [
+                { text: "Where did they go?", next: 1 },
+                { text: "I'll help you.", next: 1 }
+            ]},
+            { text: "West... towards the canyons. Please... if you find it... bring it back. The sword has a ruby in the hilt.", action: 'startHeirloomQuest', choices: [
+                { text: "I'll find it.", end: true }
+            ]}
+        ], { questGiver: true });
+        
+        // More Forest enemies
+        this.addNPC(102, 85, NPC_TYPES.MONSTER, 'Giant Spider', null, { hostile: true, level: 4 });
+        this.addNPC(108, 68, NPC_TYPES.BEAST, 'Dire Wolf', null, { hostile: true, level: 5 });
+        
+        // Pirates - more crew members
+        this.addNPC(152, 85, NPC_TYPES.PIRATE, 'First Mate Morgan', [
+            { text: "Arr! The cap'n's in a mood. Best not disturb him unless ye got business.", choices: [
+                { text: "I'm here to play cards.", next: 1 },
+                { text: "I seek information.", next: 2 }
+            ]},
+            { text: "Cards, eh? The cap'n loves a good game. Just don't cheat - he'll keelhaul ye!", end: true },
+            { text: "Information costs gold on these docks, landlubber. What do ye want to know?", choices: [
+                { text: "About the dragon. [50 gold]", action: 'pirateInfo', cost: 50 },
+                { text: "Never mind.", end: true }
+            ]}
+        ]);
+        
+        this.addNPC(158, 95, NPC_TYPES.MERCHANT, 'Smuggler', [
+            { text: "*looks around nervously* Psst! Looking for... special merchandise?", choices: [
+                { text: "What do you have? [Shop]", action: 'openShop', shopType: 'smuggler' },
+                { text: "Not interested.", end: true }
+            ]}
+        ], { shop: 'smuggler' });
+        
+        // Add sea monsters near pirate cove
+        this.addNPC(160, 98, NPC_TYPES.MONSTER, 'Sea Serpent', null, { hostile: true, level: 7 });
+        this.addNPC(140, 95, NPC_TYPES.MONSTER, 'Giant Crab', null, { hostile: true, level: 5 });
+        
+        // Western Town - more content
+        this.addNPC(85, 35, NPC_TYPES.COWBOY, 'Prospector Pete', [
+            { text: "I struck gold once, I tell ya! But then bandits took it all...", choices: [
+                { text: "Where was this gold mine?", next: 1 },
+                { text: "Tough luck, old timer.", end: true }
+            ]},
+            { text: "Up in the mountains, northwest of here. If ye can clear out the bandits, I'll split the gold with ye!", action: 'startMineQuest', choices: [
+                { text: "Tell me more about these bandits.", next: 2 }
+            ]},
+            { text: "There's about 4 of 'em, led by a mean varmint named 'Rattlesnake' Rogers. They camp near the mine entrance.", end: true }
+        ], { questGiver: true });
+        
+        // Add mine bandits
+        this.addNPC(70, 30, NPC_TYPES.BANDIT, 'Rattlesnake Rogers', null, { hostile: true, level: 8, mineBoss: true });
+        this.addNPC(68, 32, NPC_TYPES.BANDIT, 'Mine Bandit', null, { hostile: true, level: 5, mineBandit: true });
+        this.addNPC(72, 28, NPC_TYPES.BANDIT, 'Mine Bandit', null, { hostile: true, level: 5, mineBandit: true });
+        this.addNPC(74, 30, NPC_TYPES.BANDIT, 'Mine Bandit', null, { hostile: true, level: 6, mineBandit: true });
+        
+        this.addNPC(78, 48, NPC_TYPES.INNKEEPER, 'Western Innkeeper', [
+            { text: "Howdy! The Dusty Trail Inn welcomes all travelers. Need a room?", choices: [
+                { text: "Rest and restore health. [25 gold]", action: 'rest', cost: 25 },
+                { text: "Any work available?", next: 1 },
+                { text: "No thanks.", end: true }
+            ]},
+            { text: "The Sheriff's always got bounties. And old Prospector Pete's been looking for someone brave. Oh, and watch out for the canyon - rattlesnakes there'll kill ya dead.", end: true }
+        ]);
+        
+        // Castle - more content
+        this.addNPC(35, 48, NPC_TYPES.MERCHANT, 'Royal Armorer', [
+            { text: "The finest armor in the kingdom! Fit for knights and kings!", choices: [
+                { text: "Show me your wares. [Shop]", action: 'openShop', shopType: 'royal' },
+                { text: "Maybe later.", end: true }
+            ]}
+        ], { shop: 'royal' });
+        
+        this.addNPC(22, 52, NPC_TYPES.VILLAGER, 'Castle Servant', [
+            { text: "*whispers* The king hasn't been the same since the dragon took his son...", choices: [
+                { text: "The dragon kidnapped the prince?", next: 1 },
+                { text: "That's sad.", end: true }
+            ]},
+            { text: "Years ago, yes. They say the prince is still alive, trapped in the dragon's lair. If someone could save him...", choices: [
+                { text: "I'll rescue the prince!", action: 'startPrinceQuest' },
+                { text: "That sounds dangerous.", end: true }
+            ]}
+        ], { questGiver: true });
+        
+        // More castle guards
+        this.addNPC(30, 55, NPC_TYPES.ROYAL_GUARD, 'Tower Guard', [
+            { text: "The old tower is haunted. Only the brave or foolish enter.", choices: [
+                { text: "I fear no ghost.", next: 1 },
+                { text: "Thanks for the warning.", end: true }
+            ]},
+            { text: "Then seek the Ghost King there. He knows secrets of the dragon... things that could save your life.", end: true }
+        ]);
+        
+        // Swamp - more content
+        this.addNPC(130, 98, NPC_TYPES.VILLAGER, 'Lost Traveler', [
+            { text: "Thank the gods! I've been lost in this swamp for days! Can you help me find my way out?", choices: [
+                { text: "Follow me to safety.", action: 'escortTraveler', next: 1 },
+                { text: "Sorry, I'm busy.", end: true }
+            ]},
+            { text: "Thank you! I was heading to the village. Lead the way!", action: 'startEscortQuest', end: true }
+        ], { questGiver: true });
+        
+        this.addNPC(115, 108, NPC_TYPES.WIZARD, 'Hermit Alchemist', [
+            { text: "Ah, a visitor to my humble abode! Seeking potions? Knowledge?", choices: [
+                { text: "Sell me potions. [Shop]", action: 'openShop', shopType: 'alchemist' },
+                { text: "What can you tell me about the dragon?", next: 1 }
+            ]},
+            { text: "The dragon Infernus? Ancient and terrible! But... I've created something. A fire resistance elixir!", choices: [
+                { text: "Can I have some?", next: 2 },
+                { text: "Interesting.", end: true }
+            ]},
+            { text: "For you? 200 gold. It will halve the dragon's fire damage - could save your life!", choices: [
+                { text: "I'll take it! [200 gold]", action: 'buyFireResist', cost: 200 },
+                { text: "Too expensive.", end: true }
+            ]}
+        ], { shop: 'alchemist' });
+        
+        // More swamp enemies
+        this.addNPC(128, 102, NPC_TYPES.MONSTER, 'Swamp Troll', null, { hostile: true, level: 8 });
+        this.addNPC(120, 112, NPC_TYPES.BEAST, 'Giant Crocodile', null, { hostile: true, level: 7 });
+        this.addNPC(132, 105, NPC_TYPES.MONSTER, 'Bog Wraith', null, { hostile: true, level: 9 });
+        
+        // Mountain Pass - more content
+        this.addNPC(95, 22, NPC_TYPES.COWBOY, 'Mountain Hermit', [
+            { text: "You seek the dragon? Few who climb this far ever return.", choices: [
+                { text: "I'm prepared.", next: 1 },
+                { text: "What dangers lie ahead?", next: 2 }
+            ]},
+            { text: "Prepared? We shall see. The path ahead is treacherous. Ice elementals guard the peaks.", choices: [
+                { text: "I'll face them.", end: true }
+            ]},
+            { text: "Ice creatures, mountain beasts, and the dragon's fire minions guard the approach. You'll need fire resistance for the dragon itself.", choices: [
+                { text: "Thank you for the warning.", end: true }
+            ]}
+        ]);
+        
+        // Mountain enemies
+        this.addNPC(98, 15, NPC_TYPES.MONSTER, 'Ice Elemental', null, { hostile: true, level: 10 });
+        this.addNPC(105, 18, NPC_TYPES.MONSTER, 'Mountain Giant', null, { hostile: true, level: 11 });
+        this.addNPC(110, 12, NPC_TYPES.BEAST, 'Snow Wolf Pack', null, { hostile: true, level: 9 });
+        
+        // Pre-dragon minions
+        this.addNPC(165, 18, NPC_TYPES.MONSTER, 'Fire Imp', null, { hostile: true, level: 12 });
+        this.addNPC(170, 15, NPC_TYPES.MONSTER, 'Fire Imp', null, { hostile: true, level: 12 });
+        this.addNPC(168, 10, NPC_TYPES.MONSTER, 'Flame Guardian', null, { hostile: true, level: 15 });
+        this.addNPC(175, 8, NPC_TYPES.MONSTER, 'Dragon Wyrmling', null, { hostile: true, level: 14 });
+        
         // Dragon's Lair
         this.addNPC(180, 12, NPC_TYPES.DRAGON, 'Infernus the Ancient', [
             { text: "*ROARS* A mortal dares enter my domain?! You will burn like all the others!", choices: [
@@ -1039,6 +1302,53 @@ class Game {
                 this.quests.GHOST_MYSTERY.stages[0].completed = true;
                 this.notify('Quest Started: The Castle Ghost');
                 break;
+            case 'startWolfQuest':
+                this.quests.WOLF_HUNT.stages[0].completed = true;
+                this.notify('Quest Started: Wolf Problem');
+                break;
+            case 'startHeirloomQuest':
+                this.quests.LOST_HEIRLOOM.stages[0].completed = true;
+                this.notify('Quest Started: The Lost Heirloom');
+                break;
+            case 'startMineQuest':
+                this.quests.GOLD_MINE.stages[0].completed = true;
+                this.notify('Quest Started: Gold Rush');
+                break;
+            case 'startPrinceQuest':
+                this.quests.RESCUE_PRINCE.stages[0].completed = true;
+                this.notify('Quest Started: The Lost Prince');
+                break;
+            case 'startEscortQuest':
+                this.quests.ESCORT_MISSION.stages[0].completed = true;
+                this.notify('Quest Started: Swamp Rescue');
+                break;
+            case 'paySecret':
+                if (this.player.gold >= choice.cost) {
+                    this.player.gold -= choice.cost;
+                    this.updateHUD();
+                    this.notify('Paid 100 gold for information.');
+                } else {
+                    this.notify('Not enough gold!');
+                }
+                break;
+            case 'pirateInfo':
+                if (this.player.gold >= choice.cost) {
+                    this.player.gold -= choice.cost;
+                    this.updateHUD();
+                    this.notify('The pirate tells you about the mountain pass entrance.');
+                }
+                break;
+            case 'buyFireResist':
+                if (this.player.gold >= choice.cost) {
+                    this.player.gold -= choice.cost;
+                    this.player.inventory.push({ item: ITEMS.FIRE_RESIST_POTION, count: 3 });
+                    this.updateHUD();
+                    this.notify('Acquired Fire Resistance Potions!');
+                    this.gameFlags.hasFireResist = true;
+                } else {
+                    this.notify('Not enough gold!');
+                }
+                break;
         }
     }
     
@@ -1116,15 +1426,27 @@ class Game {
         switch(shopType) {
             case 'blacksmith':
                 shopTitle.textContent = '⚒️ Blacksmith';
-                items = [ITEMS.IRON_SWORD, ITEMS.STEEL_SWORD, ITEMS.CHAINMAIL, ITEMS.PLATE_ARMOR];
+                items = [ITEMS.IRON_SWORD, ITEMS.STEEL_SWORD, ITEMS.BATTLE_AXE, ITEMS.CHAINMAIL, ITEMS.PLATE_ARMOR];
                 break;
             case 'merchant':
                 shopTitle.textContent = '🏪 General Store';
-                items = [ITEMS.HEALTH_POTION, ITEMS.LARGE_POTION, ITEMS.STRENGTH_ELIXIR, ITEMS.LEATHER_ARMOR];
+                items = [ITEMS.HEALTH_POTION, ITEMS.LARGE_POTION, ITEMS.STRENGTH_ELIXIR, ITEMS.LEATHER_ARMOR, ITEMS.ANTIDOTE];
                 break;
             case 'western':
                 shopTitle.textContent = '🤠 Western Trader';
-                items = [ITEMS.PISTOL, ITEMS.HEALTH_POTION, ITEMS.LARGE_POTION];
+                items = [ITEMS.PISTOL, ITEMS.CROSSBOW, ITEMS.HEALTH_POTION, ITEMS.LARGE_POTION];
+                break;
+            case 'smuggler':
+                shopTitle.textContent = '🏴‍☠️ Smuggler\'s Goods';
+                items = [ITEMS.CUTLASS, ITEMS.DAGGER, ITEMS.FIRE_CLOAK, ITEMS.ATTACK_BOOST, ITEMS.LUCKY_CHARM];
+                break;
+            case 'royal':
+                shopTitle.textContent = '👑 Royal Armorer';
+                items = [ITEMS.ROYAL_SWORD, ITEMS.RAPIER, ITEMS.KNIGHT_ARMOR, ITEMS.ROYAL_ARMOR, ITEMS.RING_OF_PROTECTION];
+                break;
+            case 'alchemist':
+                shopTitle.textContent = '🧪 Alchemist';
+                items = [ITEMS.MEGA_POTION, ITEMS.FIRE_RESIST_POTION, ITEMS.ATTACK_BOOST, ITEMS.DEFENSE_BOOST, ITEMS.ANTIDOTE];
                 break;
         }
         
@@ -1994,6 +2316,34 @@ class CombatSystem {
             if (stage.count >= stage.required) {
                 stage.completed = true;
                 this.game.notify('Return to the Sheriff for your reward!');
+            }
+        }
+        
+        // Check for farm wolves
+        if (this.enemy.farmWolf && this.game.quests.WOLF_HUNT.stages[0].completed) {
+            const stage = this.game.quests.WOLF_HUNT.stages[1];
+            stage.count = (stage.count || 0) + 1;
+            if (stage.count >= stage.required) {
+                stage.completed = true;
+                this.game.notify('All wolves eliminated! Return to the farmer.');
+            }
+        }
+        
+        // Check for mine bandits
+        if (this.enemy.mineBoss) {
+            this.game.quests.GOLD_MINE.stages[1].completed = true;
+            this.game.player.gold += 500;
+            this.game.notify('Rattlesnake Rogers defeated! +500 gold from the mine!');
+            this.game.quests.GOLD_MINE.stages[2].completed = true;
+        }
+        
+        // Drop heirloom sword from specific bandits
+        if (this.enemy.name && this.enemy.name.includes('Canyon') && !this.game.gameFlags.foundHeirloom) {
+            if (Math.random() < 0.5) {
+                this.game.player.inventory.push({ item: ITEMS.HEIRLOOM_SWORD });
+                this.game.gameFlags.foundHeirloom = true;
+                this.game.quests.LOST_HEIRLOOM.stages[1].completed = true;
+                this.game.notify('Found the Ruby Heirloom Sword!');
             }
         }
         
