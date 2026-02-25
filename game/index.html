@@ -12,7 +12,7 @@
         }
         
         body {
-            background: #1a1a2e;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1a 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,15 +23,25 @@
         
         #game-container {
             position: relative;
-            border: 4px solid #4a4a6a;
-            border-radius: 8px;
-            box-shadow: 0 0 40px rgba(100, 100, 200, 0.3);
+            border: 4px solid #5a5a8a;
+            border-radius: 12px;
+            box-shadow: 
+                0 0 60px rgba(100, 100, 200, 0.4),
+                0 0 120px rgba(80, 80, 150, 0.2),
+                inset 0 0 30px rgba(0, 0, 0, 0.3);
+            animation: containerGlow 4s ease-in-out infinite alternate;
+        }
+        
+        @keyframes containerGlow {
+            0% { box-shadow: 0 0 60px rgba(100, 100, 200, 0.4), 0 0 120px rgba(80, 80, 150, 0.2); }
+            100% { box-shadow: 0 0 80px rgba(120, 120, 220, 0.5), 0 0 150px rgba(100, 100, 180, 0.3); }
         }
         
         #gameCanvas {
             display: block;
             background: #2d2d44;
             cursor: crosshair;
+            border-radius: 8px;
         }
         
         #ui-overlay {
@@ -60,31 +70,72 @@
         }
         
         .hud-section {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 8px 15px;
-            border-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.2);
+            background: linear-gradient(180deg, rgba(30, 30, 60, 0.85) 0%, rgba(20, 20, 40, 0.9) 100%);
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(100, 100, 150, 0.4);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hud-section:hover {
+            transform: translateY(-2px);
+            border-color: rgba(150, 150, 200, 0.5);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .hud-section span[style*="cursor: pointer"]:hover {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+            display: inline-block;
         }
         
         #health-bar, #xp-bar {
             width: 150px;
-            height: 12px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 6px;
+            height: 14px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 7px;
             overflow: hidden;
             margin-top: 5px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         #health-fill {
             height: 100%;
-            background: linear-gradient(to right, #ff4444, #ff6666);
-            transition: width 0.3s;
+            background: linear-gradient(180deg, #ff6666 0%, #ff4444 50%, #cc3333 100%);
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            position: relative;
+        }
+        
+        #health-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
         }
         
         #xp-fill {
             height: 100%;
-            background: linear-gradient(to right, #44ff44, #66ff66);
-            transition: width 0.3s;
+            background: linear-gradient(180deg, #66ff66 0%, #44ff44 50%, #33cc33 100%);
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px rgba(68, 255, 68, 0.5);
+            position: relative;
+        }
+        
+        #xp-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
         }
         
         #minimap {
@@ -93,9 +144,11 @@
             right: 10px;
             width: 150px;
             height: 150px;
-            background: rgba(0,0,0,0.7);
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(100, 100, 150, 0.5);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
         }
         
         #minimap-canvas {
@@ -115,46 +168,78 @@
             transform: translateX(-50%);
             width: 80%;
             max-width: 600px;
-            background: rgba(20, 20, 40, 0.95);
-            border: 2px solid #6a6a9a;
-            border-radius: 10px;
-            padding: 15px 20px;
+            background: linear-gradient(180deg, rgba(30, 30, 60, 0.98) 0%, rgba(20, 20, 45, 0.98) 100%);
+            border: 2px solid #7a7aaa;
+            border-radius: 15px;
+            padding: 18px 25px;
             color: white;
             display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(100, 100, 200, 0.2);
+            animation: dialogueSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes dialogueSlideIn {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
         
         #dialogue-speaker {
             font-weight: bold;
-            color: #aaccff;
-            margin-bottom: 8px;
-            font-size: 16px;
+            color: #aaddff;
+            margin-bottom: 10px;
+            font-size: 17px;
+            text-shadow: 0 0 10px rgba(170, 221, 255, 0.5);
         }
         
         #dialogue-text {
-            line-height: 1.5;
-            margin-bottom: 10px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            color: #e0e0e0;
         }
         
         #dialogue-choices {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
         }
         
         .dialogue-choice {
-            background: rgba(100, 100, 150, 0.5);
-            border: 1px solid #6a6a9a;
-            padding: 8px 12px;
-            border-radius: 5px;
+            background: linear-gradient(180deg, rgba(80, 80, 130, 0.6) 0%, rgba(60, 60, 100, 0.6) 100%);
+            border: 1px solid rgba(120, 120, 180, 0.5);
+            padding: 12px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s ease;
             color: white;
             text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dialogue-choice::before {
+            content: '▶';
+            position: absolute;
+            left: -20px;
+            opacity: 0;
+            transition: all 0.25s ease;
+            color: #aaccff;
         }
         
         .dialogue-choice:hover {
-            background: rgba(120, 120, 180, 0.7);
-            transform: translateX(5px);
+            background: linear-gradient(180deg, rgba(100, 100, 160, 0.8) 0%, rgba(80, 80, 130, 0.8) 100%);
+            transform: translateX(8px);
+            border-color: rgba(150, 150, 200, 0.7);
+            box-shadow: 0 4px 15px rgba(100, 100, 200, 0.3);
+        }
+        
+        .dialogue-choice:hover::before {
+            left: 8px;
+            opacity: 1;
+        }
+        
+        .dialogue-choice:active {
+            transform: translateX(8px) scale(0.98);
         }
         
         #combat-ui {
@@ -162,148 +247,263 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(20, 20, 40, 0.95);
-            border: 3px solid #8a4444;
-            border-radius: 15px;
-            padding: 20px;
+            background: linear-gradient(180deg, rgba(40, 25, 35, 0.98) 0%, rgba(25, 15, 25, 0.98) 100%);
+            border: 3px solid #aa5555;
+            border-radius: 18px;
+            padding: 25px;
             color: white;
             display: none;
-            min-width: 500px;
+            min-width: 520px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(200, 80, 80, 0.3);
+            animation: combatSlideIn 0.4s ease-out;
+        }
+        
+        @keyframes combatSlideIn {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
         
         #combat-title {
             text-align: center;
-            font-size: 24px;
-            color: #ff6666;
-            margin-bottom: 20px;
+            font-size: 26px;
+            color: #ff7777;
+            margin-bottom: 22px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(255, 100, 100, 0.6);
+            animation: combatTitlePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes combatTitlePulse {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 100, 100, 0.6); }
+            50% { text-shadow: 0 0 30px rgba(255, 100, 100, 0.9); }
         }
         
         #combat-arena {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
         
         .combatant {
             text-align: center;
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            min-width: 150px;
+            padding: 18px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(20, 20, 30, 0.4) 100%);
+            border-radius: 12px;
+            min-width: 160px;
+            border: 1px solid rgba(150, 100, 100, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .combatant:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
         
         .combatant-name {
             font-weight: bold;
             margin-bottom: 10px;
-            font-size: 16px;
+            font-size: 17px;
+            color: #ffcccc;
         }
         
         .combatant-sprite {
-            font-size: 48px;
-            margin: 10px 0;
+            font-size: 52px;
+            margin: 12px 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .combatant:hover .combatant-sprite {
+            transform: scale(1.1);
+        }
+        
+        @keyframes attackShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .combatant.attacking .combatant-sprite {
+            animation: attackShake 0.3s ease-in-out;
         }
         
         .combat-health-bar {
-            width: 120px;
-            height: 15px;
-            background: #333;
+            width: 130px;
+            height: 16px;
+            background: linear-gradient(180deg, #222 0%, #333 100%);
             border-radius: 8px;
             overflow: hidden;
             margin: 0 auto;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .combat-health-fill {
             height: 100%;
-            background: linear-gradient(to right, #ff4444, #ff8888);
-            transition: width 0.5s;
+            background: linear-gradient(180deg, #ff6666 0%, #ff4444 50%, #cc3333 100%);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            position: relative;
+        }
+        
+        .combat-health-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
         }
         
         #combat-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
         
         .combat-btn {
-            padding: 10px 20px;
-            background: linear-gradient(to bottom, #5555aa, #444488);
-            border: 2px solid #7777cc;
-            border-radius: 8px;
+            padding: 12px 22px;
+            background: linear-gradient(180deg, #5566bb 0%, #4455aa 50%, #334499 100%);
+            border: 2px solid #7788dd;
+            border-radius: 10px;
             color: white;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.2s;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .combat-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .combat-btn:hover::before {
+            left: 100%;
         }
         
         .combat-btn:hover {
-            background: linear-gradient(to bottom, #6666bb, #555599);
-            transform: scale(1.05);
+            background: linear-gradient(180deg, #6677cc 0%, #5566bb 50%, #4455aa 100%);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(80, 100, 180, 0.4);
+            border-color: #99aaee;
+        }
+        
+        .combat-btn:active {
+            transform: translateY(-1px) scale(1.02);
         }
         
         .combat-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
+        }
+        
+        .combat-btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
         }
         
         #combat-log {
-            max-height: 100px;
+            max-height: 110px;
             overflow-y: auto;
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 15px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(10, 10, 20, 0.4) 100%);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 18px;
             font-size: 12px;
+            border: 1px solid rgba(100, 100, 150, 0.3);
+            line-height: 1.5;
+        }
+        
+        #combat-log::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #combat-log::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        
+        #combat-log::-webkit-scrollbar-thumb {
+            background: rgba(100, 100, 150, 0.5);
+            border-radius: 3px;
         }
         
         #inventory-panel {
             position: absolute;
             top: 50px;
             right: 10px;
-            width: 250px;
-            background: rgba(20, 20, 40, 0.95);
-            border: 2px solid #6a6a9a;
-            border-radius: 10px;
-            padding: 15px;
+            width: 270px;
+            background: linear-gradient(180deg, rgba(30, 30, 55, 0.98) 0%, rgba(20, 20, 40, 0.98) 100%);
+            border: 2px solid #7a7aaa;
+            border-radius: 15px;
+            padding: 18px;
             color: white;
             display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: panelSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes panelSlideIn {
+            0% { opacity: 0; transform: translateX(20px); }
+            100% { opacity: 1; transform: translateX(0); }
         }
         
         #inventory-title {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             text-align: center;
-            color: #aaccff;
+            color: #aaddff;
+            text-shadow: 0 0 10px rgba(170, 221, 255, 0.4);
         }
         
         #inventory-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 5px;
+            gap: 6px;
             margin-bottom: 15px;
         }
         
         .inventory-slot {
-            width: 50px;
-            height: 50px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid #4a4a6a;
-            border-radius: 5px;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(180deg, rgba(30, 30, 50, 0.6) 0%, rgba(20, 20, 35, 0.6) 100%);
+            border: 2px solid #5a5a8a;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
             cursor: pointer;
             position: relative;
+            transition: all 0.2s ease;
         }
         
         .inventory-slot:hover {
-            border-color: #8a8aba;
-            background: rgba(50,50,80,0.5);
+            border-color: #9a9aca;
+            background: linear-gradient(180deg, rgba(60, 60, 100, 0.7) 0%, rgba(40, 40, 70, 0.7) 100%);
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(100, 100, 200, 0.3);
+        }
+        
+        .inventory-slot:active {
+            transform: scale(1.02);
         }
         
         .inventory-slot .item-count {
@@ -311,33 +511,43 @@
             bottom: 2px;
             right: 2px;
             font-size: 10px;
-            background: rgba(0,0,0,0.7);
-            padding: 1px 4px;
-            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-weight: bold;
         }
         
         #equipment-section {
-            border-top: 1px solid #4a4a6a;
-            padding-top: 10px;
+            border-top: 1px solid rgba(100, 100, 150, 0.4);
+            padding-top: 12px;
+            margin-top: 8px;
         }
         
         #equipment-section h4 {
-            margin-bottom: 10px;
-            color: #aaccff;
+            margin-bottom: 12px;
+            color: #aaddff;
+            text-shadow: 0 0 8px rgba(170, 221, 255, 0.3);
         }
         
         .equipment-slot {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 5px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 5px;
-            margin-bottom: 5px;
+            gap: 12px;
+            padding: 8px 10px;
+            background: linear-gradient(180deg, rgba(40, 40, 60, 0.5) 0%, rgba(25, 25, 40, 0.5) 100%);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(100, 100, 150, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .equipment-slot:hover {
+            background: linear-gradient(180deg, rgba(60, 60, 90, 0.6) 0%, rgba(40, 40, 60, 0.6) 100%);
+            border-color: rgba(150, 150, 200, 0.4);
         }
         
         .equipment-slot span:first-child {
-            font-size: 20px;
+            font-size: 22px;
         }
         
         #shop-ui, #gambling-ui {
@@ -345,31 +555,48 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(20, 20, 40, 0.95);
-            border: 2px solid #6a6a9a;
-            border-radius: 15px;
-            padding: 20px;
+            background: linear-gradient(180deg, rgba(35, 30, 50, 0.98) 0%, rgba(25, 20, 40, 0.98) 100%);
+            border: 2px solid #8a7aaa;
+            border-radius: 18px;
+            padding: 25px;
             color: white;
             display: none;
-            min-width: 400px;
+            min-width: 420px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(150, 120, 200, 0.2);
+            animation: panelScaleIn 0.3s ease-out;
+        }
+        
+        @keyframes panelScaleIn {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
         
         .shop-title, .gambling-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 20px;
-            color: #ffcc44;
+            margin-bottom: 22px;
+            color: #ffdd66;
+            text-shadow: 0 0 15px rgba(255, 204, 68, 0.5);
         }
         
         .shop-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            margin-bottom: 8px;
+            padding: 12px 14px;
+            background: linear-gradient(180deg, rgba(40, 35, 55, 0.6) 0%, rgba(30, 25, 45, 0.6) 100%);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(120, 100, 150, 0.3);
+            transition: all 0.25s ease;
+        }
+        
+        .shop-item:hover {
+            background: linear-gradient(180deg, rgba(60, 55, 80, 0.7) 0%, rgba(45, 40, 65, 0.7) 100%);
+            border-color: rgba(150, 130, 180, 0.5);
+            transform: translateX(5px);
         }
         
         .shop-item-info {
@@ -383,39 +610,57 @@
         }
         
         .buy-btn {
-            padding: 8px 15px;
-            background: linear-gradient(to bottom, #44aa44, #338833);
-            border: none;
-            border-radius: 5px;
+            padding: 10px 18px;
+            background: linear-gradient(180deg, #55bb55 0%, #44aa44 50%, #339933 100%);
+            border: 2px solid #66cc66;
+            border-radius: 8px;
             color: white;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
         
         .buy-btn:hover {
-            background: linear-gradient(to bottom, #55bb55, #449944);
+            background: linear-gradient(180deg, #66cc66 0%, #55bb55 50%, #44aa44 100%);
+            transform: scale(1.08);
+            box-shadow: 0 4px 15px rgba(68, 170, 68, 0.4);
+        }
+        
+        .buy-btn:active {
+            transform: scale(1.02);
         }
         
         .buy-btn:disabled {
-            background: #555;
+            background: linear-gradient(180deg, #555 0%, #444 100%);
+            border-color: #666;
             cursor: not-allowed;
+            transform: none;
         }
         
         .close-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(150, 50, 50, 0.8);
-            border: none;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(180deg, rgba(180, 60, 60, 0.9) 0%, rgba(140, 40, 40, 0.9) 100%);
+            border: 2px solid rgba(220, 100, 100, 0.6);
             color: white;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .close-btn:hover {
-            background: rgba(200, 80, 80, 0.9);
+            background: linear-gradient(180deg, rgba(220, 80, 80, 1) 0%, rgba(180, 60, 60, 1) 100%);
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 4px 15px rgba(200, 80, 80, 0.5);
         }
         
         #card-game {
@@ -425,23 +670,25 @@
         #card-hand {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 12px;
+            margin: 22px 0;
         }
         
         .playing-card {
-            width: 60px;
-            height: 90px;
-            background: white;
-            border-radius: 8px;
+            width: 65px;
+            height: 95px;
+            background: linear-gradient(180deg, #fff 0%, #f0f0f0 100%);
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
+            font-size: 22px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
             color: black;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 2px solid #ddd;
         }
         
         .playing-card.red {
@@ -449,66 +696,114 @@
         }
         
         .playing-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-12px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
         
         .playing-card.selected {
-            transform: translateY(-15px);
-            box-shadow: 0 0 15px gold;
+            transform: translateY(-18px) scale(1.08);
+            box-shadow: 0 0 25px gold, 0 10px 30px rgba(0, 0, 0, 0.4);
+            border-color: gold;
         }
         
         .playing-card.face-down {
-            background: linear-gradient(45deg, #2244aa, #1133aa);
+            background: linear-gradient(135deg, #2255bb 0%, #1144aa 50%, #0033aa 100%);
             color: transparent;
+            border-color: #3366cc;
+        }
+        
+        .playing-card.face-down::after {
+            content: '🂠';
+            font-size: 40px;
+            opacity: 0.3;
         }
         
         #gambling-controls {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
-            margin-top: 15px;
+            margin-top: 18px;
         }
         
         .gamble-btn {
-            padding: 10px 25px;
-            background: linear-gradient(to bottom, #aa8844, #886633);
-            border: 2px solid #ccaa66;
-            border-radius: 8px;
+            padding: 12px 28px;
+            background: linear-gradient(180deg, #bb9955 0%, #aa8844 50%, #997733 100%);
+            border: 2px solid #ddbb77;
+            border-radius: 10px;
             color: white;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
         
         .gamble-btn:hover {
-            background: linear-gradient(to bottom, #bb9955, #997744);
+            background: linear-gradient(180deg, #ccaa66 0%, #bb9955 50%, #aa8844 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(170, 136, 68, 0.4);
+        }
+        
+        .gamble-btn:active {
+            transform: translateY(-1px);
         }
         
         #quest-log {
             position: absolute;
             top: 50px;
             left: 10px;
-            width: 280px;
-            background: rgba(20, 20, 40, 0.95);
-            border: 2px solid #6a6a9a;
-            border-radius: 10px;
-            padding: 15px;
+            width: 290px;
+            background: linear-gradient(180deg, rgba(30, 30, 55, 0.98) 0%, rgba(20, 20, 40, 0.98) 100%);
+            border: 2px solid #7a7aaa;
+            border-radius: 15px;
+            padding: 18px;
             color: white;
             display: none;
-            max-height: 400px;
+            max-height: 420px;
             overflow-y: auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: questLogSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes questLogSlideIn {
+            0% { opacity: 0; transform: translateX(-20px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        
+        #quest-log::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #quest-log::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        
+        #quest-log::-webkit-scrollbar-thumb {
+            background: rgba(100, 100, 150, 0.5);
+            border-radius: 3px;
         }
         
         #quest-log h3 {
-            color: #ffcc44;
-            margin-bottom: 15px;
+            color: #ffdd66;
+            margin-bottom: 16px;
             text-align: center;
+            text-shadow: 0 0 10px rgba(255, 204, 68, 0.4);
         }
         
         .quest-item {
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 8px;
+            background: linear-gradient(180deg, rgba(40, 40, 60, 0.5) 0%, rgba(25, 25, 40, 0.5) 100%);
+            padding: 12px;
+            border-radius: 10px;
             margin-bottom: 10px;
+            border: 1px solid rgba(100, 100, 150, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .quest-item:hover {
+            background: linear-gradient(180deg, rgba(55, 55, 80, 0.6) 0%, rgba(40, 40, 60, 0.6) 100%);
+            border-color: rgba(150, 150, 200, 0.4);
         }
         
         .quest-item.main-quest {
@@ -548,21 +843,25 @@
             top: 80px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(40, 40, 80, 0.95);
-            padding: 12px 25px;
-            border-radius: 25px;
+            background: linear-gradient(180deg, rgba(50, 50, 100, 0.98) 0%, rgba(35, 35, 75, 0.98) 100%);
+            padding: 14px 30px;
+            border-radius: 30px;
             color: white;
-            font-size: 14px;
+            font-size: 15px;
             display: none;
-            animation: fadeInOut 3s ease-in-out;
-            border: 2px solid #6a6aaa;
+            animation: notificationBounce 3s ease-in-out;
+            border: 2px solid #8a8acc;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(100, 100, 200, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
         
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
-            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
-            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        @keyframes notificationBounce {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-30px) scale(0.8); }
+            10% { opacity: 1; transform: translateX(-50%) translateY(5px) scale(1.05); }
+            15% { transform: translateX(-50%) translateY(0) scale(1); }
+            80% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.9); }
         }
         
         #hotbar {
@@ -571,28 +870,37 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 5px;
+            gap: 8px;
         }
         
         .hotbar-slot {
-            width: 50px;
-            height: 50px;
-            background: rgba(30, 30, 50, 0.9);
-            border: 2px solid #5a5a8a;
-            border-radius: 8px;
+            width: 54px;
+            height: 54px;
+            background: linear-gradient(180deg, rgba(40, 40, 70, 0.95) 0%, rgba(25, 25, 50, 0.95) 100%);
+            border: 2px solid #6a6aaa;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 26px;
             position: relative;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hotbar-slot:hover {
+            transform: translateY(-5px) scale(1.1);
+            border-color: #9a9acc;
+            box-shadow: 0 8px 20px rgba(100, 100, 200, 0.4);
         }
         
         .hotbar-key {
             position: absolute;
-            top: 2px;
-            left: 4px;
-            font-size: 10px;
-            color: #888;
+            top: 3px;
+            left: 5px;
+            font-size: 11px;
+            color: #aaa;
+            font-weight: bold;
         }
         
         #loading-screen {
@@ -601,7 +909,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, #1a1a2e, #0f0f1a);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1a 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -611,51 +919,118 @@
         }
         
         #loading-screen h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            color: #ffcc44;
-            text-shadow: 0 0 20px rgba(255, 200, 50, 0.5);
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: #ffdd66;
+            text-shadow: 0 0 30px rgba(255, 200, 50, 0.7), 0 0 60px rgba(255, 180, 50, 0.4);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 30px rgba(255, 200, 50, 0.7), 0 0 60px rgba(255, 180, 50, 0.4); }
+            100% { text-shadow: 0 0 40px rgba(255, 220, 70, 0.9), 0 0 80px rgba(255, 200, 50, 0.6); }
         }
         
         #loading-screen p {
-            color: #888;
+            color: #999;
             margin-bottom: 30px;
         }
         
         #start-btn {
-            padding: 15px 50px;
-            font-size: 20px;
-            background: linear-gradient(to bottom, #44aa44, #338833);
-            border: 3px solid #66cc66;
-            border-radius: 10px;
+            padding: 18px 60px;
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(180deg, #55cc55 0%, #44bb44 40%, #33aa33 100%);
+            border: 3px solid #77ee77;
+            border-radius: 14px;
             color: white;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.35s ease;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 25px rgba(68, 187, 68, 0.4);
+            animation: startBtnPulse 2s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @keyframes startBtnPulse {
+            0%, 100% { box-shadow: 0 6px 25px rgba(68, 187, 68, 0.4); }
+            50% { box-shadow: 0 8px 35px rgba(68, 187, 68, 0.6); }
+        }
+        
+        #start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: startBtnShine 3s infinite;
+        }
+        
+        @keyframes startBtnShine {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
         }
         
         #start-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(100, 200, 100, 0.5);
+            transform: scale(1.12) translateY(-3px);
+            box-shadow: 0 12px 40px rgba(100, 220, 100, 0.6);
+            background: linear-gradient(180deg, #66dd66 0%, #55cc55 40%, #44bb44 100%);
+            border-color: #88ff88;
+        }
+        
+        #start-btn:active {
+            transform: scale(1.05) translateY(-1px);
         }
         
         .ally-indicator {
             position: absolute;
             display: flex;
-            gap: 5px;
-            bottom: 70px;
-            left: 10px;
+            gap: 8px;
+            bottom: 75px;
+            left: 12px;
         }
         
         .ally-portrait {
-            width: 40px;
-            height: 40px;
-            background: rgba(30, 30, 50, 0.9);
-            border: 2px solid #5a8a5a;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(180deg, rgba(40, 50, 60, 0.95) 0%, rgba(25, 35, 45, 0.95) 100%);
+            border: 2px solid #6aaa6a;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .ally-portrait:hover {
+            transform: scale(1.15);
+            border-color: #8acc8a;
+            box-shadow: 0 6px 18px rgba(100, 170, 100, 0.4);
+        }
+        
+        /* Global scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(20, 20, 40, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(100, 100, 150, 0.7) 0%, rgba(80, 80, 120, 0.7) 100%);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(120, 120, 170, 0.8) 0%, rgba(100, 100, 150, 0.8) 100%);
         }
     </style>
 </head>

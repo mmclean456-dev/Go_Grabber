@@ -1376,6 +1376,23 @@ class Game {
             this.navigationState.mouseX = e.clientX - rect.left;
             this.navigationState.mouseY = e.clientY - rect.top;
             
+            // Check NPC hover for visual feedback
+            const mouseWorldX = this.navigationState.mouseX + this.camera.x;
+            const mouseWorldY = this.navigationState.mouseY + this.camera.y;
+            this.hoveredNPC = null;
+            for (const npc of this.npcs) {
+                if (!npc.alive) continue;
+                const dist = Math.hypot(mouseWorldX - npc.x, mouseWorldY - npc.y);
+                if (dist < TILE_SIZE) {
+                    this.hoveredNPC = npc;
+                    this.canvas.style.cursor = 'pointer';
+                    break;
+                }
+            }
+            if (!this.hoveredNPC) {
+                this.canvas.style.cursor = 'crosshair';
+            }
+            
             // Update path preview
             if (!this.inCombat && !this.currentDialogue) {
                 this.updatePathPreview(e);
@@ -3491,6 +3508,10 @@ class CombatSystem {
     victory() {
         const xpGain = this.enemy.level * 25;
         const goldGain = this.enemy.level * 10 + Math.floor(Math.random() * 20);
+        
+        // Enemy death particles
+        this.game.particles.emit(this.enemy.x, this.enemy.y, 'death', 25);
+        this.game.particles.emit(this.enemy.x, this.enemy.y - 10, 'treasure', 15);
         
         this.log(`Victory! Gained ${xpGain} XP and ${goldGain} gold!`);
         
