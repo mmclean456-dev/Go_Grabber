@@ -1,0 +1,1203 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quest of the Dragon's Gold - Test Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #ffcc44; text-align: center; }
+        h2 { color: #aaccff; border-bottom: 2px solid #4a4a6a; padding-bottom: 10px; }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .stat-card {
+            background: #2d2d44;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .stat-label { color: #888; }
+        .pass { color: #44ff44; }
+        .fail { color: #ff4444; }
+        .bug-list { margin: 20px 0; }
+        .bug {
+            background: #2d2d44;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ff4444;
+        }
+        .bug.high { border-left-color: #ff4444; }
+        .bug.medium { border-left-color: #ffaa44; }
+        .bug.low { border-left-color: #44aaff; }
+        .bug-title { font-weight: bold; font-size: 16px; }
+        .bug-severity {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .severity-high { background: #ff4444; }
+        .severity-medium { background: #ffaa44; color: #000; }
+        .severity-low { background: #44aaff; color: #000; }
+        .test-results {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #2d2d44;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .test-item {
+            padding: 5px 10px;
+            margin: 2px 0;
+            border-radius: 4px;
+        }
+        .test-pass { background: rgba(68, 255, 68, 0.1); }
+        .test-fail { background: rgba(255, 68, 68, 0.2); }
+        .screenshots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .screenshot {
+            background: #2d2d44;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .screenshot img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        .screenshot-label { 
+            margin-top: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+        .timestamp {
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚔️ Quest of the Dragon's Gold - Test Report ⚔️</h1>
+    
+    <div class="summary">
+        <div class="stat-card">
+            <div class="stat-value">197</div>
+            <div class="stat-label">Total Tests</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value pass">196</div>
+            <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value fail">1</div>
+            <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">99.49%</div>
+            <div class="stat-label">Pass Rate</div>
+        </div>
+    </div>
+
+    <h2>🐛 Bugs Found (3)</h2>
+    <div class="bug-list">
+        
+            <div class="bug low">
+                <div class="bug-title">
+                    Negative Health
+                    <span class="bug-severity severity-low">LOW</span>
+                </div>
+                <p>Player health can go below zero</p>
+                <p><strong>Reproduction:</strong> Set player.health = -10</p>
+            </div>
+          
+            <div class="bug medium">
+                <div class="bug-title">
+                    Negative Gold
+                    <span class="bug-severity severity-medium">MEDIUM</span>
+                </div>
+                <p>Player gold can be set to negative values</p>
+                <p><strong>Reproduction:</strong> Set player.gold = -100</p>
+            </div>
+          
+            <div class="bug low">
+                <div class="bug-title">
+                    Inventory Overflow
+                    <span class="bug-severity severity-low">LOW</span>
+                </div>
+                <p>Inventory can exceed UI display capacity (16 slots)</p>
+                <p><strong>Reproduction:</strong> Add more than 16 items</p>
+            </div>
+          
+    </div>
+
+    <h2>📋 Test Results</h2>
+    <div class="test-results">
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Game object exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Canvas element exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Canvas width is 1200
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Canvas height is 700
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] World is generated
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] World width is 200 tiles
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] World height is 150 tiles
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] World map is an array
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] World map has correct rows
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player object exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player starts with 100 health
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player max health is 100
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player starts at level 1
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player starts with 50 gold
+                
+            </div>
+        
+            <div class="test-item test-fail">
+                ❌ [Game Initialization] Player starts with 0 XP
+                <br><small style="color:#888;margin-left:20px;">Expected 0, got 25</small>
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player X position is correct
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player Y position is correct
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player inventory is an array
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player has starting items
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Player has starting weapon (Rusty Sword)
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] NPCs array exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] NPCs were generated
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] NPC count is reasonable (40-100)
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Quest system initialized
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Main quest exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Treasure chests array exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Treasure chests generated
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Decorations array exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Decorations generated
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Combat system exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Combat is CombatSystem instance
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Gambling system exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Game Initialization] Gambling is GamblingSystem instance
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] isWalkable function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Starting position is walkable
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Negative X is not walkable
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Negative Y is not walkable
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Out of bounds X is not walkable
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Out of bounds Y is not walkable
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Target X can be set
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Target Y can be set
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Player moves towards target
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Camera follows player
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Player Movement] Player speed is 4
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Combat starts correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Enemy is set correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Player goes first
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Attack deals damage
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Defend action works
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Heal action restores health
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Combat ends correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Damage calculation is positive
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Victory gives gold reward
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat System] Enemy marked as dead after victory
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] openShop function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] buyItem function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] closeShop function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] Iron Sword purchased successfully
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] Gold deducted correctly for Iron Sword
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] Consumable stacks correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] Gold unchanged when insufficient
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] blacksmith shop opens correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] merchant shop opens correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] western shop opens correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] smuggler shop opens correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] royal shop opens correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Shop Transactions] alchemist shop opens correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Inventory Management] toggleInventory function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Inventory Management] Inventory opens
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Inventory Management] Inventory closes
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Inventory Management] Weapon equipped correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Inventory Management] Attack increased after equipping weapon
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Inventory Management] Armor equipped correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Inventory Management] Consumable heals player
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Inventory Management] Consumable count decreases after use
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Main quest exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Main quest has stages
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Main quest has multiple stages
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Quest stage can be completed
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] giveClue function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Clue can be added
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Duplicate clues not added
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Clue count updated correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] toggleQuestLog function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] updateQuestDisplay function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Pirate Ship quest exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Sheriff Bounty quest exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Ghost Mystery quest exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Quest Progression] Wolf Hunt quest exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] startDialogue function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] showDialogue function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] closeDialogue function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] selectDialogueChoice function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] NPC with dialogue exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] Dialogue started
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] Current NPC set correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] Dialogue box is visible
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] Dialogue text is displayed
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] Speaker name is correct
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] Dialogue closed
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] Dialogue box hidden
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] executeDialogueAction function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] checkCondition function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] hasAllClues condition works
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Dialogue System] hasAllClues false when insufficient clues
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] SaveSystem class exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] SaveSystem.save function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] SaveSystem.load function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] SaveSystem.hasSave function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] SaveSystem.deleteSave function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] Save completes
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] Save file exists after save
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] Load completes
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] Gold restored after load
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] Health restored after load
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Save/Load System] Save deleted successfully
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gambling system exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gambling init function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gambling deal function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gambling dealCards function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gambling calculateHandValue function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gambling raise function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gambling fold function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gambling type set correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Default bet is 10
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Initial state is waiting
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Player receives 5 cards
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Opponent receives 5 cards
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Gold deducted for bet
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Card has suit
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Card has value
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Card has numeric value
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Hand value calculated
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Flush bonus applied for same suit
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Gambling System] Bet doubled after raise
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Edge Cases] Health can be zero
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Edge Cases] Health can go negative (potential bug)
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Edge Cases] Health can exceed max (check healing functions)
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Edge Cases] Cannot buy with 0 gold
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Edge Cases] Zero XP gain handled
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Edge Cases] Large XP gain causes level up
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Edge Cases] Inventory can grow large
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Memory Leaks] Combat log size is reasonable
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Memory Leaks] Decorations dont grow
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'health-text' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'health-fill' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'level-text' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'xp-fill' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'gold-text' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'dialogue-box' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'dialogue-speaker' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'dialogue-text' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'dialogue-choices' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'combat-ui' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'combat-log' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'inventory-panel' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'inventory-grid' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'quest-log' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'quest-list' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'shop-ui' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'gambling-ui' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] UI element 'notification' exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] updateHUD function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] Health displayed correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] Gold displayed correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] toggleInventory toggles panel correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] toggleQuestLog toggles panel correctly
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] Inventory closed by closeAllPanels
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] Shop closed by closeAllPanels
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] notify function exists
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [UI Elements] Notification displays message
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Wild Wolf health scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Wild Wolf attack scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Forest Bear health scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Forest Bear attack scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Forest Troll health scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Forest Troll attack scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Outlaw Bill health scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Outlaw Bill attack scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Crazy Pete health scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Enemy Crazy Pete attack scales with level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Dragon is high level
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Dragon has high health
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Dragon has high attack
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Higher level enemies give more XP
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Level 10 enemy gives 250 XP
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Dagger
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Iron Sword
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Rapier
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Pirate Cutlass
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Crossbow
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Six Shooter
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Steel Sword
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Battle Axe
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Royal Sword
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Legendary Blade
+                
+            </div>
+        
+            <div class="test-item test-pass">
+                ✅ [Combat Balance] Weapon pricing is consistent: Dragon Slayer
+                
+            </div>
+        
+    </div>
+
+    <h2>📸 Screenshots</h2>
+    <div class="screenshots">
+        
+            <div class="screenshot">
+                <img src="screenshots/01-game-loaded.png" alt="01-game-loaded.png">
+                <div class="screenshot-label">01 game loaded</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/02-game-started.png" alt="02-game-started.png">
+                <div class="screenshot-label">02 game started</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/03-tests-completed.png" alt="03-tests-completed.png">
+                <div class="screenshot-label">03 tests completed</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/04-inventory-open.png" alt="04-inventory-open.png">
+                <div class="screenshot-label">04 inventory open</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/05-quest-log-open.png" alt="05-quest-log-open.png">
+                <div class="screenshot-label">05 quest log open</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/06-player-moved.png" alt="06-player-moved.png">
+                <div class="screenshot-label">06 player moved</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/07-game-saved.png" alt="07-game-saved.png">
+                <div class="screenshot-label">07 game saved</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/99-final-state.png" alt="99-final-state.png">
+                <div class="screenshot-label">99 final state</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/error-fatal.png" alt="error-fatal.png">
+                <div class="screenshot-label">error fatal</div>
+            </div>
+        
+            <div class="screenshot">
+                <img src="screenshots/error-load-failed.png" alt="error-load-failed.png">
+                <div class="screenshot-label">error load failed</div>
+            </div>
+        
+    </div>
+
+    <div class="timestamp">
+        Generated: 2026-02-25T22:36:04.269Z
+    </div>
+</body>
+</html>

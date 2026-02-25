@@ -1,0 +1,1017 @@
+{
+  "summary": {
+    "totalTests": 197,
+    "passed": 196,
+    "failed": 1,
+    "passRate": "99.49%"
+  },
+  "bugs": [
+    {
+      "severity": "LOW",
+      "title": "Negative Health",
+      "description": "Player health can go below zero",
+      "reproduction": "Set player.health = -10"
+    },
+    {
+      "severity": "MEDIUM",
+      "title": "Negative Gold",
+      "description": "Player gold can be set to negative values",
+      "reproduction": "Set player.gold = -100"
+    },
+    {
+      "severity": "LOW",
+      "title": "Inventory Overflow",
+      "description": "Inventory can exceed UI display capacity (16 slots)",
+      "reproduction": "Add more than 16 items"
+    }
+  ],
+  "results": [
+    {
+      "test": "Game Initialization",
+      "description": "Game object exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Canvas element exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Canvas width is 1200",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Canvas height is 700",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "World is generated",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "World width is 200 tiles",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "World height is 150 tiles",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "World map is an array",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "World map has correct rows",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player object exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player starts with 100 health",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player max health is 100",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player starts at level 1",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player starts with 50 gold",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player starts with 0 XP",
+      "passed": false,
+      "details": "Expected 0, got 25"
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player X position is correct",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player Y position is correct",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player inventory is an array",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player has starting items",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Player has starting weapon (Rusty Sword)",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "NPCs array exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "NPCs were generated",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "NPC count is reasonable (40-100)",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Quest system initialized",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Main quest exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Treasure chests array exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Treasure chests generated",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Decorations array exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Decorations generated",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Combat system exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Combat is CombatSystem instance",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Gambling system exists",
+      "passed": true
+    },
+    {
+      "test": "Game Initialization",
+      "description": "Gambling is GamblingSystem instance",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "isWalkable function exists",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Starting position is walkable",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Negative X is not walkable",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Negative Y is not walkable",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Out of bounds X is not walkable",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Out of bounds Y is not walkable",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Target X can be set",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Target Y can be set",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Player moves towards target",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Camera follows player",
+      "passed": true
+    },
+    {
+      "test": "Player Movement",
+      "description": "Player speed is 4",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Combat starts correctly",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Enemy is set correctly",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Player goes first",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Attack deals damage",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Defend action works",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Heal action restores health",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Combat ends correctly",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Damage calculation is positive",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Victory gives gold reward",
+      "passed": true
+    },
+    {
+      "test": "Combat System",
+      "description": "Enemy marked as dead after victory",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "openShop function exists",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "buyItem function exists",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "closeShop function exists",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "Iron Sword purchased successfully",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "Gold deducted correctly for Iron Sword",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "Consumable stacks correctly",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "Gold unchanged when insufficient",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "blacksmith shop opens correctly",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "merchant shop opens correctly",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "western shop opens correctly",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "smuggler shop opens correctly",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "royal shop opens correctly",
+      "passed": true
+    },
+    {
+      "test": "Shop Transactions",
+      "description": "alchemist shop opens correctly",
+      "passed": true
+    },
+    {
+      "test": "Inventory Management",
+      "description": "toggleInventory function exists",
+      "passed": true
+    },
+    {
+      "test": "Inventory Management",
+      "description": "Inventory opens",
+      "passed": true
+    },
+    {
+      "test": "Inventory Management",
+      "description": "Inventory closes",
+      "passed": true
+    },
+    {
+      "test": "Inventory Management",
+      "description": "Weapon equipped correctly",
+      "passed": true
+    },
+    {
+      "test": "Inventory Management",
+      "description": "Attack increased after equipping weapon",
+      "passed": true
+    },
+    {
+      "test": "Inventory Management",
+      "description": "Armor equipped correctly",
+      "passed": true
+    },
+    {
+      "test": "Inventory Management",
+      "description": "Consumable heals player",
+      "passed": true
+    },
+    {
+      "test": "Inventory Management",
+      "description": "Consumable count decreases after use",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Main quest exists",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Main quest has stages",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Main quest has multiple stages",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Quest stage can be completed",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "giveClue function exists",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Clue can be added",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Duplicate clues not added",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Clue count updated correctly",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "toggleQuestLog function exists",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "updateQuestDisplay function exists",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Pirate Ship quest exists",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Sheriff Bounty quest exists",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Ghost Mystery quest exists",
+      "passed": true
+    },
+    {
+      "test": "Quest Progression",
+      "description": "Wolf Hunt quest exists",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "startDialogue function exists",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "showDialogue function exists",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "closeDialogue function exists",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "selectDialogueChoice function exists",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "NPC with dialogue exists",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "Dialogue started",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "Current NPC set correctly",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "Dialogue box is visible",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "Dialogue text is displayed",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "Speaker name is correct",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "Dialogue closed",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "Dialogue box hidden",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "executeDialogueAction function exists",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "checkCondition function exists",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "hasAllClues condition works",
+      "passed": true
+    },
+    {
+      "test": "Dialogue System",
+      "description": "hasAllClues false when insufficient clues",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "SaveSystem class exists",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "SaveSystem.save function exists",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "SaveSystem.load function exists",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "SaveSystem.hasSave function exists",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "SaveSystem.deleteSave function exists",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "Save completes",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "Save file exists after save",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "Load completes",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "Gold restored after load",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "Health restored after load",
+      "passed": true
+    },
+    {
+      "test": "Save/Load System",
+      "description": "Save deleted successfully",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gambling system exists",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gambling init function exists",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gambling deal function exists",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gambling dealCards function exists",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gambling calculateHandValue function exists",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gambling raise function exists",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gambling fold function exists",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gambling type set correctly",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Default bet is 10",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Initial state is waiting",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Player receives 5 cards",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Opponent receives 5 cards",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Gold deducted for bet",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Card has suit",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Card has value",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Card has numeric value",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Hand value calculated",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Flush bonus applied for same suit",
+      "passed": true
+    },
+    {
+      "test": "Gambling System",
+      "description": "Bet doubled after raise",
+      "passed": true
+    },
+    {
+      "test": "Edge Cases",
+      "description": "Health can be zero",
+      "passed": true
+    },
+    {
+      "test": "Edge Cases",
+      "description": "Health can go negative (potential bug)",
+      "passed": true
+    },
+    {
+      "test": "Edge Cases",
+      "description": "Health can exceed max (check healing functions)",
+      "passed": true
+    },
+    {
+      "test": "Edge Cases",
+      "description": "Cannot buy with 0 gold",
+      "passed": true
+    },
+    {
+      "test": "Edge Cases",
+      "description": "Zero XP gain handled",
+      "passed": true
+    },
+    {
+      "test": "Edge Cases",
+      "description": "Large XP gain causes level up",
+      "passed": true
+    },
+    {
+      "test": "Edge Cases",
+      "description": "Inventory can grow large",
+      "passed": true
+    },
+    {
+      "test": "Memory Leaks",
+      "description": "Combat log size is reasonable",
+      "passed": true
+    },
+    {
+      "test": "Memory Leaks",
+      "description": "Decorations dont grow",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'health-text' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'health-fill' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'level-text' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'xp-fill' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'gold-text' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'dialogue-box' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'dialogue-speaker' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'dialogue-text' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'dialogue-choices' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'combat-ui' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'combat-log' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'inventory-panel' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'inventory-grid' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'quest-log' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'quest-list' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'shop-ui' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'gambling-ui' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "UI element 'notification' exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "updateHUD function exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "Health displayed correctly",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "Gold displayed correctly",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "toggleInventory toggles panel correctly",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "toggleQuestLog toggles panel correctly",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "Inventory closed by closeAllPanels",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "Shop closed by closeAllPanels",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "notify function exists",
+      "passed": true
+    },
+    {
+      "test": "UI Elements",
+      "description": "Notification displays message",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Wild Wolf health scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Wild Wolf attack scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Forest Bear health scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Forest Bear attack scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Forest Troll health scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Forest Troll attack scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Outlaw Bill health scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Outlaw Bill attack scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Crazy Pete health scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Enemy Crazy Pete attack scales with level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Dragon is high level",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Dragon has high health",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Dragon has high attack",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Higher level enemies give more XP",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Level 10 enemy gives 250 XP",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Dagger",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Iron Sword",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Rapier",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Pirate Cutlass",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Crossbow",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Six Shooter",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Steel Sword",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Battle Axe",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Royal Sword",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Legendary Blade",
+      "passed": true
+    },
+    {
+      "test": "Combat Balance",
+      "description": "Weapon pricing is consistent: Dragon Slayer",
+      "passed": true
+    }
+  ],
+  "timestamp": "2026-02-25T22:36:04.269Z"
+}

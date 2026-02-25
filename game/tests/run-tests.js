@@ -66,15 +66,19 @@ class GameTestRunner {
     async loadGame() {
         console.log('\n📁 Loading game...');
         
+        // Try HTTP server first, fall back to file://
+        const httpUrl = 'http://localhost:8080/index.html';
         const gamePath = path.join(__dirname, '..', 'index.html');
-        const gameUrl = `file://${gamePath}`;
+        const fileUrl = `file://${gamePath}`;
+        
+        let gameUrl = httpUrl;
         
         try {
             await this.page.goto(gameUrl, { 
-                waitUntil: 'networkidle0',
+                waitUntil: 'domcontentloaded',
                 timeout: 30000
             });
-            console.log('✅ Game loaded successfully');
+            console.log('✅ Game loaded successfully from', gameUrl);
             
             // Take initial screenshot
             await this.takeScreenshot('01-game-loaded');
@@ -85,9 +89,23 @@ class GameTestRunner {
 
             return true;
         } catch (error) {
-            console.error('❌ Failed to load game:', error.message);
-            await this.takeScreenshot('error-load-failed');
-            return false;
+            console.error('❌ Failed to load game from HTTP, trying file://:', error.message);
+            
+            try {
+                await this.page.goto(fileUrl, { 
+                    waitUntil: 'domcontentloaded',
+                    timeout: 30000
+                });
+                console.log('✅ Game loaded successfully from file://');
+                await this.takeScreenshot('01-game-loaded');
+                await this.page.waitForSelector('#start-btn', { timeout: 10000 });
+                console.log('✅ Start button found');
+                return true;
+            } catch (error2) {
+                console.error('❌ Failed to load game:', error2.message);
+                await this.takeScreenshot('error-load-failed');
+                return false;
+            }
         }
     }
 
@@ -102,7 +120,7 @@ class GameTestRunner {
                 const newGameBtn = await this.page.$('#new-game-btn');
                 if (newGameBtn) {
                     await newGameBtn.click();
-                    await this.page.waitForTimeout(500);
+                    await this.page.evaluate(() => new Promise(r => setTimeout(r, 500)));
                 }
             }
 
@@ -126,7 +144,7 @@ class GameTestRunner {
             
             if (!gameRunning) {
                 // Try to wait a bit more
-                await this.page.waitForTimeout(1000);
+                await this.page.evaluate(() => new Promise(r => setTimeout(r, 1000)));
             }
             
             return true;
@@ -313,7 +331,7 @@ class GameTestRunner {
         // Scenario 1: Open inventory and check items
         try {
             await this.page.keyboard.press('i');
-            await this.page.waitForTimeout(500);
+            await this.page.evaluate(() => new Promise(r => setTimeout(r, 500)));
             await this.takeScreenshot('04-inventory-open');
             
             const inventoryVisible = await this.page.evaluate(() => {
@@ -330,7 +348,7 @@ class GameTestRunner {
             }
             
             await this.page.keyboard.press('i');
-            await this.page.waitForTimeout(300);
+            await this.page.evaluate(() => new Promise(r => setTimeout(r, 300)));
         } catch (e) {
             console.log(`  ⚠️ Inventory test: ${e.message}`);
         }
@@ -338,11 +356,11 @@ class GameTestRunner {
         // Scenario 2: Open quest log
         try {
             await this.page.keyboard.press('q');
-            await this.page.waitForTimeout(500);
+            await this.page.evaluate(() => new Promise(r => setTimeout(r, 500)));
             await this.takeScreenshot('05-quest-log-open');
             
             await this.page.keyboard.press('q');
-            await this.page.waitForTimeout(300);
+            await this.page.evaluate(() => new Promise(r => setTimeout(r, 300)));
         } catch (e) {
             console.log(`  ⚠️ Quest log test: ${e.message}`);
         }
@@ -353,7 +371,7 @@ class GameTestRunner {
                 button: 'left',
                 offset: { x: 700, y: 400 }
             });
-            await this.page.waitForTimeout(1000);
+            await this.page.evaluate(() => new Promise(r => setTimeout(r, 1000)));
             await this.takeScreenshot('06-player-moved');
         } catch (e) {
             console.log(`  ⚠️ Movement test: ${e.message}`);
@@ -362,7 +380,7 @@ class GameTestRunner {
         // Scenario 4: Test save/load
         try {
             await this.page.keyboard.press('F5');
-            await this.page.waitForTimeout(500);
+            await this.page.evaluate(() => new Promise(r => setTimeout(r, 500)));
             await this.takeScreenshot('07-game-saved');
             
             const saveSuccess = await this.page.evaluate(() => {
@@ -384,9 +402,9 @@ class GameTestRunner {
         // Scenario 5: Close all panels with ESC
         try {
             await this.page.keyboard.press('i');
-            await this.page.waitForTimeout(200);
+            await this.page.evaluate(() => new Promise(r => setTimeout(r, 200)));
             await this.page.keyboard.press('Escape');
-            await this.page.waitForTimeout(300);
+            await this.page.evaluate(() => new Promise(r => setTimeout(r, 300)));
             
             const panelsClosed = await this.page.evaluate(() => {
                 return document.getElementById('inventory-panel').style.display === 'none';
