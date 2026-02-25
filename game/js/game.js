@@ -1786,8 +1786,13 @@ class Game {
                     this.toggleFastTravel();
                 }
                 break;
+            case 'm':
+                // M key for sound settings
+                this.toggleSoundPanel();
+                break;
             case 'escape':
                 this.closeAllPanels();
+                soundSystem.playMenuClose();
                 break;
             case '1':
             case '2':
@@ -1881,6 +1886,9 @@ class Game {
     }
     
     selectDialogueChoice(choice, idx) {
+        // Play click sound
+        soundSystem.playClick();
+        
         // Execute action if present
         if (choice.action) {
             this.executeDialogueAction(choice);
@@ -2419,6 +2427,7 @@ class Game {
         document.getElementById('gambling-ui').style.display = 'none';
         document.getElementById('fast-travel-panel').style.display = 'none';
         document.getElementById('stats-panel').style.display = 'none';
+        document.getElementById('sound-panel').style.display = 'none';
         this.closeDialogue();
     }
     
@@ -2430,6 +2439,9 @@ class Game {
         
         if (!isVisible) {
             this.updateFastTravelDisplay();
+            soundSystem.playMenuOpen();
+        } else {
+            soundSystem.playMenuClose();
         }
         
         panel.style.display = isVisible ? 'none' : 'block';
@@ -2554,6 +2566,9 @@ class Game {
         
         if (!isVisible) {
             this.updateStatsDisplay();
+            soundSystem.playMenuOpen();
+        } else {
+            soundSystem.playMenuClose();
         }
         
         panel.style.display = isVisible ? 'none' : 'block';
@@ -5951,6 +5966,9 @@ if (SaveSystem.hasSave()) {
     
     document.getElementById('load-save-btn').addEventListener('click', () => {
         document.getElementById('loading-screen').style.display = 'none';
+        // Initialize sound system on user interaction
+        soundSystem.init();
+        soundSystem.playClick();
         game.start();
         SaveSystem.load(game);
     });
