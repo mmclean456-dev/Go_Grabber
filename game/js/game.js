@@ -5,6 +5,152 @@ const TILE_SIZE = 48;
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 700;
 
+// Seed for procedural generation (changes each playthrough)
+const WORLD_SEED = Date.now();
+let seededRandom = (function(seed) {
+    return function() {
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+    };
+})(WORLD_SEED);
+
+// Random events that can occur during exploration
+const RANDOM_EVENTS = [
+    {
+        id: 'wandering_merchant',
+        name: 'Wandering Merchant',
+        chance: 0.02,
+        minLevel: 1,
+        action: (game) => {
+            const discount = Math.floor(Math.random() * 30) + 10;
+            game.notify(`A wandering merchant offers you a discount! ${discount}% off next purchase.`);
+            game.gameFlags.merchantDiscount = discount;
+        }
+    },
+    {
+        id: 'treasure_find',
+        name: 'Hidden Treasure',
+        chance: 0.015,
+        minLevel: 1,
+        action: (game) => {
+            const gold = Math.floor(Math.random() * 50) + 20;
+            game.player.gold += gold;
+            game.notify(`You found a hidden pouch with ${gold} gold!`);
+            game.updateHUD();
+        }
+    },
+    {
+        id: 'ambush',
+        name: 'Bandit Ambush',
+        chance: 0.025,
+        minLevel: 3,
+        action: (game) => {
+            if (!game.inCombat) {
+                game.notify('Bandits ambush you!');
+                const ambusher = {
+                    x: game.player.x + 50,
+                    y: game.player.y,
+                    type: NPC_TYPES.BANDIT,
+                    name: 'Ambushing Bandit',
+                    hostile: true,
+                    alive: true,
+                    health: game.player.level * 15 + 30,
+                    maxHealth: game.player.level * 15 + 30,
+                    attack: game.player.level * 2 + 5,
+                    defense: game.player.level,
+                    level: Math.max(1, game.player.level - 1)
+                };
+                game.npcs.push(ambusher);
+                setTimeout(() => game.combat.start(ambusher), 500);
+            }
+        }
+    },
+    {
+        id: 'mysterious_potion',
+        name: 'Mysterious Potion',
+        chance: 0.01,
+        minLevel: 2,
+        action: (game) => {
+            const effects = [
+                { msg: 'The potion heals you!', effect: () => { game.player.health = game.player.maxHealth; } },
+                { msg: 'The potion makes you stronger!', effect: () => { game.player.attack += 2; } },
+                { msg: 'The potion makes you tougher!', effect: () => { game.player.defense += 2; } },
+                { msg: 'The potion was poison! You feel weak...', effect: () => { game.player.health = Math.max(1, game.player.health - 20); } }
+            ];
+            const chosen = effects[Math.floor(Math.random() * effects.length)];
+            chosen.effect();
+            game.notify(`You find a glowing potion and drink it. ${chosen.msg}`);
+            game.updateHUD();
+        }
+    },
+    {
+        id: 'helpful_fairy',
+        name: 'Helpful Fairy',
+        chance: 0.008,
+        minLevel: 1,
+        action: (game) => {
+            game.player.health = Math.min(game.player.health + 50, game.player.maxHealth);
+            game.notify('A magical fairy heals your wounds! +50 HP');
+            game.updateHUD();
+        }
+    },
+    {
+        id: 'weather_change',
+        name: 'Weather Event',
+        chance: 0.03,
+        minLevel: 1,
+        action: (game) => {
+            const weathers = ['sunny', 'foggy', 'rainy', 'stormy'];
+            game.weather = weathers[Math.floor(Math.random() * weathers.length)];
+            game.notify(`The weather changes to ${game.weather}!`);
+        }
+    },
+    {
+        id: 'lost_traveler',
+        name: 'Lost Traveler',
+        chance: 0.012,
+        minLevel: 1,
+        action: (game) => {
+            const reward = Math.floor(Math.random() * 30) + 10;
+            game.player.gold += reward;
+            game.gainXP(15);
+            game.notify(`You help a lost traveler find their way. They reward you with ${reward} gold!`);
+        }
+    },
+    {
+        id: 'ancient_shrine',
+        name: 'Ancient Shrine',
+        chance: 0.005,
+        minLevel: 5,
+        action: (game) => {
+            game.player.maxHealth += 10;
+            game.player.health = game.player.maxHealth;
+            game.notify('You discover an ancient shrine. Your max health increases by 10!');
+            game.updateHUD();
+        }
+    }
+];
+
+// Procedural name generator for variety
+const NAME_PARTS = {
+    prefixes: ['Old', 'Dark', 'Brave', 'Swift', 'Iron', 'Golden', 'Silver', 'Black', 'Red', 'One-Eyed', 'Lucky', 'Mad', 'Crazy', 'Sly', 'Quick'],
+    names: ['Jack', 'Pete', 'Bill', 'Sam', 'Tom', 'Joe', 'Mike', 'Dan', 'Bob', 'Jim', 'Frank', 'Duke', 'Earl', 'Rex', 'Max'],
+    suffixes: ['the Bold', 'the Brave', 'Longbeard', 'Ironfist', 'Shadowwalker', 'Quickdraw', 'the Terrible', 'the Wise', '']
+};
+
+function generateName() {
+    const usePrefix = Math.random() < 0.3;
+    const useSuffix = Math.random() < 0.3;
+    let name = NAME_PARTS.names[Math.floor(Math.random() * NAME_PARTS.names.length)];
+    if (usePrefix) {
+        name = NAME_PARTS.prefixes[Math.floor(Math.random() * NAME_PARTS.prefixes.length)] + ' ' + name;
+    }
+    if (useSuffix) {
+        name = name + ' ' + NAME_PARTS.suffixes[Math.floor(Math.random() * NAME_PARTS.suffixes.length)];
+    }
+    return name.trim();
+}
+
 // Tile types
 const TILES = {
     GRASS: 0,
@@ -280,6 +426,18 @@ class Game {
         this.running = false;
         this.lastTime = 0;
         
+        // New systems for replayability
+        this.weather = 'sunny';
+        this.timeOfDay = 0; // 0-24 hours
+        this.dayNightCycle = true;
+        this.eventCooldown = 0;
+        this.treasureChests = [];
+        this.discoveredLocations = new Set();
+        this.playTime = 0;
+        this.killCount = 0;
+        this.distanceTraveled = 0;
+        this.lastPosition = { x: 0, y: 0 };
+        
         this.combat = new CombatSystem(this);
         this.gambling = new GamblingSystem(this);
         
@@ -289,12 +447,49 @@ class Game {
     init() {
         this.generateNPCs();
         this.generateDecorations();
+        this.generateTreasureChests();
         this.setupEventListeners();
         
         document.getElementById('start-btn').addEventListener('click', () => {
             document.getElementById('loading-screen').style.display = 'none';
             this.start();
         });
+    }
+    
+    generateTreasureChests() {
+        const chestLocations = [
+            { x: 55, y: 78, loot: 'gold', amount: 30 },
+            { x: 108, y: 70, loot: 'potion', amount: 1 },
+            { x: 142, y: 92, loot: 'gold', amount: 75 },
+            { x: 85, y: 45, loot: 'gold', amount: 50 },
+            { x: 35, y: 55, loot: 'weapon', item: ITEMS.IRON_SWORD },
+            { x: 125, y: 95, loot: 'armor', item: ITEMS.CHAINMAIL },
+            { x: 95, y: 25, loot: 'gold', amount: 100 },
+            { x: 165, y: 20, loot: 'potion', amount: 3 },
+            { x: 175, y: 18, loot: 'weapon', item: ITEMS.LEGENDARY_BLADE }
+        ];
+        
+        // Add some randomized chest locations
+        for (let i = 0; i < 10; i++) {
+            const x = Math.floor(seededRandom() * 180) + 10;
+            const y = Math.floor(seededRandom() * 130) + 10;
+            if (this.isWalkable(x, y)) {
+                const lootType = seededRandom() < 0.7 ? 'gold' : 'potion';
+                chestLocations.push({
+                    x, y,
+                    loot: lootType,
+                    amount: lootType === 'gold' ? Math.floor(seededRandom() * 40) + 15 : Math.floor(seededRandom() * 2) + 1
+                });
+            }
+        }
+        
+        this.treasureChests = chestLocations.map(loc => ({
+            ...loc,
+            x: loc.x * TILE_SIZE + TILE_SIZE / 2,
+            y: loc.y * TILE_SIZE + TILE_SIZE / 2,
+            opened: false,
+            sprite: '📦'
+        }));
     }
     
     generateNPCs() {
@@ -1296,6 +1491,109 @@ class Game {
                 break;
             }
         }
+        
+        // Check for treasure chests
+        for (const chest of this.treasureChests) {
+            if (chest.opened) continue;
+            const dist = Math.hypot(this.player.x - chest.x, this.player.y - chest.y);
+            if (dist < TILE_SIZE) {
+                this.openTreasureChest(chest);
+            }
+        }
+        
+        // Track distance traveled
+        const movedDist = Math.hypot(
+            this.player.x - this.lastPosition.x,
+            this.player.y - this.lastPosition.y
+        );
+        this.distanceTraveled += movedDist;
+        this.lastPosition = { x: this.player.x, y: this.player.y };
+        
+        // Random events
+        this.eventCooldown -= dt;
+        if (this.eventCooldown <= 0 && !this.inCombat && !this.currentDialogue) {
+            this.checkRandomEvents();
+            this.eventCooldown = 5; // Minimum 5 seconds between event checks
+        }
+        
+        // Day/night cycle (1 game minute = 1 real second)
+        if (this.dayNightCycle) {
+            this.timeOfDay += dt / 60; // 24 game hours = 24 real minutes
+            if (this.timeOfDay >= 24) this.timeOfDay = 0;
+        }
+        
+        // Track play time
+        this.playTime += dt;
+        
+        // Discover locations
+        this.checkLocationDiscovery();
+    }
+    
+    openTreasureChest(chest) {
+        chest.opened = true;
+        chest.sprite = '📭';
+        
+        let message = 'You opened a treasure chest! ';
+        
+        if (chest.loot === 'gold') {
+            this.player.gold += chest.amount;
+            message += `Found ${chest.amount} gold!`;
+        } else if (chest.loot === 'potion') {
+            for (let i = 0; i < chest.amount; i++) {
+                const existing = this.player.inventory.find(inv => inv.item && inv.item.name === 'Health Potion');
+                if (existing) {
+                    existing.count = (existing.count || 1) + 1;
+                } else {
+                    this.player.inventory.push({ item: ITEMS.HEALTH_POTION, count: 1 });
+                }
+            }
+            message += `Found ${chest.amount} Health Potion${chest.amount > 1 ? 's' : ''}!`;
+        } else if (chest.loot === 'weapon' || chest.loot === 'armor') {
+            this.player.inventory.push({ item: chest.item });
+            message += `Found ${chest.item.name}!`;
+        }
+        
+        this.notify(message);
+        this.updateHUD();
+    }
+    
+    checkRandomEvents() {
+        if (this.inCombat) return;
+        
+        for (const event of RANDOM_EVENTS) {
+            if (this.player.level < event.minLevel) continue;
+            if (Math.random() < event.chance) {
+                event.action(this);
+                break;
+            }
+        }
+    }
+    
+    checkLocationDiscovery() {
+        const tileX = Math.floor(this.player.x / TILE_SIZE);
+        const tileY = Math.floor(this.player.y / TILE_SIZE);
+        
+        const locations = [
+            { name: 'Starting Village', x: 50, y: 75, range: 10 },
+            { name: 'Dark Forest', x: 100, y: 75, range: 15 },
+            { name: 'Pirate Cove', x: 150, y: 90, range: 12 },
+            { name: 'Western Town', x: 80, y: 40, range: 10 },
+            { name: 'Medieval Castle', x: 30, y: 50, range: 10 },
+            { name: 'Mystic Swamp', x: 120, y: 100, range: 12 },
+            { name: 'Mountain Pass', x: 100, y: 20, range: 10 },
+            { name: 'Dragon\'s Lair', x: 180, y: 12, range: 10 }
+        ];
+        
+        for (const loc of locations) {
+            if (!this.discoveredLocations.has(loc.name)) {
+                const dist = Math.hypot(tileX - loc.x, tileY - loc.y);
+                if (dist < loc.range) {
+                    this.discoveredLocations.add(loc.name);
+                    this.notify(`Discovered: ${loc.name}!`);
+                    this.gainXP(25);
+                }
+            }
+        }
     }
     
     render() {
@@ -1381,6 +1679,25 @@ class Game {
             }
         }
         
+        // Render treasure chests
+        for (const chest of this.treasureChests) {
+            const screenX = chest.x - this.camera.x;
+            const screenY = chest.y - this.camera.y;
+            
+            if (screenX > -TILE_SIZE && screenX < CANVAS_WIDTH + TILE_SIZE &&
+                screenY > -TILE_SIZE && screenY < CANVAS_HEIGHT + TILE_SIZE) {
+                this.ctx.font = '28px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(chest.sprite, screenX, screenY);
+                
+                // Sparkle effect for unopened chests
+                if (!chest.opened) {
+                    const sparkleOffset = Math.sin(performance.now() / 200) * 3;
+                    this.ctx.fillText('✨', screenX + sparkleOffset, screenY - 15);
+                }
+            }
+        }
+        
         // Render player
         const playerScreenX = this.player.x - this.camera.x;
         const playerScreenY = this.player.y - this.camera.y;
@@ -1415,6 +1732,52 @@ class Game {
             this.ctx.beginPath();
             this.ctx.arc(targetScreenX, targetScreenY, 10, 0, Math.PI * 2);
             this.ctx.stroke();
+        }
+        
+        // Day/night cycle overlay
+        if (this.dayNightCycle) {
+            let alpha = 0;
+            if (this.timeOfDay >= 20 || this.timeOfDay < 6) {
+                // Night time
+                const nightHour = this.timeOfDay >= 20 ? this.timeOfDay - 20 : this.timeOfDay + 4;
+                alpha = Math.min(0.5, nightHour < 5 ? 0.5 : (10 - nightHour) / 10);
+                this.ctx.fillStyle = `rgba(20, 20, 60, ${alpha})`;
+                this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            } else if (this.timeOfDay >= 6 && this.timeOfDay < 8) {
+                // Dawn
+                alpha = (8 - this.timeOfDay) / 4 * 0.3;
+                this.ctx.fillStyle = `rgba(255, 150, 100, ${alpha})`;
+                this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            } else if (this.timeOfDay >= 18 && this.timeOfDay < 20) {
+                // Dusk
+                alpha = (this.timeOfDay - 18) / 4 * 0.3;
+                this.ctx.fillStyle = `rgba(255, 100, 50, ${alpha})`;
+                this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            }
+        }
+        
+        // Weather effects
+        if (this.weather === 'foggy') {
+            this.ctx.fillStyle = 'rgba(200, 200, 220, 0.3)';
+            this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        } else if (this.weather === 'rainy') {
+            this.ctx.strokeStyle = 'rgba(100, 150, 200, 0.4)';
+            this.ctx.lineWidth = 1;
+            for (let i = 0; i < 100; i++) {
+                const x = (Math.random() * CANVAS_WIDTH);
+                const y = (Math.random() * CANVAS_HEIGHT);
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y);
+                this.ctx.lineTo(x + 5, y + 15);
+                this.ctx.stroke();
+            }
+        } else if (this.weather === 'stormy') {
+            this.ctx.fillStyle = 'rgba(50, 50, 80, 0.2)';
+            this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            if (Math.random() < 0.01) {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            }
         }
         
         // Render minimap
@@ -1599,6 +1962,30 @@ class CombatSystem {
         
         this.game.gainXP(xpGain);
         this.game.player.gold += goldGain;
+        this.game.killCount++;
+        
+        // Notify spawner if this was a spawned enemy
+        if (this.enemy.isSpawned && this.game.spawner) {
+            this.game.spawner.onEnemyKilled();
+        }
+        
+        // Random item drop
+        if (Math.random() < 0.2) {
+            const dropChance = Math.random();
+            if (dropChance < 0.7) {
+                const existing = this.game.player.inventory.find(i => i.item && i.item.name === 'Health Potion');
+                if (existing) {
+                    existing.count = (existing.count || 1) + 1;
+                } else {
+                    this.game.player.inventory.push({ item: ITEMS.HEALTH_POTION, count: 1 });
+                }
+                this.log('Enemy dropped a Health Potion!');
+            } else {
+                const bonusGold = Math.floor(Math.random() * 30) + 10;
+                this.game.player.gold += bonusGold;
+                this.log(`Enemy dropped ${bonusGold} extra gold!`);
+            }
+        }
         
         // Check for bounty targets
         if (this.enemy.bountyTarget) {
@@ -1776,6 +2163,7 @@ class GamblingSystem {
             const winnings = this.bet * 2;
             this.game.player.gold += winnings;
             resultDiv.innerHTML = `<span style="color: #44ff44;">YOU WIN! +${winnings} gold!</span>`;
+            this.game.gameFlags.wonGambling = true;
             
             // Special pirate victory
             if (this.type === 'pirate') {
@@ -1835,5 +2223,272 @@ class GamblingSystem {
     }
 }
 
+// Save/Load System
+class SaveSystem {
+    static save(game) {
+        const saveData = {
+            version: '1.0',
+            timestamp: Date.now(),
+            playTime: game.playTime,
+            player: {
+                x: game.player.x,
+                y: game.player.y,
+                health: game.player.health,
+                maxHealth: game.player.maxHealth,
+                level: game.player.level,
+                xp: game.player.xp,
+                xpToLevel: game.player.xpToLevel,
+                gold: game.player.gold,
+                attack: game.player.attack,
+                defense: game.player.defense,
+                baseAttack: game.player.baseAttack,
+                baseDefense: game.player.baseDefense,
+                inventory: game.player.inventory,
+                equipment: game.player.equipment,
+                allies: game.player.allies,
+                reputation: game.player.reputation
+            },
+            quests: game.quests,
+            cluesFound: game.cluesFound,
+            gameFlags: game.gameFlags,
+            discoveredLocations: Array.from(game.discoveredLocations),
+            killCount: game.killCount,
+            distanceTraveled: game.distanceTraveled,
+            deadNPCs: game.npcs.filter(n => !n.alive).map(n => n.name),
+            openedChests: game.treasureChests.filter(c => c.opened).map((c, i) => i)
+        };
+        
+        try {
+            localStorage.setItem('dragonQuestSave', JSON.stringify(saveData));
+            game.notify('Game saved!');
+            return true;
+        } catch (e) {
+            game.notify('Failed to save game!');
+            return false;
+        }
+    }
+    
+    static load(game) {
+        try {
+            const saveData = JSON.parse(localStorage.getItem('dragonQuestSave'));
+            if (!saveData) {
+                game.notify('No save file found!');
+                return false;
+            }
+            
+            // Restore player state
+            Object.assign(game.player, saveData.player);
+            game.player.targetX = game.player.x;
+            game.player.targetY = game.player.y;
+            
+            // Restore game state
+            game.quests = saveData.quests;
+            game.cluesFound = saveData.cluesFound;
+            game.gameFlags = saveData.gameFlags;
+            game.discoveredLocations = new Set(saveData.discoveredLocations);
+            game.killCount = saveData.killCount;
+            game.distanceTraveled = saveData.distanceTraveled;
+            game.playTime = saveData.playTime;
+            
+            // Mark dead NPCs
+            saveData.deadNPCs.forEach(name => {
+                const npc = game.npcs.find(n => n.name === name);
+                if (npc) npc.alive = false;
+            });
+            
+            // Mark opened chests
+            saveData.openedChests.forEach(i => {
+                if (game.treasureChests[i]) {
+                    game.treasureChests[i].opened = true;
+                    game.treasureChests[i].sprite = '📭';
+                }
+            });
+            
+            game.updateHUD();
+            game.notify('Game loaded!');
+            return true;
+        } catch (e) {
+            game.notify('Failed to load game!');
+            return false;
+        }
+    }
+    
+    static hasSave() {
+        return localStorage.getItem('dragonQuestSave') !== null;
+    }
+    
+    static deleteSave() {
+        localStorage.removeItem('dragonQuestSave');
+    }
+}
+
+// Additional random enemy spawning for longer gameplay
+class EnemySpawner {
+    constructor(game) {
+        this.game = game;
+        this.spawnTimer = 0;
+        this.maxRandomEnemies = 20;
+        this.currentRandomEnemies = 0;
+    }
+    
+    update(dt) {
+        this.spawnTimer += dt;
+        
+        // Spawn enemies periodically based on player level
+        if (this.spawnTimer > 30 && this.currentRandomEnemies < this.maxRandomEnemies) {
+            this.spawnTimer = 0;
+            this.trySpawnEnemy();
+        }
+    }
+    
+    trySpawnEnemy() {
+        const playerTileX = Math.floor(this.game.player.x / TILE_SIZE);
+        const playerTileY = Math.floor(this.game.player.y / TILE_SIZE);
+        
+        // Spawn enemy somewhere off-screen but nearby
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 15 + Math.random() * 10;
+        const spawnX = Math.floor(playerTileX + Math.cos(angle) * distance);
+        const spawnY = Math.floor(playerTileY + Math.sin(angle) * distance);
+        
+        if (!this.game.isWalkable(spawnX, spawnY)) return;
+        
+        // Determine enemy type based on region
+        const enemyTypes = this.getEnemyTypesForLocation(spawnX, spawnY);
+        if (enemyTypes.length === 0) return;
+        
+        const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+        const level = Math.max(1, this.game.player.level + Math.floor(Math.random() * 3) - 1);
+        
+        const enemy = {
+            x: spawnX * TILE_SIZE + TILE_SIZE / 2,
+            y: spawnY * TILE_SIZE + TILE_SIZE / 2,
+            type: enemyType.type,
+            name: enemyType.name + ' ' + generateName().split(' ')[0],
+            hostile: true,
+            alive: true,
+            health: level * 18 + 25,
+            maxHealth: level * 18 + 25,
+            attack: level * 3 + 4,
+            defense: level * 1.5,
+            level: level,
+            isSpawned: true
+        };
+        
+        this.game.npcs.push(enemy);
+        this.currentRandomEnemies++;
+    }
+    
+    getEnemyTypesForLocation(x, y) {
+        const types = [];
+        
+        // Forest area
+        if (x > 80 && x < 120 && y > 60 && y < 90) {
+            types.push({ type: NPC_TYPES.BEAST, name: 'Wild' });
+            types.push({ type: NPC_TYPES.MONSTER, name: 'Forest' });
+        }
+        // Western area
+        else if (x > 60 && x < 100 && y > 30 && y < 50) {
+            types.push({ type: NPC_TYPES.BANDIT, name: 'Outlaw' });
+        }
+        // Swamp area
+        else if (x > 110 && x < 140 && y > 90 && y < 120) {
+            types.push({ type: NPC_TYPES.MONSTER, name: 'Swamp' });
+            types.push({ type: NPC_TYPES.BEAST, name: 'Marsh' });
+        }
+        // Mountain area
+        else if (y < 30) {
+            types.push({ type: NPC_TYPES.MONSTER, name: 'Mountain' });
+        }
+        // Default roaming enemies
+        else if (Math.random() < 0.3) {
+            types.push({ type: NPC_TYPES.BANDIT, name: 'Wandering' });
+        }
+        
+        return types;
+    }
+    
+    onEnemyKilled() {
+        this.currentRandomEnemies = Math.max(0, this.currentRandomEnemies - 1);
+    }
+}
+
+// Achievement System
+const ACHIEVEMENTS = [
+    { id: 'first_blood', name: 'First Blood', desc: 'Defeat your first enemy', check: (g) => g.killCount >= 1 },
+    { id: 'slayer', name: 'Monster Slayer', desc: 'Defeat 10 enemies', check: (g) => g.killCount >= 10 },
+    { id: 'champion', name: 'Champion', desc: 'Defeat 50 enemies', check: (g) => g.killCount >= 50 },
+    { id: 'rich', name: 'Getting Rich', desc: 'Accumulate 500 gold', check: (g) => g.player.gold >= 500 },
+    { id: 'wealthy', name: 'Wealthy', desc: 'Accumulate 2000 gold', check: (g) => g.player.gold >= 2000 },
+    { id: 'explorer', name: 'Explorer', desc: 'Discover 5 locations', check: (g) => g.discoveredLocations.size >= 5 },
+    { id: 'world_traveler', name: 'World Traveler', desc: 'Discover all locations', check: (g) => g.discoveredLocations.size >= 8 },
+    { id: 'clue_hunter', name: 'Clue Hunter', desc: 'Find all 5 clues', check: (g) => g.cluesFound.length >= 5 },
+    { id: 'level_5', name: 'Seasoned Adventurer', desc: 'Reach level 5', check: (g) => g.player.level >= 5 },
+    { id: 'level_10', name: 'Veteran', desc: 'Reach level 10', check: (g) => g.player.level >= 10 },
+    { id: 'dragon_slayer', name: 'Dragon Slayer', desc: 'Defeat the dragon', check: (g) => g.quests.MAIN_QUEST.stages[3].completed },
+    { id: 'card_shark', name: 'Card Shark', desc: 'Win at gambling', check: (g) => g.gameFlags.wonGambling },
+    { id: 'leader', name: 'Leader', desc: 'Recruit an ally', check: (g) => g.player.allies.length >= 1 }
+];
+
+class AchievementSystem {
+    constructor(game) {
+        this.game = game;
+        this.unlocked = new Set();
+    }
+    
+    check() {
+        for (const achievement of ACHIEVEMENTS) {
+            if (this.unlocked.has(achievement.id)) continue;
+            
+            if (achievement.check(this.game)) {
+                this.unlocked.add(achievement.id);
+                this.game.notify(`🏆 Achievement: ${achievement.name}!`);
+            }
+        }
+    }
+}
+
 // Initialize game
 const game = new Game();
+
+// Add spawner and achievements to game
+game.spawner = new EnemySpawner(game);
+game.achievements = new AchievementSystem(game);
+
+// Override update to include new systems
+const originalUpdate = game.update.bind(game);
+game.update = function(dt) {
+    originalUpdate(dt);
+    this.spawner.update(dt);
+    this.achievements.check();
+};
+
+// Add keyboard shortcuts for save/load
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'F5') {
+        e.preventDefault();
+        SaveSystem.save(game);
+    } else if (e.key === 'F9') {
+        e.preventDefault();
+        SaveSystem.load(game);
+    }
+});
+
+// Check for existing save on load
+if (SaveSystem.hasSave()) {
+    const loadPrompt = document.createElement('div');
+    loadPrompt.style.cssText = 'position:absolute;top:60%;left:50%;transform:translate(-50%,-50%);color:white;text-align:center;';
+    loadPrompt.innerHTML = '<p>Save file found!</p><button id="load-save-btn" style="margin:10px;padding:10px 20px;cursor:pointer;">Load Game</button><button id="new-game-btn" style="margin:10px;padding:10px 20px;cursor:pointer;">New Game</button>';
+    document.getElementById('loading-screen').appendChild(loadPrompt);
+    
+    document.getElementById('load-save-btn').addEventListener('click', () => {
+        document.getElementById('loading-screen').style.display = 'none';
+        game.start();
+        SaveSystem.load(game);
+    });
+    
+    document.getElementById('new-game-btn').addEventListener('click', () => {
+        SaveSystem.deleteSave();
+        loadPrompt.remove();
+    });
+}

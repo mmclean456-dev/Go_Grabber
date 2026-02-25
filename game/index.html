@@ -661,8 +661,16 @@
         <div id="ui-overlay">
             <div id="loading-screen">
                 <h1>⚔️ Quest of the Dragon's Gold ⚔️</h1>
-                <p>A Cross-Genre Adventure</p>
+                <p style="color: #aaa; margin-bottom: 20px;">A Cross-Genre Point-and-Click Adventure</p>
+                <div style="max-width: 500px; text-align: left; margin: 0 auto 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 13px; line-height: 1.8;">
+                    <p style="color: #ffcc44; margin-bottom: 10px;"><strong>Your Quest:</strong></p>
+                    <p style="color: #ccc;">Explore a vast world mixing <strong>pirates</strong>, <strong>cowboys</strong>, and <strong>medieval knights</strong>. Gather clues, make allies, fight monsters, and find the Dragon's Lair to claim its legendary gold!</p>
+                    <p style="color: #aaccff; margin: 15px 0 10px;"><strong>Controls:</strong></p>
+                    <p style="color: #aaa;">🖱️ <strong>Click</strong> to move | <strong>I</strong> = Inventory | <strong>Q</strong> = Quests</p>
+                    <p style="color: #aaa;">💾 <strong>F5</strong> = Save | 📂 <strong>F9</strong> = Load</p>
+                </div>
                 <button id="start-btn">Begin Your Quest</button>
+                <p style="color: #666; margin-top: 20px; font-size: 11px;">Each playthrough is unique! Explore, discover, and conquer.</p>
             </div>
             
             <div id="hud">
@@ -678,8 +686,10 @@
                     💰 <span id="gold-text">50</span> Gold
                 </div>
                 <div class="hud-section" style="display: flex; gap: 15px;">
-                    <span style="cursor: pointer;" onclick="game.toggleInventory()">🎒 [I]</span>
-                    <span style="cursor: pointer;" onclick="game.toggleQuestLog()">📜 [Q]</span>
+                    <span style="cursor: pointer;" onclick="game.toggleInventory()" title="Inventory">🎒 [I]</span>
+                    <span style="cursor: pointer;" onclick="game.toggleQuestLog()" title="Quest Log">📜 [Q]</span>
+                    <span style="cursor: pointer;" onclick="SaveSystem.save(game)" title="Save Game (F5)">💾</span>
+                    <span style="cursor: pointer;" onclick="SaveSystem.load(game)" title="Load Game (F9)">📂</span>
                 </div>
             </div>
             
