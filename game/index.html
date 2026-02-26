@@ -245,13 +245,94 @@
         }
         
         #combat-log {
-            max-height: 100px;
+            max-height: 80px;
             overflow-y: auto;
             background: rgba(0,0,0,0.3);
             padding: 10px;
             border-radius: 5px;
-            margin-top: 15px;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+        
+        #combat-vs {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6666;
+        }
+        
+        .combatant-hp-text {
             font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .combatant-stats {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            font-size: 12px;
+            margin-top: 5px;
+            color: #aaa;
+        }
+        
+        .enemy-type {
+            font-size: 11px;
+            color: #88aaff;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        #combat-message {
+            text-align: center;
+            font-size: 14px;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+            min-height: 20px;
+        }
+        
+        #combat-moves {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .move-btn {
+            background: linear-gradient(to bottom, #3a5a8a, #2a4a6a);
+            border: 2px solid #5577aa;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .move-btn:hover {
+            background: linear-gradient(to bottom, #4a6a9a, #3a5a7a);
+            transform: scale(1.02);
+        }
+        
+        .move-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .move-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #fff;
+        }
+        
+        .move-info {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 3px;
+        }
+        
+        #combat-bottom-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
         
         #inventory-panel {
@@ -702,30 +783,57 @@
             </div>
             
             <div id="combat-ui">
-                <div id="combat-title">⚔️ COMBAT ⚔️</div>
+                <div id="combat-title">⚔️ BATTLE ⚔️</div>
                 <div id="combat-arena">
                     <div class="combatant" id="player-combatant">
-                        <div class="combatant-name">Knight</div>
+                        <div class="combatant-name">Knight <span id="player-level-display">Lv.1</span></div>
                         <div class="combatant-sprite">🤺</div>
                         <div class="combat-health-bar">
                             <div class="combat-health-fill" id="player-combat-health" style="width: 100%"></div>
                         </div>
+                        <div class="combatant-hp-text" id="player-hp-text">100/100</div>
+                        <div class="combatant-stats">
+                            <span>⚔️<span id="player-atk-display">10</span></span>
+                            <span>🛡️<span id="player-def-display">5</span></span>
+                        </div>
                     </div>
-                    <div style="font-size: 30px;">⚔️</div>
+                    <div id="combat-vs">VS</div>
                     <div class="combatant" id="enemy-combatant">
-                        <div class="combatant-name" id="enemy-name">Enemy</div>
+                        <div class="combatant-name"><span id="enemy-name">Enemy</span> <span id="enemy-level-display">Lv.1</span></div>
                         <div class="combatant-sprite" id="enemy-sprite">👹</div>
                         <div class="combat-health-bar">
                             <div class="combat-health-fill" id="enemy-combat-health" style="width: 100%"></div>
                         </div>
+                        <div class="combatant-hp-text" id="enemy-hp-text">50/50</div>
+                        <div class="combatant-stats">
+                            <span>⚔️<span id="enemy-atk-display">8</span></span>
+                            <span>🛡️<span id="enemy-def-display">3</span></span>
+                        </div>
+                        <div class="enemy-type" id="enemy-type">Beast</div>
                     </div>
                 </div>
-                <div id="combat-actions">
-                    <button class="combat-btn" onclick="game.combat.playerAction('attack')">⚔️ Attack</button>
-                    <button class="combat-btn" onclick="game.combat.playerAction('heavy')">💥 Heavy Strike</button>
-                    <button class="combat-btn" onclick="game.combat.playerAction('defend')">🛡️ Defend</button>
-                    <button class="combat-btn" onclick="game.combat.playerAction('heal')">❤️ Heal</button>
-                    <button class="combat-btn" onclick="game.combat.playerAction('flee')">🏃 Flee</button>
+                <div id="combat-message"></div>
+                <div id="combat-moves">
+                    <div class="move-btn" id="move-0" onclick="game.combat.useMove(0)">
+                        <div class="move-name">Slash</div>
+                        <div class="move-info">Power: 40 | Type: Physical</div>
+                    </div>
+                    <div class="move-btn" id="move-1" onclick="game.combat.useMove(1)">
+                        <div class="move-name">Power Strike</div>
+                        <div class="move-info">Power: 70 | 80% Accuracy</div>
+                    </div>
+                    <div class="move-btn" id="move-2" onclick="game.combat.useMove(2)">
+                        <div class="move-name">Quick Attack</div>
+                        <div class="move-info">Power: 30 | Always First</div>
+                    </div>
+                    <div class="move-btn" id="move-3" onclick="game.combat.useMove(3)">
+                        <div class="move-name">Defend</div>
+                        <div class="move-info">Reduce damage 50%</div>
+                    </div>
+                </div>
+                <div id="combat-bottom-actions">
+                    <button class="combat-btn" onclick="game.combat.useItem()">🧪 Use Item</button>
+                    <button class="combat-btn" onclick="game.combat.flee()">🏃 Flee</button>
                 </div>
                 <div id="combat-log"></div>
             </div>
@@ -761,24 +869,60 @@
             
             <div id="gambling-ui">
                 <button class="close-btn" onclick="game.closeGambling()">×</button>
-                <div class="gambling-title">🎰 Saloon - Card Game</div>
-                <div id="card-game">
-                    <div id="bet-display">Current Bet: <span id="current-bet">10</span> gold</div>
-                    <div id="opponent-hand" style="margin-bottom: 20px;">
+                <div class="gambling-title" id="gambling-title">🎰 Gambling</div>
+                <div id="bet-display">Pot: <span id="current-pot">0</span> gold | Your Bet: <span id="current-bet">0</span></div>
+                
+                <!-- Texas Hold'em UI -->
+                <div id="holdem-game" style="display: none;">
+                    <div id="community-cards">
+                        <p>Community Cards:</p>
+                        <div id="community-card-display" style="display: flex; justify-content: center; gap: 8px; margin: 10px 0;"></div>
+                    </div>
+                    <div id="opponent-hand" style="margin: 15px 0;">
                         <p>Opponent's Hand:</p>
-                        <div id="opponent-cards" style="display: flex; justify-content: center; gap: 10px;"></div>
+                        <div id="opponent-cards" style="display: flex; justify-content: center; gap: 8px;"></div>
                     </div>
                     <div id="player-card-hand">
                         <p>Your Hand:</p>
-                        <div id="card-hand"></div>
+                        <div id="card-hand" style="display: flex; justify-content: center; gap: 8px;"></div>
                     </div>
-                    <div id="gambling-controls">
-                        <button class="gamble-btn" onclick="game.gambling.deal()">Deal (10 gold)</button>
-                        <button class="gamble-btn" onclick="game.gambling.raise()">Raise</button>
-                        <button class="gamble-btn" onclick="game.gambling.fold()">Fold</button>
+                    <div id="holdem-controls" style="margin-top: 15px;">
+                        <button class="gamble-btn" onclick="game.gambling.holdemAction('deal')">Deal (20 gold)</button>
+                        <button class="gamble-btn" onclick="game.gambling.holdemAction('call')">Call</button>
+                        <button class="gamble-btn" onclick="game.gambling.holdemAction('raise')">Raise</button>
+                        <button class="gamble-btn" onclick="game.gambling.holdemAction('fold')">Fold</button>
+                        <button class="gamble-btn" onclick="game.gambling.holdemAction('check')">Check</button>
                     </div>
-                    <div id="gambling-result" style="margin-top: 15px; font-size: 18px;"></div>
+                    <div id="hand-rank" style="margin-top: 10px; color: #ffcc44;"></div>
                 </div>
+                
+                <!-- Craps UI -->
+                <div id="craps-game" style="display: none;">
+                    <div id="dice-display" style="font-size: 48px; margin: 20px 0;">🎲 🎲</div>
+                    <div id="dice-result" style="font-size: 24px; margin: 10px 0;">Roll the dice!</div>
+                    <div id="point-display" style="color: #ffcc44;">Point: None</div>
+                    <div id="craps-bets" style="margin: 15px 0;">
+                        <div style="margin-bottom: 10px;">
+                            <span>Bet Type: </span>
+                            <select id="craps-bet-type" style="padding: 5px; font-size: 14px;">
+                                <option value="pass">Pass Line</option>
+                                <option value="dontpass">Don't Pass</option>
+                                <option value="field">Field Bet</option>
+                                <option value="any7">Any 7</option>
+                            </select>
+                        </div>
+                        <div>
+                            <span>Bet Amount: </span>
+                            <input type="number" id="craps-bet-amount" value="10" min="5" max="100" style="width: 60px; padding: 5px;">
+                        </div>
+                    </div>
+                    <div id="craps-controls">
+                        <button class="gamble-btn" onclick="game.gambling.crapsAction('bet')">Place Bet</button>
+                        <button class="gamble-btn" onclick="game.gambling.crapsAction('roll')">Roll Dice</button>
+                    </div>
+                </div>
+                
+                <div id="gambling-result" style="margin-top: 15px; font-size: 18px;"></div>
             </div>
             
             <div id="notification"></div>

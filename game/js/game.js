@@ -807,7 +807,7 @@ class Game {
         
         this.addNPC(145, 95, NPC_TYPES.BARTENDER, 'One-Eyed Jack', [
             { text: "Welcome to the Salty Dog Tavern! Best rum in all the seven seas!", choices: [
-                { text: "I'd like to gamble. [Poker]", action: 'openGambling', gamblingType: 'tavern' },
+                { text: "I'd like to gamble. [Texas Hold'em]", action: 'openGambling', gamblingType: 'tavern' },
                 { text: "Just a drink.", next: 1 }
             ]},
             { text: "5 gold for our finest rum! Restores some health too!", choices: [
@@ -831,7 +831,7 @@ class Game {
         
         this.addNPC(82, 38, NPC_TYPES.COWBOY, 'Dusty Dan', [
             { text: "Howdy partner! This here's the finest saloon in the West!", choices: [
-                { text: "Deal me in! [Poker]", action: 'openGambling', gamblingType: 'saloon' },
+                { text: "Let's play some dice! [Craps]", action: 'openGambling', gamblingType: 'saloon' },
                 { text: "Know anything about the dragon?", next: 1 }
             ]},
             { text: "Dragon? Up in them mountains? Old legend says it's been there for centuries. Sheriff knows more - he's been up that way.", action: 'giveClue', clueId: 'clue3', choices: [
@@ -959,7 +959,7 @@ class Game {
         // Tavern in village
         this.addNPC(47, 78, NPC_TYPES.BARTENDER, 'Village Barkeep', [
             { text: "Welcome to the Golden Mug! Best ale in the realm!", choices: [
-                { text: "I'd like to gamble. [Dice Game]", action: 'openGambling', gamblingType: 'tavern' },
+                { text: "I'd like to gamble. [Texas Hold'em]", action: 'openGambling', gamblingType: 'tavern' },
                 { text: "Any rumors worth hearing?", next: 1 },
                 { text: "Just passing through.", end: true }
             ]},
@@ -2321,122 +2321,340 @@ class Game {
     }
 }
 
-// Combat System
+// Combat Moves Definition
+const COMBAT_MOVES = {
+    // Basic moves available to all
+    SLASH: { name: 'Slash', power: 40, accuracy: 100, type: 'physical', description: 'A basic sword attack' },
+    POWER_STRIKE: { name: 'Power Strike', power: 70, accuracy: 80, type: 'physical', description: 'A powerful but less accurate strike' },
+    QUICK_ATTACK: { name: 'Quick Attack', power: 30, accuracy: 100, type: 'quick', priority: true, description: 'A fast attack that always goes first' },
+    DEFEND: { name: 'Defend', power: 0, accuracy: 100, type: 'defensive', effect: 'defend', description: 'Reduces incoming damage by 50%' },
+    
+    // Special moves
+    FIREBALL: { name: 'Fireball', power: 65, accuracy: 90, type: 'magic', description: 'A magical fire attack' },
+    HEAL: { name: 'Heal', power: 0, accuracy: 100, type: 'support', effect: 'heal', healAmount: 40, description: 'Restore 40 HP' },
+    INTIMIDATE: { name: 'Intimidate', power: 0, accuracy: 85, type: 'status', effect: 'lower_attack', description: 'Lower enemy attack' },
+    SHIELD_BASH: { name: 'Shield Bash', power: 35, accuracy: 95, type: 'physical', effect: 'stun', stunChance: 30, description: '30% chance to stun' },
+    
+    // Enemy moves
+    BITE: { name: 'Bite', power: 45, accuracy: 95, type: 'physical', description: 'A vicious bite' },
+    CLAW: { name: 'Claw', power: 35, accuracy: 100, type: 'physical', description: 'A slashing claw attack' },
+    HOWL: { name: 'Howl', power: 0, accuracy: 100, type: 'status', effect: 'raise_attack', description: 'Raises attack power' },
+    FIRE_BREATH: { name: 'Fire Breath', power: 90, accuracy: 85, type: 'magic', description: 'Devastating fire attack' },
+    TACKLE: { name: 'Tackle', power: 40, accuracy: 100, type: 'physical', description: 'A charging tackle' },
+    POISON_STING: { name: 'Poison Sting', power: 30, accuracy: 100, type: 'physical', effect: 'poison', poisonChance: 40, description: '40% chance to poison' }
+};
+
+// Enemy type definitions for move sets
+const ENEMY_MOVE_SETS = {
+    BEAST: [COMBAT_MOVES.BITE, COMBAT_MOVES.CLAW, COMBAT_MOVES.HOWL, COMBAT_MOVES.TACKLE],
+    BANDIT: [COMBAT_MOVES.SLASH, COMBAT_MOVES.QUICK_ATTACK, COMBAT_MOVES.POWER_STRIKE, COMBAT_MOVES.DEFEND],
+    MONSTER: [COMBAT_MOVES.CLAW, COMBAT_MOVES.BITE, COMBAT_MOVES.POISON_STING, COMBAT_MOVES.TACKLE],
+    DRAGON: [COMBAT_MOVES.FIRE_BREATH, COMBAT_MOVES.CLAW, COMBAT_MOVES.BITE, COMBAT_MOVES.POWER_STRIKE],
+    DEFAULT: [COMBAT_MOVES.TACKLE, COMBAT_MOVES.SLASH, COMBAT_MOVES.DEFEND, COMBAT_MOVES.QUICK_ATTACK]
+};
+
+// Combat System - Pokemon Style
 class CombatSystem {
     constructor(game) {
         this.game = game;
         this.enemy = null;
         this.playerTurn = true;
-        this.defending = false;
         this.combatLog = [];
+        this.playerMoves = [COMBAT_MOVES.SLASH, COMBAT_MOVES.POWER_STRIKE, COMBAT_MOVES.QUICK_ATTACK, COMBAT_MOVES.DEFEND];
+        this.enemyMoves = [];
+        this.playerDefending = false;
+        this.enemyDefending = false;
+        this.playerStatMods = { attack: 0, defense: 0 };
+        this.enemyStatMods = { attack: 0, defense: 0 };
+        this.playerPoisoned = false;
+        this.enemyPoisoned = false;
+        this.playerStunned = false;
+        this.enemyStunned = false;
     }
     
     start(npc) {
         this.enemy = npc;
         this.game.inCombat = true;
         this.playerTurn = true;
-        this.defending = false;
         this.combatLog = [];
+        this.playerDefending = false;
+        this.enemyDefending = false;
+        this.playerStatMods = { attack: 0, defense: 0 };
+        this.enemyStatMods = { attack: 0, defense: 0 };
+        this.playerPoisoned = false;
+        this.enemyPoisoned = false;
+        this.playerStunned = false;
+        this.enemyStunned = false;
         
+        // Determine enemy move set based on type
+        this.enemyMoves = this.getEnemyMoves(npc);
+        
+        // Update player moves based on equipment/level
+        this.updatePlayerMoves();
+        
+        // Show combat UI
         document.getElementById('combat-ui').style.display = 'block';
-        document.getElementById('enemy-name').textContent = npc.name;
-        document.getElementById('enemy-sprite').textContent = npc.type.sprite;
-        
         this.updateCombatUI();
-        this.log(`Battle started against ${npc.name}!`);
+        this.updateMoveButtons();
+        
+        // Show battle start message
+        const levelDiff = npc.level - this.game.player.level;
+        let diffText = '';
+        if (levelDiff >= 5) diffText = ' (Very Strong!)';
+        else if (levelDiff >= 2) diffText = ' (Strong)';
+        else if (levelDiff <= -5) diffText = ' (Very Weak)';
+        else if (levelDiff <= -2) diffText = ' (Weak)';
+        
+        this.setMessage(`A wild ${npc.name} appeared!${diffText}`);
+        this.log(`Battle started against ${npc.name} (Lv.${npc.level})!`);
     }
     
-    playerAction(action) {
-        if (!this.playerTurn) return;
+    getEnemyMoves(npc) {
+        if (npc.type === NPC_TYPES.BEAST) return [...ENEMY_MOVE_SETS.BEAST];
+        if (npc.type === NPC_TYPES.BANDIT) return [...ENEMY_MOVE_SETS.BANDIT];
+        if (npc.type === NPC_TYPES.MONSTER) return [...ENEMY_MOVE_SETS.MONSTER];
+        if (npc.type === NPC_TYPES.DRAGON) return [...ENEMY_MOVE_SETS.DRAGON];
+        return [...ENEMY_MOVE_SETS.DEFAULT];
+    }
+    
+    updatePlayerMoves() {
+        // Base moves
+        this.playerMoves = [COMBAT_MOVES.SLASH, COMBAT_MOVES.POWER_STRIKE, COMBAT_MOVES.QUICK_ATTACK, COMBAT_MOVES.DEFEND];
         
-        switch(action) {
-            case 'attack':
-                this.attack(this.game.player, this.enemy, false);
-                break;
-            case 'heavy':
-                this.attack(this.game.player, this.enemy, true);
-                break;
-            case 'defend':
-                this.defending = true;
-                this.log('You take a defensive stance!');
-                break;
-            case 'heal':
-                const healAmount = 30;
-                this.game.player.health = Math.min(
-                    this.game.player.health + healAmount,
-                    this.game.player.maxHealth
-                );
-                this.log(`You heal for ${healAmount} HP!`);
-                break;
-            case 'flee':
-                if (Math.random() < 0.5) {
-                    this.log('You escaped!');
-                    this.endCombat(false);
-                    return;
-                } else {
-                    this.log('Failed to escape!');
-                }
-                break;
+        // If player has magic item, add fireball
+        if (this.game.player.level >= 5) {
+            this.playerMoves[2] = COMBAT_MOVES.SHIELD_BASH;
         }
+        if (this.game.player.level >= 8) {
+            this.playerMoves[3] = COMBAT_MOVES.FIREBALL;
+        }
+    }
+    
+    updateMoveButtons() {
+        for (let i = 0; i < 4; i++) {
+            const move = this.playerMoves[i];
+            const btn = document.getElementById(`move-${i}`);
+            if (btn && move) {
+                btn.querySelector('.move-name').textContent = move.name;
+                let info = '';
+                if (move.power > 0) info += `Power: ${move.power}`;
+                if (move.accuracy < 100) info += ` | ${move.accuracy}% Acc`;
+                if (move.effect === 'defend') info = 'Reduce damage 50%';
+                if (move.effect === 'heal') info = `Heal ${move.healAmount} HP`;
+                if (move.priority) info += ' | Priority';
+                btn.querySelector('.move-info').textContent = info;
+            }
+        }
+    }
+    
+    useMove(moveIndex) {
+        if (!this.playerTurn || this.playerStunned) return;
         
-        this.updateCombatUI();
+        const move = this.playerMoves[moveIndex];
+        if (!move) return;
         
-        if (this.enemy.health <= 0) {
-            this.victory();
+        this.playerTurn = false;
+        this.playerDefending = false;
+        
+        // Check if this is a priority move vs enemy priority move
+        const enemyMove = this.selectEnemyMove();
+        const playerFirst = move.priority || !enemyMove.priority;
+        
+        if (playerFirst) {
+            this.executeMove(move, this.game.player, this.enemy, true);
+            if (this.enemy.health > 0) {
+                setTimeout(() => this.enemyTurn(enemyMove), 1200);
+            }
+        } else {
+            this.setMessage(`${this.enemy.name} moved first!`);
+            setTimeout(() => {
+                this.executeMove(enemyMove, this.enemy, this.game.player, false);
+                if (this.game.player.health > 0) {
+                    setTimeout(() => {
+                        this.executeMove(move, this.game.player, this.enemy, true);
+                        this.endTurn();
+                    }, 1200);
+                }
+            }, 800);
+        }
+    }
+    
+    executeMove(move, attacker, defender, isPlayer) {
+        const attackerName = isPlayer ? 'You' : attacker.name;
+        const defenderName = isPlayer ? defender.name : 'you';
+        
+        // Check accuracy
+        if (Math.random() * 100 > move.accuracy) {
+            this.setMessage(`${attackerName} used ${move.name}... but it missed!`);
+            this.log(`${attackerName}'s ${move.name} missed!`);
             return;
         }
         
-        // Enemy turn
-        this.playerTurn = false;
-        setTimeout(() => this.enemyTurn(), 1000);
-    }
-    
-    attack(attacker, defender, isHeavy) {
-        let damage = attacker.attack;
+        // Handle different move effects
+        if (move.effect === 'defend') {
+            if (isPlayer) this.playerDefending = true;
+            else this.enemyDefending = true;
+            this.setMessage(`${attackerName} took a defensive stance!`);
+            this.log(`${attackerName} is defending!`);
+            return;
+        }
         
-        if (isHeavy) {
-            damage *= 1.5;
-            if (Math.random() < 0.3) {
-                this.log('Heavy attack missed!');
-                return;
+        if (move.effect === 'heal') {
+            const heal = move.healAmount;
+            attacker.health = Math.min(attacker.health + heal, attacker.maxHealth);
+            this.setMessage(`${attackerName} healed ${heal} HP!`);
+            this.log(`${attackerName} restored ${heal} HP!`);
+            this.updateCombatUI();
+            this.game.updateHUD();
+            return;
+        }
+        
+        if (move.effect === 'raise_attack') {
+            if (isPlayer) this.playerStatMods.attack++;
+            else this.enemyStatMods.attack++;
+            this.setMessage(`${attackerName}'s attack rose!`);
+            this.log(`${attackerName} boosted attack!`);
+            return;
+        }
+        
+        if (move.effect === 'lower_attack') {
+            if (isPlayer) this.enemyStatMods.attack--;
+            else this.playerStatMods.attack--;
+            this.setMessage(`${defenderName}'s attack fell!`);
+            this.log(`${defenderName}'s attack was lowered!`);
+            return;
+        }
+        
+        // Calculate damage for attacking moves
+        if (move.power > 0) {
+            let damage = this.calculateDamage(move, attacker, defender, isPlayer);
+            
+            // Apply defending reduction
+            if ((isPlayer && this.enemyDefending) || (!isPlayer && this.playerDefending)) {
+                damage = Math.floor(damage * 0.5);
+                this.log('Defense reduced the damage!');
+            }
+            
+            // Apply damage
+            defender.health = Math.max(0, defender.health - damage);
+            
+            // Critical hit message
+            const critText = damage > move.power * 1.5 ? ' Critical hit!' : '';
+            this.setMessage(`${attackerName} used ${move.name}!${critText} Dealt ${damage} damage!`);
+            this.log(`${attackerName}'s ${move.name} dealt ${damage} damage!`);
+            
+            // Check for status effects
+            if (move.effect === 'stun' && Math.random() * 100 < move.stunChance) {
+                if (isPlayer) this.enemyStunned = true;
+                else this.playerStunned = true;
+                this.log(`${defenderName} was stunned!`);
+            }
+            if (move.effect === 'poison' && Math.random() * 100 < move.poisonChance) {
+                if (isPlayer) this.enemyPoisoned = true;
+                else this.playerPoisoned = true;
+                this.log(`${defenderName} was poisoned!`);
+            }
+            
+            this.updateCombatUI();
+            this.game.updateHUD();
+            
+            // Check for victory/defeat
+            if (defender.health <= 0) {
+                setTimeout(() => {
+                    if (isPlayer) this.victory();
+                    else this.defeat();
+                }, 1000);
             }
         }
-        
-        // Apply defense
-        const defenseReduction = defender === this.enemy ? 
-            defender.defense : 
-            (this.defending ? defender.defense * 2 : defender.defense);
-        
-        damage = Math.max(1, damage - defenseReduction / 2);
-        damage = Math.floor(damage * (0.8 + Math.random() * 0.4));
-        
-        // Critical hit
-        if (Math.random() < 0.1) {
-            damage *= 2;
-            this.log('CRITICAL HIT!');
-        }
-        
-        defender.health -= damage;
-        
-        const attackerName = attacker === this.game.player ? 'You' : attacker.name;
-        const defenderName = defender === this.game.player ? 'you' : defender.name;
-        this.log(`${attackerName} ${isHeavy ? 'heavily strike' : 'attack'} ${defenderName} for ${Math.floor(damage)} damage!`);
-        
-        this.defending = false;
     }
     
-    enemyTurn() {
+    calculateDamage(move, attacker, defender, isPlayer) {
+        // Base damage from move power
+        let damage = move.power;
+        
+        // Apply attacker's attack stat
+        const attackStat = attacker.attack + (isPlayer ? this.playerStatMods.attack * 5 : this.enemyStatMods.attack * 5);
+        damage = damage * (attackStat / 20);
+        
+        // Apply defender's defense stat
+        const defenseStat = defender.defense + (isPlayer ? this.enemyStatMods.defense * 5 : this.playerStatMods.defense * 5);
+        damage = damage * (40 / (40 + defenseStat));
+        
+        // Level difference modifier
+        const levelDiff = attacker.level - defender.level;
+        damage = damage * (1 + levelDiff * 0.05);
+        
+        // Random variance (85-100%)
+        damage = damage * (0.85 + Math.random() * 0.15);
+        
+        // Critical hit chance (10%)
+        if (Math.random() < 0.1) {
+            damage *= 1.5;
+        }
+        
+        return Math.max(1, Math.floor(damage));
+    }
+    
+    selectEnemyMove() {
+        // Simple AI: choose based on situation
+        const healthPercent = this.enemy.health / this.enemy.maxHealth;
+        
+        // If low health, try to use defensive or healing moves
+        if (healthPercent < 0.3) {
+            const defensiveMove = this.enemyMoves.find(m => m.effect === 'defend' || m.effect === 'heal');
+            if (defensiveMove && Math.random() < 0.5) return defensiveMove;
+        }
+        
+        // If high health, might use stat boost
+        if (healthPercent > 0.7) {
+            const boostMove = this.enemyMoves.find(m => m.effect === 'raise_attack');
+            if (boostMove && Math.random() < 0.3) return boostMove;
+        }
+        
+        // Otherwise pick a random attacking move
+        const attackMoves = this.enemyMoves.filter(m => m.power > 0);
+        if (attackMoves.length > 0) {
+            return attackMoves[Math.floor(Math.random() * attackMoves.length)];
+        }
+        
+        return this.enemyMoves[Math.floor(Math.random() * this.enemyMoves.length)];
+    }
+    
+    enemyTurn(move) {
         if (this.enemy.health <= 0) return;
         
-        // Simple AI
-        const action = Math.random();
+        // Check if stunned
+        if (this.enemyStunned) {
+            this.enemyStunned = false;
+            this.setMessage(`${this.enemy.name} is stunned and can't move!`);
+            this.log(`${this.enemy.name} couldn't move!`);
+            setTimeout(() => this.endTurn(), 1000);
+            return;
+        }
         
-        if (action < 0.7) {
-            this.attack(this.enemy, this.game.player, false);
-        } else if (action < 0.9) {
-            this.attack(this.enemy, this.game.player, true);
-        } else {
-            this.log(`${this.enemy.name} prepares to attack...`);
+        move = move || this.selectEnemyMove();
+        this.enemyDefending = false;
+        
+        this.executeMove(move, this.enemy, this.game.player, false);
+        
+        setTimeout(() => this.endTurn(), 1200);
+    }
+    
+    endTurn() {
+        // Apply poison damage
+        if (this.playerPoisoned && this.game.player.health > 0) {
+            const poisonDmg = Math.floor(this.game.player.maxHealth * 0.06);
+            this.game.player.health = Math.max(1, this.game.player.health - poisonDmg);
+            this.log(`You took ${poisonDmg} poison damage!`);
+        }
+        if (this.enemyPoisoned && this.enemy.health > 0) {
+            const poisonDmg = Math.floor(this.enemy.maxHealth * 0.06);
+            this.enemy.health = Math.max(0, this.enemy.health - poisonDmg);
+            this.log(`${this.enemy.name} took ${poisonDmg} poison damage!`);
+            if (this.enemy.health <= 0) {
+                setTimeout(() => this.victory(), 500);
+                return;
+            }
         }
         
         this.updateCombatUI();
@@ -2447,14 +2665,66 @@ class CombatSystem {
             return;
         }
         
+        // Clear stun status
+        this.playerStunned = false;
+        
         this.playerTurn = true;
+        this.setMessage('What will you do?');
+    }
+    
+    useItem() {
+        // Find a health potion in inventory
+        const potionIndex = this.game.player.inventory.findIndex(i => 
+            i.item && i.item.type === 'consumable' && i.item.heal);
+        
+        if (potionIndex >= 0) {
+            const potion = this.game.player.inventory[potionIndex];
+            const healAmount = potion.item.heal;
+            this.game.player.health = Math.min(this.game.player.health + healAmount, this.game.player.maxHealth);
+            
+            if (potion.count > 1) potion.count--;
+            else this.game.player.inventory.splice(potionIndex, 1);
+            
+            this.setMessage(`You used a potion! Healed ${healAmount} HP!`);
+            this.log(`Used potion, healed ${healAmount} HP!`);
+            this.updateCombatUI();
+            this.game.updateHUD();
+            
+            this.playerTurn = false;
+            setTimeout(() => this.enemyTurn(), 1200);
+        } else {
+            this.game.notify('No potions available!');
+        }
+    }
+    
+    flee() {
+        // Flee chance based on level difference
+        const levelDiff = this.enemy.level - this.game.player.level;
+        let fleeChance = 0.5 - (levelDiff * 0.05);
+        fleeChance = Math.max(0.2, Math.min(0.9, fleeChance));
+        
+        if (Math.random() < fleeChance) {
+            this.setMessage('Got away safely!');
+            this.log('Escaped from battle!');
+            setTimeout(() => this.endCombat(false), 1000);
+        } else {
+            this.setMessage("Couldn't escape!");
+            this.log('Failed to escape!');
+            this.playerTurn = false;
+            setTimeout(() => this.enemyTurn(), 1000);
+        }
     }
     
     victory() {
-        const xpGain = this.enemy.level * 25;
-        const goldGain = this.enemy.level * 10 + Math.floor(Math.random() * 20);
+        // Calculate rewards with level scaling
+        const levelDiff = this.enemy.level - this.game.player.level;
+        const levelBonus = Math.max(0.5, 1 + levelDiff * 0.1);
         
-        this.log(`Victory! Gained ${xpGain} XP and ${goldGain} gold!`);
+        const xpGain = Math.floor(this.enemy.level * 25 * levelBonus);
+        const goldGain = Math.floor((this.enemy.level * 10 + Math.floor(Math.random() * 20)) * levelBonus);
+        
+        this.setMessage(`Victory! +${xpGain} XP, +${goldGain} Gold!`);
+        this.log(`Defeated ${this.enemy.name}! Gained ${xpGain} XP and ${goldGain} gold!`);
         
         this.game.gainXP(xpGain);
         this.game.player.gold += goldGain;
@@ -2465,25 +2735,19 @@ class CombatSystem {
             this.game.spawner.onEnemyKilled();
         }
         
-        // Random item drop
-        if (Math.random() < 0.2) {
-            const dropChance = Math.random();
-            if (dropChance < 0.7) {
-                const existing = this.game.player.inventory.find(i => i.item && i.item.name === 'Health Potion');
-                if (existing) {
-                    existing.count = (existing.count || 1) + 1;
-                } else {
-                    this.game.player.inventory.push({ item: ITEMS.HEALTH_POTION, count: 1 });
-                }
-                this.log('Enemy dropped a Health Potion!');
+        // Random item drop (higher chance for higher level enemies)
+        const dropChance = 0.15 + (this.enemy.level * 0.01);
+        if (Math.random() < dropChance) {
+            const existing = this.game.player.inventory.find(i => i.item && i.item.name === 'Health Potion');
+            if (existing) {
+                existing.count = (existing.count || 1) + 1;
             } else {
-                const bonusGold = Math.floor(Math.random() * 30) + 10;
-                this.game.player.gold += bonusGold;
-                this.log(`Enemy dropped ${bonusGold} extra gold!`);
+                this.game.player.inventory.push({ item: ITEMS.HEALTH_POTION, count: 1 });
             }
+            this.log('Enemy dropped a Health Potion!');
         }
         
-        // Check for bounty targets
+        // Quest checks
         if (this.enemy.bountyTarget) {
             const stage = this.game.quests.SHERIFF_BOUNTY.stages[1];
             stage.count = (stage.count || 0) + 1;
@@ -2493,7 +2757,6 @@ class CombatSystem {
             }
         }
         
-        // Check for farm wolves
         if (this.enemy.farmWolf && this.game.quests.WOLF_HUNT.stages[0].completed) {
             const stage = this.game.quests.WOLF_HUNT.stages[1];
             stage.count = (stage.count || 0) + 1;
@@ -2503,7 +2766,6 @@ class CombatSystem {
             }
         }
         
-        // Check for mine bandits
         if (this.enemy.mineBoss) {
             this.game.quests.GOLD_MINE.stages[1].completed = true;
             this.game.player.gold += 500;
@@ -2511,7 +2773,6 @@ class CombatSystem {
             this.game.quests.GOLD_MINE.stages[2].completed = true;
         }
         
-        // Drop heirloom sword from specific bandits
         if (this.enemy.name && this.enemy.name.includes('Canyon') && !this.game.gameFlags.foundHeirloom) {
             if (Math.random() < 0.5) {
                 this.game.player.inventory.push({ item: ITEMS.HEIRLOOM_SWORD });
@@ -2521,7 +2782,6 @@ class CombatSystem {
             }
         }
         
-        // Check for dragon
         if (this.enemy.boss && this.enemy.type === NPC_TYPES.DRAGON) {
             setTimeout(() => this.dragonVictory(), 2000);
         }
@@ -2531,7 +2791,7 @@ class CombatSystem {
         setTimeout(() => {
             this.endCombat(true);
             this.game.updateHUD();
-        }, 2000);
+        }, 2500);
     }
     
     dragonVictory() {
@@ -2547,7 +2807,8 @@ class CombatSystem {
     }
     
     defeat() {
-        this.log('You have been defeated...');
+        this.setMessage('You were defeated...');
+        this.log('Defeated in battle...');
         
         setTimeout(() => {
             alert('You have fallen in battle!\n\nBut your journey is not over...\n\nYou wake up at the village, weakened but alive.');
@@ -2557,7 +2818,7 @@ class CombatSystem {
             this.game.player.y = 75 * TILE_SIZE;
             this.game.player.targetX = this.game.player.x;
             this.game.player.targetY = this.game.player.y;
-            this.game.player.gold = Math.floor(this.game.player.gold / 2);
+            this.game.player.gold = Math.floor(this.game.player.gold * 0.7);
             
             this.endCombat(false);
             this.game.updateHUD();
@@ -2570,180 +2831,650 @@ class CombatSystem {
         this.enemy = null;
     }
     
+    setMessage(text) {
+        document.getElementById('combat-message').textContent = text;
+    }
+    
     log(message) {
         this.combatLog.push(message);
         const logDiv = document.getElementById('combat-log');
-        logDiv.innerHTML = this.combatLog.slice(-5).join('<br>');
+        logDiv.innerHTML = this.combatLog.slice(-4).join('<br>');
         logDiv.scrollTop = logDiv.scrollHeight;
     }
     
     updateCombatUI() {
+        // Update health bars
         document.getElementById('player-combat-health').style.width = 
             `${(this.game.player.health / this.game.player.maxHealth) * 100}%`;
         document.getElementById('enemy-combat-health').style.width = 
             `${(this.enemy.health / this.enemy.maxHealth) * 100}%`;
+        
+        // Update HP text
+        document.getElementById('player-hp-text').textContent = 
+            `${Math.floor(this.game.player.health)}/${this.game.player.maxHealth}`;
+        document.getElementById('enemy-hp-text').textContent = 
+            `${Math.floor(this.enemy.health)}/${this.enemy.maxHealth}`;
+        
+        // Update names and levels
+        document.getElementById('enemy-name').textContent = this.enemy.name;
+        document.getElementById('enemy-sprite').textContent = this.enemy.type.sprite;
+        document.getElementById('player-level-display').textContent = `Lv.${this.game.player.level}`;
+        document.getElementById('enemy-level-display').textContent = `Lv.${this.enemy.level}`;
+        
+        // Update stats
+        document.getElementById('player-atk-display').textContent = this.game.player.attack;
+        document.getElementById('player-def-display').textContent = this.game.player.defense;
+        document.getElementById('enemy-atk-display').textContent = this.enemy.attack;
+        document.getElementById('enemy-def-display').textContent = this.enemy.defense;
+        
+        // Update enemy type
+        let enemyType = 'Creature';
+        if (this.enemy.type === NPC_TYPES.BEAST) enemyType = 'Beast';
+        else if (this.enemy.type === NPC_TYPES.BANDIT) enemyType = 'Human';
+        else if (this.enemy.type === NPC_TYPES.MONSTER) enemyType = 'Monster';
+        else if (this.enemy.type === NPC_TYPES.DRAGON) enemyType = 'Dragon';
+        document.getElementById('enemy-type').textContent = enemyType;
     }
 }
 
-// Gambling System
+// Gambling System - Texas Hold'em and Craps
 class GamblingSystem {
     constructor(game) {
         this.game = game;
-        this.type = null;
+        this.gameType = null; // 'holdem' or 'craps'
+        this.locationType = null; // 'pirate', 'saloon', 'tavern'
+        
+        // Texas Hold'em state
+        this.deck = [];
         this.playerHand = [];
         this.opponentHand = [];
-        this.bet = 10;
-        this.gameState = 'waiting';
+        this.communityCards = [];
+        this.pot = 0;
+        this.playerBet = 0;
+        this.opponentBet = 0;
+        this.holdemPhase = 'waiting'; // waiting, preflop, flop, turn, river, showdown
+        
+        // Craps state
+        this.crapsBet = 0;
+        this.crapsBetType = 'pass';
+        this.point = null;
+        this.crapsPhase = 'betting'; // betting, point
     }
     
-    init(type) {
-        this.type = type;
-        this.bet = 10;
-        this.gameState = 'waiting';
+    init(locationType) {
+        this.locationType = locationType;
+        
+        // Determine game type based on location
+        // Pirates = Texas Hold'em, Western Saloon = Craps, Village Tavern = Hold'em
+        if (locationType === 'saloon') {
+            this.gameType = 'craps';
+            this.initCraps();
+        } else {
+            this.gameType = 'holdem';
+            this.initHoldem();
+        }
+    }
+    
+    // ==================== TEXAS HOLD'EM ====================
+    initHoldem() {
+        document.getElementById('holdem-game').style.display = 'block';
+        document.getElementById('craps-game').style.display = 'none';
+        
+        const title = this.locationType === 'pirate' ? "🏴‍☠️ Pirate's Texas Hold'em" : "🃏 Texas Hold'em";
+        document.getElementById('gambling-title').textContent = title;
+        
+        this.resetHoldem();
+    }
+    
+    resetHoldem() {
+        this.deck = this.createDeck();
+        this.shuffleDeck();
         this.playerHand = [];
         this.opponentHand = [];
-        document.getElementById('current-bet').textContent = this.bet;
+        this.communityCards = [];
+        this.pot = 0;
+        this.playerBet = 0;
+        this.opponentBet = 0;
+        this.holdemPhase = 'waiting';
+        
+        document.getElementById('current-pot').textContent = '0';
+        document.getElementById('current-bet').textContent = '0';
         document.getElementById('gambling-result').textContent = '';
+        document.getElementById('hand-rank').textContent = '';
         document.getElementById('card-hand').innerHTML = '';
         document.getElementById('opponent-cards').innerHTML = '';
+        document.getElementById('community-card-display').innerHTML = '';
     }
     
-    deal() {
-        if (this.game.player.gold < this.bet) {
+    createDeck() {
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const deck = [];
+        
+        for (const suit of suits) {
+            for (let i = 0; i < values.length; i++) {
+                deck.push({
+                    suit,
+                    value: values[i],
+                    numValue: i + 2,
+                    isRed: suit === '♥' || suit === '♦'
+                });
+            }
+        }
+        return deck;
+    }
+    
+    shuffleDeck() {
+        for (let i = this.deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
+        }
+    }
+    
+    drawCard() {
+        return this.deck.pop();
+    }
+    
+    holdemAction(action) {
+        switch (action) {
+            case 'deal':
+                this.holdemDeal();
+                break;
+            case 'call':
+                this.holdemCall();
+                break;
+            case 'raise':
+                this.holdemRaise();
+                break;
+            case 'check':
+                this.holdemCheck();
+                break;
+            case 'fold':
+                this.holdemFold();
+                break;
+        }
+    }
+    
+    holdemDeal() {
+        if (this.holdemPhase !== 'waiting') {
+            this.resetHoldem();
+        }
+        
+        const ante = 20;
+        if (this.game.player.gold < ante) {
+            this.game.notify('Not enough gold! Need 20 gold to play.');
+            return;
+        }
+        
+        // Both players ante up
+        this.game.player.gold -= ante;
+        this.playerBet = ante;
+        this.opponentBet = ante;
+        this.pot = ante * 2;
+        
+        // Deal 2 cards to each player
+        this.playerHand = [this.drawCard(), this.drawCard()];
+        this.opponentHand = [this.drawCard(), this.drawCard()];
+        
+        this.holdemPhase = 'preflop';
+        this.renderHoldem();
+        this.game.updateHUD();
+    }
+    
+    holdemCall() {
+        if (this.holdemPhase === 'waiting' || this.holdemPhase === 'showdown') return;
+        
+        const callAmount = this.opponentBet - this.playerBet;
+        if (callAmount > 0) {
+            if (this.game.player.gold < callAmount) {
+                this.game.notify('Not enough gold to call!');
+                return;
+            }
+            this.game.player.gold -= callAmount;
+            this.playerBet += callAmount;
+            this.pot += callAmount;
+        }
+        
+        this.advanceHoldemPhase();
+        this.game.updateHUD();
+    }
+    
+    holdemRaise() {
+        if (this.holdemPhase === 'waiting' || this.holdemPhase === 'showdown') return;
+        
+        const raiseAmount = 20;
+        const totalNeeded = (this.opponentBet - this.playerBet) + raiseAmount;
+        
+        if (this.game.player.gold < totalNeeded) {
+            this.game.notify('Not enough gold to raise!');
+            return;
+        }
+        
+        this.game.player.gold -= totalNeeded;
+        this.playerBet += totalNeeded;
+        this.pot += totalNeeded;
+        
+        // Opponent calls the raise (simplified AI)
+        if (Math.random() < 0.7) {
+            const oppCall = this.playerBet - this.opponentBet;
+            this.opponentBet += oppCall;
+            this.pot += oppCall;
+            this.advanceHoldemPhase();
+        } else {
+            // Opponent folds
+            this.holdemWin('Opponent folded!');
+        }
+        
+        this.game.updateHUD();
+    }
+    
+    holdemCheck() {
+        if (this.holdemPhase === 'waiting' || this.holdemPhase === 'showdown') return;
+        if (this.playerBet < this.opponentBet) {
+            this.game.notify('Cannot check - you must call or fold!');
+            return;
+        }
+        this.advanceHoldemPhase();
+    }
+    
+    holdemFold() {
+        if (this.holdemPhase === 'waiting') return;
+        document.getElementById('gambling-result').innerHTML = 
+            `<span style="color: #ff4444;">You folded. Lost ${this.playerBet} gold.</span>`;
+        this.holdemPhase = 'waiting';
+    }
+    
+    advanceHoldemPhase() {
+        switch (this.holdemPhase) {
+            case 'preflop':
+                // Deal the flop (3 cards)
+                this.communityCards = [this.drawCard(), this.drawCard(), this.drawCard()];
+                this.holdemPhase = 'flop';
+                break;
+            case 'flop':
+                // Deal the turn (1 card)
+                this.communityCards.push(this.drawCard());
+                this.holdemPhase = 'turn';
+                break;
+            case 'turn':
+                // Deal the river (1 card)
+                this.communityCards.push(this.drawCard());
+                this.holdemPhase = 'river';
+                break;
+            case 'river':
+                // Showdown
+                this.holdemPhase = 'showdown';
+                this.holdemShowdown();
+                return;
+        }
+        this.renderHoldem();
+    }
+    
+    holdemShowdown() {
+        // Evaluate hands
+        const playerBest = this.evaluateHoldemHand([...this.playerHand, ...this.communityCards]);
+        const opponentBest = this.evaluateHoldemHand([...this.opponentHand, ...this.communityCards]);
+        
+        // Show opponent cards
+        this.renderHoldem(true);
+        
+        document.getElementById('hand-rank').textContent = `Your hand: ${playerBest.name}`;
+        
+        if (playerBest.rank > opponentBest.rank || 
+            (playerBest.rank === opponentBest.rank && playerBest.highCard > opponentBest.highCard)) {
+            this.holdemWin(`You win with ${playerBest.name}!`);
+        } else if (playerBest.rank < opponentBest.rank ||
+            (playerBest.rank === opponentBest.rank && playerBest.highCard < opponentBest.highCard)) {
+            document.getElementById('gambling-result').innerHTML = 
+                `<span style="color: #ff4444;">Opponent wins with ${opponentBest.name}!</span>`;
+        } else {
+            // Tie - split pot
+            this.game.player.gold += Math.floor(this.pot / 2);
+            document.getElementById('gambling-result').innerHTML = 
+                `<span style="color: #ffff44;">Tie! Pot split.</span>`;
+        }
+        
+        this.holdemPhase = 'waiting';
+        this.game.updateHUD();
+    }
+    
+    holdemWin(message) {
+        this.game.player.gold += this.pot;
+        document.getElementById('gambling-result').innerHTML = 
+            `<span style="color: #44ff44;">${message} Won ${this.pot} gold!</span>`;
+        this.game.gameFlags.wonGambling = true;
+        
+        // Special pirate victory
+        if (this.locationType === 'pirate' && !this.game.gameFlags.pirateShipWon) {
+            this.game.notify('You won the ship deed!');
+            this.game.player.inventory.push({ item: ITEMS.SHIP_DEED });
+            this.game.giveClue('clue2');
+            this.game.quests.PIRATE_SHIP.stages[1].completed = true;
+            this.game.gameFlags.pirateShipWon = true;
+        }
+        
+        this.game.updateHUD();
+    }
+    
+    evaluateHoldemHand(cards) {
+        // Get all 5-card combinations and find the best
+        const combos = this.getCombinations(cards, 5);
+        let bestHand = { rank: 0, highCard: 0, name: 'High Card' };
+        
+        for (const combo of combos) {
+            const hand = this.evaluateFiveCards(combo);
+            if (hand.rank > bestHand.rank || 
+                (hand.rank === bestHand.rank && hand.highCard > bestHand.highCard)) {
+                bestHand = hand;
+            }
+        }
+        
+        return bestHand;
+    }
+    
+    getCombinations(arr, size) {
+        const result = [];
+        function combine(start, combo) {
+            if (combo.length === size) {
+                result.push([...combo]);
+                return;
+            }
+            for (let i = start; i < arr.length; i++) {
+                combo.push(arr[i]);
+                combine(i + 1, combo);
+                combo.pop();
+            }
+        }
+        combine(0, []);
+        return result;
+    }
+    
+    evaluateFiveCards(cards) {
+        const values = cards.map(c => c.numValue).sort((a, b) => b - a);
+        const suits = cards.map(c => c.suit);
+        const isFlush = suits.every(s => s === suits[0]);
+        const isStraight = this.checkStraight(values);
+        
+        const counts = {};
+        values.forEach(v => counts[v] = (counts[v] || 0) + 1);
+        const countValues = Object.values(counts).sort((a, b) => b - a);
+        
+        const highCard = Math.max(...values);
+        
+        // Royal Flush
+        if (isFlush && isStraight && values[0] === 14) {
+            return { rank: 10, highCard, name: 'Royal Flush' };
+        }
+        // Straight Flush
+        if (isFlush && isStraight) {
+            return { rank: 9, highCard, name: 'Straight Flush' };
+        }
+        // Four of a Kind
+        if (countValues[0] === 4) {
+            return { rank: 8, highCard, name: 'Four of a Kind' };
+        }
+        // Full House
+        if (countValues[0] === 3 && countValues[1] === 2) {
+            return { rank: 7, highCard, name: 'Full House' };
+        }
+        // Flush
+        if (isFlush) {
+            return { rank: 6, highCard, name: 'Flush' };
+        }
+        // Straight
+        if (isStraight) {
+            return { rank: 5, highCard, name: 'Straight' };
+        }
+        // Three of a Kind
+        if (countValues[0] === 3) {
+            return { rank: 4, highCard, name: 'Three of a Kind' };
+        }
+        // Two Pair
+        if (countValues[0] === 2 && countValues[1] === 2) {
+            return { rank: 3, highCard, name: 'Two Pair' };
+        }
+        // One Pair
+        if (countValues[0] === 2) {
+            return { rank: 2, highCard, name: 'One Pair' };
+        }
+        // High Card
+        return { rank: 1, highCard, name: 'High Card' };
+    }
+    
+    checkStraight(values) {
+        const sorted = [...new Set(values)].sort((a, b) => b - a);
+        if (sorted.length < 5) return false;
+        
+        // Check for A-2-3-4-5 (wheel)
+        if (sorted[0] === 14 && sorted[1] === 5 && sorted[2] === 4 && sorted[3] === 3 && sorted[4] === 2) {
+            return true;
+        }
+        
+        for (let i = 0; i < sorted.length - 4; i++) {
+            if (sorted[i] - sorted[i + 4] === 4) return true;
+        }
+        return false;
+    }
+    
+    renderHoldem(showOpponent = false) {
+        // Render player hand
+        const playerContainer = document.getElementById('card-hand');
+        playerContainer.innerHTML = '';
+        this.playerHand.forEach(card => {
+            playerContainer.appendChild(this.createCardElement(card));
+        });
+        
+        // Render opponent hand
+        const opponentContainer = document.getElementById('opponent-cards');
+        opponentContainer.innerHTML = '';
+        this.opponentHand.forEach(card => {
+            if (showOpponent || this.holdemPhase === 'showdown') {
+                opponentContainer.appendChild(this.createCardElement(card));
+            } else {
+                const div = document.createElement('div');
+                div.className = 'playing-card face-down';
+                div.innerHTML = `<div>?</div><div>?</div>`;
+                opponentContainer.appendChild(div);
+            }
+        });
+        
+        // Render community cards
+        const communityContainer = document.getElementById('community-card-display');
+        communityContainer.innerHTML = '';
+        this.communityCards.forEach(card => {
+            communityContainer.appendChild(this.createCardElement(card));
+        });
+        
+        // Update pot display
+        document.getElementById('current-pot').textContent = this.pot;
+        document.getElementById('current-bet').textContent = this.playerBet;
+    }
+    
+    createCardElement(card) {
+        const div = document.createElement('div');
+        div.className = `playing-card ${card.isRed ? 'red' : ''}`;
+        div.innerHTML = `<div>${card.value}</div><div>${card.suit}</div>`;
+        return div;
+    }
+    
+    // ==================== CRAPS ====================
+    initCraps() {
+        document.getElementById('holdem-game').style.display = 'none';
+        document.getElementById('craps-game').style.display = 'block';
+        document.getElementById('gambling-title').textContent = "🎲 Craps";
+        
+        this.resetCraps();
+    }
+    
+    resetCraps() {
+        this.crapsBet = 0;
+        this.crapsBetType = 'pass';
+        this.point = null;
+        this.crapsPhase = 'betting';
+        
+        document.getElementById('dice-display').textContent = '🎲 🎲';
+        document.getElementById('dice-result').textContent = 'Place your bet and roll!';
+        document.getElementById('point-display').textContent = 'Point: None';
+        document.getElementById('gambling-result').textContent = '';
+        document.getElementById('current-pot').textContent = '0';
+        document.getElementById('current-bet').textContent = '0';
+    }
+    
+    crapsAction(action) {
+        if (action === 'bet') {
+            this.placeCrapsBet();
+        } else if (action === 'roll') {
+            this.rollCraps();
+        }
+    }
+    
+    placeCrapsBet() {
+        const betAmount = parseInt(document.getElementById('craps-bet-amount').value) || 10;
+        const betType = document.getElementById('craps-bet-type').value;
+        
+        if (betAmount < 5) {
+            this.game.notify('Minimum bet is 5 gold!');
+            return;
+        }
+        
+        if (this.game.player.gold < betAmount) {
             this.game.notify('Not enough gold!');
             return;
         }
         
-        this.game.player.gold -= this.bet;
-        this.game.updateHUD();
-        this.gameState = 'playing';
+        this.game.player.gold -= betAmount;
+        this.crapsBet = betAmount;
+        this.crapsBetType = betType;
         
-        // Deal 5 cards to each player
-        this.playerHand = this.dealCards(5);
-        this.opponentHand = this.dealCards(5);
-        
-        this.renderHands();
-    }
-    
-    dealCards(count) {
-        const suits = ['♠', '♥', '♦', '♣'];
-        const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-        const cards = [];
-        
-        for (let i = 0; i < count; i++) {
-            const suit = suits[Math.floor(Math.random() * suits.length)];
-            const value = values[Math.floor(Math.random() * values.length)];
-            const numValue = values.indexOf(value) + 2;
-            cards.push({ suit, value, numValue, isRed: suit === '♥' || suit === '♦' });
-        }
-        
-        return cards;
-    }
-    
-    renderHands() {
-        const playerContainer = document.getElementById('card-hand');
-        const opponentContainer = document.getElementById('opponent-cards');
-        
-        playerContainer.innerHTML = '';
-        opponentContainer.innerHTML = '';
-        
-        this.playerHand.forEach(card => {
-            const div = document.createElement('div');
-            div.className = `playing-card ${card.isRed ? 'red' : ''}`;
-            div.innerHTML = `<div>${card.value}</div><div>${card.suit}</div>`;
-            playerContainer.appendChild(div);
-        });
-        
-        this.opponentHand.forEach((card, i) => {
-            const div = document.createElement('div');
-            div.className = 'playing-card face-down';
-            div.innerHTML = `<div>?</div><div>?</div>`;
-            opponentContainer.appendChild(div);
-        });
-        
-        // Show result after delay
-        setTimeout(() => this.showResult(), 1500);
-    }
-    
-    showResult() {
-        // Reveal opponent cards
-        const opponentContainer = document.getElementById('opponent-cards');
-        opponentContainer.innerHTML = '';
-        
-        this.opponentHand.forEach(card => {
-            const div = document.createElement('div');
-            div.className = `playing-card ${card.isRed ? 'red' : ''}`;
-            div.innerHTML = `<div>${card.value}</div><div>${card.suit}</div>`;
-            opponentContainer.appendChild(div);
-        });
-        
-        // Calculate scores (simplified - highest card wins)
-        const playerScore = this.calculateHandValue(this.playerHand);
-        const opponentScore = this.calculateHandValue(this.opponentHand);
-        
-        const resultDiv = document.getElementById('gambling-result');
-        
-        if (playerScore > opponentScore) {
-            const winnings = this.bet * 2;
-            this.game.player.gold += winnings;
-            resultDiv.innerHTML = `<span style="color: #44ff44;">YOU WIN! +${winnings} gold!</span>`;
-            this.game.gameFlags.wonGambling = true;
-            
-            // Special pirate victory
-            if (this.type === 'pirate') {
-                this.game.notify('You won the ship deed!');
-                this.game.player.inventory.push({ item: ITEMS.SHIP_DEED });
-                this.game.giveClue('clue2');
-                this.game.quests.PIRATE_SHIP.stages[1].completed = true;
-            }
-        } else if (playerScore < opponentScore) {
-            resultDiv.innerHTML = `<span style="color: #ff4444;">YOU LOSE! -${this.bet} gold</span>`;
-        } else {
-            this.game.player.gold += this.bet;
-            resultDiv.innerHTML = `<span style="color: #ffff44;">TIE! Bet returned.</span>`;
-        }
+        document.getElementById('current-bet').textContent = betAmount;
+        document.getElementById('dice-result').textContent = `Bet placed: ${betAmount} gold on ${this.getBetTypeName(betType)}. Roll the dice!`;
         
         this.game.updateHUD();
-        this.gameState = 'finished';
     }
     
-    calculateHandValue(hand) {
-        // Check for pairs, straights, etc. (simplified)
-        const values = hand.map(c => c.numValue).sort((a, b) => b - a);
-        
-        // Count pairs
-        const counts = {};
-        values.forEach(v => counts[v] = (counts[v] || 0) + 1);
-        
-        let score = Math.max(...values);
-        
-        // Pair bonus
-        Object.values(counts).forEach(count => {
-            if (count === 2) score += 20;
-            if (count === 3) score += 50;
-            if (count === 4) score += 100;
-        });
-        
-        // Flush bonus (all same suit)
-        if (hand.every(c => c.suit === hand[0].suit)) {
-            score += 30;
-        }
-        
-        return score;
+    getBetTypeName(type) {
+        const names = {
+            'pass': 'Pass Line',
+            'dontpass': "Don't Pass",
+            'field': 'Field',
+            'any7': 'Any 7'
+        };
+        return names[type] || type;
     }
     
-    raise() {
-        if (this.gameState !== 'waiting') return;
-        if (this.game.player.gold < this.bet * 2) {
-            this.game.notify('Not enough gold to raise!');
+    rollCraps() {
+        if (this.crapsBet <= 0) {
+            this.game.notify('Place a bet first!');
             return;
         }
-        this.bet *= 2;
-        document.getElementById('current-bet').textContent = this.bet;
+        
+        // Roll two dice
+        const die1 = Math.floor(Math.random() * 6) + 1;
+        const die2 = Math.floor(Math.random() * 6) + 1;
+        const total = die1 + die2;
+        
+        // Animate dice
+        const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        document.getElementById('dice-display').textContent = 
+            `${diceEmojis[die1 - 1]} ${diceEmojis[die2 - 1]}`;
+        
+        // Evaluate result based on bet type and phase
+        let result = this.evaluateCrapsRoll(total);
+        
+        document.getElementById('dice-result').textContent = `Rolled ${total}! ${result.message}`;
+        
+        if (result.win !== null) {
+            if (result.win) {
+                const winnings = this.crapsBet * result.multiplier;
+                this.game.player.gold += this.crapsBet + winnings;
+                document.getElementById('gambling-result').innerHTML = 
+                    `<span style="color: #44ff44;">YOU WIN! +${winnings} gold!</span>`;
+                this.game.gameFlags.wonGambling = true;
+            } else {
+                document.getElementById('gambling-result').innerHTML = 
+                    `<span style="color: #ff4444;">YOU LOSE! -${this.crapsBet} gold</span>`;
+            }
+            this.crapsBet = 0;
+            this.point = null;
+            this.crapsPhase = 'betting';
+            document.getElementById('point-display').textContent = 'Point: None';
+            document.getElementById('current-bet').textContent = '0';
+        }
+        
+        this.game.updateHUD();
     }
     
-    fold() {
-        this.game.closeGambling();
+    evaluateCrapsRoll(total) {
+        // Field bet - one roll bet
+        if (this.crapsBetType === 'field') {
+            if ([2, 3, 4, 9, 10, 11, 12].includes(total)) {
+                const multiplier = (total === 2 || total === 12) ? 2 : 1;
+                return { win: true, multiplier, message: 'Field bet wins!' };
+            }
+            return { win: false, multiplier: 0, message: 'Field bet loses.' };
+        }
+        
+        // Any 7 - one roll bet
+        if (this.crapsBetType === 'any7') {
+            if (total === 7) {
+                return { win: true, multiplier: 4, message: 'Any 7 wins! (4:1)' };
+            }
+            return { win: false, multiplier: 0, message: 'Any 7 loses.' };
+        }
+        
+        // Pass Line / Don't Pass - two phase
+        if (this.crapsPhase === 'betting') {
+            // Come out roll
+            if (this.crapsBetType === 'pass') {
+                if (total === 7 || total === 11) {
+                    return { win: true, multiplier: 1, message: 'Natural! Pass line wins!' };
+                }
+                if (total === 2 || total === 3 || total === 12) {
+                    return { win: false, multiplier: 0, message: 'Craps! Pass line loses.' };
+                }
+                // Set point
+                this.point = total;
+                this.crapsPhase = 'point';
+                document.getElementById('point-display').textContent = `Point: ${total}`;
+                return { win: null, message: `Point is ${total}. Roll again to hit it!` };
+            } else { // Don't Pass
+                if (total === 2 || total === 3) {
+                    return { win: true, multiplier: 1, message: "Don't Pass wins!" };
+                }
+                if (total === 12) {
+                    this.game.player.gold += this.crapsBet; // Push
+                    this.crapsBet = 0;
+                    return { win: null, message: 'Push! Bet returned.' };
+                }
+                if (total === 7 || total === 11) {
+                    return { win: false, multiplier: 0, message: "Don't Pass loses." };
+                }
+                // Set point
+                this.point = total;
+                this.crapsPhase = 'point';
+                document.getElementById('point-display').textContent = `Point: ${total}`;
+                return { win: null, message: `Point is ${total}. Hope for 7 before ${total}!` };
+            }
+        } else {
+            // Point phase
+            if (this.crapsBetType === 'pass') {
+                if (total === this.point) {
+                    return { win: true, multiplier: 1, message: `Hit the point! Pass line wins!` };
+                }
+                if (total === 7) {
+                    return { win: false, multiplier: 0, message: 'Seven out! Pass line loses.' };
+                }
+                return { win: null, message: `Rolled ${total}. Roll again for ${this.point} or 7.` };
+            } else { // Don't Pass
+                if (total === 7) {
+                    return { win: true, multiplier: 1, message: "Seven out! Don't Pass wins!" };
+                }
+                if (total === this.point) {
+                    return { win: false, multiplier: 0, message: `Hit the point. Don't Pass loses.` };
+                }
+                return { win: null, message: `Rolled ${total}. Waiting for 7 or ${this.point}.` };
+            }
+        }
     }
 }
 
