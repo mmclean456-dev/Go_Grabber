@@ -644,8 +644,8 @@ class Game {
         
         // New systems for replayability
         this.weather = 'sunny';
-        this.timeOfDay = 0; // 0-24 hours
-        this.dayNightCycle = true;
+        this.timeOfDay = 12; // 0-24 hours, start at noon
+        this.dayNightCycle = false; // Disabled - keeps icons bright and sharp
         this.eventCooldown = 0;
         this.treasureChests = [];
         this.discoveredLocations = new Set();
@@ -2134,6 +2134,8 @@ class Game {
             if (screenX > -TILE_SIZE && screenX < CANVAS_WIDTH + TILE_SIZE &&
                 screenY > -TILE_SIZE && screenY < CANVAS_HEIGHT + TILE_SIZE) {
                 this.ctx.font = '32px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillStyle = '#ffffff';
                 this.ctx.fillText(deco.sprite, screenX, screenY);
             }
         }
@@ -2154,7 +2156,8 @@ class Game {
                 this.ctx.ellipse(screenX, screenY + 15, 15, 8, 0, 0, Math.PI * 2);
                 this.ctx.fill();
                 
-                // NPC sprite
+                // NPC sprite - reset fillStyle to ensure bright rendering
+                this.ctx.fillStyle = '#ffffff';
                 this.ctx.font = '36px Arial';
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText(npc.type.sprite, screenX, screenY);
@@ -2181,6 +2184,7 @@ class Game {
             
             if (screenX > -TILE_SIZE && screenX < CANVAS_WIDTH + TILE_SIZE &&
                 screenY > -TILE_SIZE && screenY < CANVAS_HEIGHT + TILE_SIZE) {
+                this.ctx.fillStyle = '#ffffff';
                 this.ctx.font = '28px Arial';
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText(chest.sprite, screenX, screenY);
@@ -2203,7 +2207,8 @@ class Game {
         this.ctx.ellipse(playerScreenX, playerScreenY + 18, 18, 10, 0, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // Player sprite
+        // Player sprite - reset fillStyle to ensure bright rendering
+        this.ctx.fillStyle = '#ffffff';
         this.ctx.font = '42px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.fillText(this.player.sprite, playerScreenX, playerScreenY);
