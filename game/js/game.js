@@ -267,7 +267,7 @@ function createPath(map, x1, y1, x2, y2) {
 const NPC_TYPES = {
     VILLAGER: { sprite: '👨‍🌾', hostile: false, dialogue: true },
     MERCHANT: { sprite: '🧔', hostile: false, dialogue: true, shop: true },
-    KNIGHT: { sprite: '🤺', hostile: false, dialogue: true, canRecruit: true },
+    KNIGHT: { sprite: '🛡️', hostile: false, dialogue: true, canRecruit: true },
     PIRATE: { sprite: '🏴‍☠️', hostile: 'variable', dialogue: true },
     COWBOY: { sprite: '🤠', hostile: false, dialogue: true },
     BANDIT: { sprite: '🦹', hostile: true, dialogue: false },
@@ -498,7 +498,7 @@ class Game {
             targetX: 50 * TILE_SIZE,
             targetY: 75 * TILE_SIZE,
             speed: 4,
-            sprite: '🤺',
+            sprite: '⚔️',
             health: 100,
             maxHealth: 100,
             level: 1,
