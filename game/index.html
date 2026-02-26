@@ -545,6 +545,43 @@
             font-size: 13px;
         }
         
+        #sound-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            background: rgba(20, 20, 40, 0.95);
+            border: 2px solid #6a6a9a;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            display: none;
+        }
+        
+        .sound-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .sound-control label {
+            width: 50px;
+            font-size: 13px;
+        }
+        
+        .sound-control input[type="range"] {
+            flex: 1;
+            accent-color: #6a6a9a;
+        }
+        
+        .sound-control span {
+            width: 35px;
+            font-size: 12px;
+            text-align: right;
+        }
+        
         #notification {
             position: absolute;
             top: 80px;
@@ -695,6 +732,7 @@
                 <div class="hud-section" style="display: flex; gap: 15px;">
                     <span style="cursor: pointer;" onclick="game.toggleInventory()" title="Inventory">🎒 [I]</span>
                     <span style="cursor: pointer;" onclick="game.toggleQuestLog()" title="Quest Log">📜 [Q]</span>
+                    <span style="cursor: pointer;" onclick="game.toggleSoundPanel()" title="Sound [M]">🔊 [M]</span>
                     <span style="cursor: pointer;" onclick="SaveSystem.save(game)" title="Save Game (F5)">💾</span>
                     <span style="cursor: pointer;" onclick="SaveSystem.load(game)" title="Load Game (F9)">📂</span>
                 </div>
@@ -786,6 +824,27 @@
                     </div>
                     <div id="gambling-result" style="margin-top: 15px; font-size: 18px;"></div>
                 </div>
+            </div>
+            
+            <div id="sound-panel">
+                <button class="close-btn" onclick="game.toggleSoundPanel()">×</button>
+                <h3 style="color:#ffcc44;margin-bottom:15px;text-align:center;">🔊 Sound Settings</h3>
+                <div class="sound-control">
+                    <label>Master</label>
+                    <input type="range" min="0" max="100" value="40" id="vol-master" oninput="soundSystem.setMasterVolume(this.value/100);document.getElementById('vol-master-val').textContent=this.value+'%'">
+                    <span id="vol-master-val">40%</span>
+                </div>
+                <div class="sound-control">
+                    <label>SFX</label>
+                    <input type="range" min="0" max="100" value="70" id="vol-sfx" oninput="soundSystem.setSfxVolume(this.value/100);document.getElementById('vol-sfx-val').textContent=this.value+'%'">
+                    <span id="vol-sfx-val">70%</span>
+                </div>
+                <div class="sound-control">
+                    <label>Music</label>
+                    <input type="range" min="0" max="100" value="30" id="vol-music" oninput="soundSystem.setMusicVolume(this.value/100);document.getElementById('vol-music-val').textContent=this.value+'%'">
+                    <span id="vol-music-val">30%</span>
+                </div>
+                <button style="width:100%;padding:8px;margin-top:10px;background:rgba(100,100,150,0.5);border:1px solid #6a6a9a;color:white;border-radius:5px;cursor:pointer;" onclick="soundSystem.toggleMute();this.textContent=soundSystem.muted?'🔇 Unmute':'🔊 Mute'">🔊 Mute</button>
             </div>
             
             <div id="notification"></div>

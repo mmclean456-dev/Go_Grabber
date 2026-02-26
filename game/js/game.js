@@ -1,6 +1,303 @@
 // Quest of the Dragon's Gold - Main Game Engine
 // A Cross-Genre Point-and-Click Adventure
 
+// ========== SOUND SYSTEM ==========
+class SoundSystem {
+    constructor() {
+        this.ctx = null;
+        this.initialized = false;
+        this.masterVolume = 0.4;
+        this.sfxVolume = 0.7;
+        this.musicVolume = 0.3;
+        this.muted = false;
+        this.currentMusic = null;
+        this.currentMusicNodes = [];
+        this.ambientNode = null;
+        this.footstepCooldown = 0;
+    }
+
+    init() {
+        if (this.initialized) return;
+        try {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            this.initialized = true;
+        } catch (e) {
+            console.warn('Web Audio API not supported');
+        }
+    }
+
+    _vol(type) {
+        if (this.muted || !this.initialized) return 0;
+        const base = type === 'music' ? this.musicVolume : this.sfxVolume;
+        return base * this.masterVolume;
+    }
+
+    _tone(freq, duration, type = 'sine', vol = null, detune = 0) {
+        if (!this.ctx) return;
+        const v = vol !== null ? vol : this._vol('sfx');
+        if (v <= 0) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        if (detune) osc.detune.value = detune;
+        gain.gain.setValueAtTime(v, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    }
+
+    _noise(duration, vol = null) {
+        if (!this.ctx) return;
+        const v = vol !== null ? vol : this._vol('sfx') * 0.3;
+        if (v <= 0) return;
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const src = this.ctx.createBufferSource();
+        const gain = this.ctx.createGain();
+        src.buffer = buffer;
+        gain.gain.setValueAtTime(v, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        src.connect(gain);
+        gain.connect(this.ctx.destination);
+        src.start();
+    }
+
+    playClick() {
+        this._tone(800, 0.06, 'sine');
+        this._tone(1200, 0.04, 'sine');
+    }
+
+    playMenuOpen() {
+        const t = this.ctx ? this.ctx.currentTime : 0;
+        this._tone(400, 0.12, 'sine');
+        setTimeout(() => this._tone(600, 0.1, 'sine'), 60);
+    }
+
+    playMenuClose() {
+        this._tone(500, 0.1, 'sine');
+        setTimeout(() => this._tone(350, 0.08, 'sine'), 50);
+    }
+
+    playNotification() {
+        this._tone(660, 0.1, 'sine');
+        setTimeout(() => this._tone(880, 0.15, 'sine'), 80);
+    }
+
+    playQuestAccepted() {
+        const delay = 70;
+        this._tone(440, 0.15, 'sine');
+        setTimeout(() => this._tone(554, 0.15, 'sine'), delay);
+        setTimeout(() => this._tone(660, 0.2, 'sine'), delay * 2);
+        setTimeout(() => this._tone(880, 0.3, 'sine'), delay * 3);
+    }
+
+    playQuestComplete() {
+        const delay = 100;
+        [523, 659, 784, 1047].forEach((f, i) => {
+            setTimeout(() => this._tone(f, 0.25, 'sine'), i * delay);
+        });
+        setTimeout(() => this._tone(1047, 0.5, 'triangle'), delay * 4);
+    }
+
+    playSwordSwing() {
+        this._noise(0.12);
+        this._tone(200, 0.08, 'sawtooth');
+    }
+
+    playHit() {
+        this._noise(0.15);
+        this._tone(150, 0.1, 'square');
+        setTimeout(() => this._tone(80, 0.08, 'square'), 30);
+    }
+
+    playHeavyAttack() {
+        this._noise(0.2);
+        this._tone(120, 0.15, 'sawtooth');
+        setTimeout(() => this._tone(60, 0.2, 'square'), 50);
+    }
+
+    playShieldBlock() {
+        this._tone(300, 0.08, 'square');
+        this._tone(200, 0.12, 'triangle');
+    }
+
+    playHeal() {
+        const delay = 80;
+        [523, 659, 784].forEach((f, i) => {
+            setTimeout(() => this._tone(f, 0.2, 'sine'), i * delay);
+        });
+    }
+
+    playFlee() {
+        this._tone(400, 0.15, 'sawtooth');
+        setTimeout(() => this._tone(300, 0.12, 'sawtooth'), 60);
+        setTimeout(() => this._tone(200, 0.1, 'sawtooth'), 120);
+    }
+
+    playChestOpen() {
+        const delay = 60;
+        [392, 494, 587, 784].forEach((f, i) => {
+            setTimeout(() => this._tone(f, 0.15, 'sine'), i * delay);
+        });
+    }
+
+    playGoldPickup() {
+        this._tone(1200, 0.05, 'sine');
+        setTimeout(() => this._tone(1500, 0.05, 'sine'), 40);
+        setTimeout(() => this._tone(1800, 0.07, 'sine'), 80);
+    }
+
+    playEquip() {
+        this._tone(250, 0.08, 'triangle');
+        this._noise(0.06);
+        setTimeout(() => this._tone(400, 0.1, 'triangle'), 60);
+    }
+
+    playLevelUp() {
+        const delay = 100;
+        [523, 659, 784, 1047, 1319].forEach((f, i) => {
+            setTimeout(() => this._tone(f, 0.3, 'sine'), i * delay);
+        });
+        setTimeout(() => {
+            this._tone(1319, 0.6, 'triangle');
+            this._tone(1047, 0.6, 'sine');
+        }, delay * 5);
+    }
+
+    playVictory() {
+        const notes = [523, 523, 523, 698, 880, 784, 698, 880, 1047];
+        notes.forEach((f, i) => {
+            setTimeout(() => this._tone(f, 0.2, 'sine'), i * 120);
+        });
+    }
+
+    playDefeat() {
+        const notes = [440, 415, 392, 370, 349, 330, 262];
+        notes.forEach((f, i) => {
+            setTimeout(() => this._tone(f, 0.3, 'sine'), i * 200);
+        });
+    }
+
+    playFootstep(terrain) {
+        if (!this.ctx) return;
+        const v = this._vol('sfx') * 0.15;
+        if (v <= 0) return;
+        switch (terrain) {
+            case 0: // GRASS
+                this._noise(0.04); break;
+            case 2: // SAND
+                this._tone(100, 0.04, 'triangle', v); this._noise(0.05); break;
+            case 3: // STONE
+                this._tone(800, 0.03, 'square', v); break;
+            case 4: // WOOD
+                this._tone(300, 0.04, 'triangle', v); break;
+            case 5: // DIRT
+                this._tone(150, 0.04, 'triangle', v); this._noise(0.03); break;
+            case 6: // SNOW
+                this._noise(0.06); break;
+            default:
+                this._noise(0.03); break;
+        }
+    }
+
+    playPurchase() {
+        this._tone(800, 0.06, 'sine');
+        setTimeout(() => this._tone(1000, 0.06, 'sine'), 50);
+        setTimeout(() => this._tone(1200, 0.08, 'sine'), 100);
+    }
+
+    playError() {
+        this._tone(200, 0.15, 'square');
+        setTimeout(() => this._tone(150, 0.2, 'square'), 100);
+    }
+
+    playCombatStart() {
+        this._tone(200, 0.15, 'sawtooth');
+        setTimeout(() => this._tone(250, 0.12, 'sawtooth'), 100);
+        setTimeout(() => this._tone(300, 0.1, 'sawtooth'), 200);
+        this._noise(0.1);
+    }
+
+    startMusic(mood) {
+        this.stopMusic();
+        if (!this.ctx || this._vol('music') <= 0) return;
+        const v = this._vol('music');
+        const now = this.ctx.currentTime;
+        const playNote = (freq, start, dur, type = 'sine', vol = v * 0.5) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, now + start);
+            gain.gain.linearRampToValueAtTime(vol, now + start + 0.05);
+            gain.gain.setValueAtTime(vol, now + start + dur - 0.05);
+            gain.gain.linearRampToValueAtTime(0, now + start + dur);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + start);
+            osc.stop(now + start + dur);
+            this.currentMusicNodes.push(osc);
+        };
+
+        let notes;
+        let beatLen = 0.5;
+        switch (mood) {
+            case 'explore':
+                notes = [262, 294, 330, 349, 392, 349, 330, 294];
+                break;
+            case 'combat':
+                notes = [165, 196, 220, 165, 196, 247, 220, 196];
+                beatLen = 0.3;
+                break;
+            case 'peaceful':
+                notes = [330, 392, 494, 392, 440, 494, 392, 330];
+                break;
+            default:
+                notes = [262, 294, 330, 349, 392, 349, 330, 294];
+        }
+
+        const loopLen = notes.length * beatLen;
+        const scheduleLoop = (offset) => {
+            notes.forEach((f, i) => {
+                playNote(f, offset + i * beatLen, beatLen * 0.8, 'triangle', v * 0.25);
+            });
+        };
+
+        for (let rep = 0; rep < 8; rep++) {
+            scheduleLoop(rep * loopLen);
+        }
+
+        this.currentMusic = mood;
+    }
+
+    stopMusic() {
+        this.currentMusicNodes.forEach(n => {
+            try { n.stop(); } catch(e) {}
+        });
+        this.currentMusicNodes = [];
+        this.currentMusic = null;
+    }
+
+    setMasterVolume(v) { this.masterVolume = Math.max(0, Math.min(1, v)); }
+    setSfxVolume(v) { this.sfxVolume = Math.max(0, Math.min(1, v)); }
+    setMusicVolume(v) {
+        this.musicVolume = Math.max(0, Math.min(1, v));
+        if (this.currentMusic) this.startMusic(this.currentMusic);
+    }
+    toggleMute() {
+        this.muted = !this.muted;
+        if (this.muted) this.stopMusic();
+    }
+}
+
+const soundSystem = new SoundSystem();
+// ========== END SOUND SYSTEM ==========
+
 const TILE_SIZE = 48;
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 700;
@@ -565,7 +862,10 @@ class Game {
         
         document.getElementById('start-btn').addEventListener('click', () => {
             document.getElementById('loading-screen').style.display = 'none';
+            soundSystem.init();
+            soundSystem.playClick();
             this.start();
+            soundSystem.startMusic('explore');
         });
     }
     
@@ -1191,6 +1491,9 @@ class Game {
             case 'q':
                 this.toggleQuestLog();
                 break;
+            case 'm':
+                this.toggleSoundPanel();
+                break;
             case 'escape':
                 this.closeAllPanels();
                 break;
@@ -1376,7 +1679,7 @@ class Game {
     }
     
     selectDialogueChoice(choice, idx) {
-        // Execute action if present
+        soundSystem.playClick();
         if (choice.action) {
             this.executeDialogueAction(choice);
         }
@@ -1688,6 +1991,7 @@ class Game {
             this.player.inventory.push({ item });
         }
         
+        soundSystem.playPurchase();
         this.notify(`Purchased ${item.name}!`);
         this.updateHUD();
         
@@ -1716,6 +2020,9 @@ class Game {
         
         if (!isVisible) {
             this.updateInventoryDisplay();
+            soundSystem.playMenuOpen();
+        } else {
+            soundSystem.playMenuClose();
         }
         
         panel.style.display = isVisible ? 'none' : 'block';
@@ -1781,6 +2088,7 @@ class Game {
             // Equip new weapon
             this.player.equipment.weapon = item;
             this.player.attack += item.attack;
+            soundSystem.playEquip();
             this.notify(`Equipped ${item.name}`);
         } else if (item.type === 'armor') {
             if (this.player.equipment.armor) {
@@ -1788,6 +2096,7 @@ class Game {
             }
             this.player.equipment.armor = item;
             this.player.defense += item.defense;
+            soundSystem.playEquip();
             this.notify(`Equipped ${item.name}`);
         } else if (item.type === 'consumable') {
             if (item.heal) {
@@ -1813,6 +2122,9 @@ class Game {
         
         if (!isVisible) {
             this.updateQuestDisplay();
+            soundSystem.playMenuOpen();
+        } else {
+            soundSystem.playMenuClose();
         }
         
         panel.style.display = isVisible ? 'none' : 'block';
@@ -1882,6 +2194,7 @@ class Game {
         const quest = this.quests[questKey];
         if (!quest || quest.accepted) return;
         quest.accepted = true;
+        soundSystem.playQuestAccepted();
         this.notify(`Quest Accepted: ${quest.title}`);
         this.updateQuestDisplay();
     }
@@ -1916,6 +2229,7 @@ class Game {
             rewardMsg += ` +${quest.rewardGold} Gold`;
         }
         
+        soundSystem.playQuestComplete();
         this.notify(rewardMsg);
         this.updateHUD();
         this.updateQuestDisplay();
@@ -1949,15 +2263,25 @@ class Game {
         document.getElementById('quest-log').style.display = 'none';
         document.getElementById('shop-ui').style.display = 'none';
         document.getElementById('gambling-ui').style.display = 'none';
+        document.getElementById('sound-panel').style.display = 'none';
         this.closeDialogue();
     }
     
+    toggleSoundPanel() {
+        const panel = document.getElementById('sound-panel');
+        const isVisible = panel.style.display === 'block';
+        if (!isVisible) soundSystem.playMenuOpen();
+        else soundSystem.playMenuClose();
+        panel.style.display = isVisible ? 'none' : 'block';
+    }
+    
     notify(message) {
+        soundSystem.playNotification();
         const notification = document.getElementById('notification');
         notification.textContent = message;
         notification.style.display = 'block';
         notification.style.animation = 'none';
-        notification.offsetHeight; // Trigger reflow
+        notification.offsetHeight;
         notification.style.animation = 'fadeInOut 3s ease-in-out';
         
         setTimeout(() => {
@@ -1987,6 +2311,7 @@ class Game {
             this.player.attack += 2;
             this.player.defense += 1;
             
+            soundSystem.playLevelUp();
             this.notify(`Level Up! Now level ${this.player.level}!`);
         }
         
@@ -2089,6 +2414,17 @@ class Game {
             this.player.y - this.lastPosition.y
         );
         this.distanceTraveled += movedDist;
+        if (movedDist > 0.5) {
+            this.footstepTimer = (this.footstepTimer || 0) + dt;
+            if (this.footstepTimer > 0.35) {
+                this.footstepTimer = 0;
+                const tx = Math.floor(this.player.x / TILE_SIZE);
+                const ty = Math.floor(this.player.y / TILE_SIZE);
+                if (ty >= 0 && ty < this.world.height && tx >= 0 && tx < this.world.width) {
+                    soundSystem.playFootstep(this.world.map[ty][tx]);
+                }
+            }
+        }
         this.lastPosition = { x: this.player.x, y: this.player.y };
         
         // Random events
@@ -2114,6 +2450,7 @@ class Game {
     openTreasureChest(chest) {
         chest.opened = true;
         chest.sprite = '📭';
+        soundSystem.playChestOpen();
         
         let message = 'You opened a treasure chest! ';
         
@@ -2452,6 +2789,9 @@ class CombatSystem {
         this.defending = false;
         this.combatLog = [];
         
+        soundSystem.playCombatStart();
+        soundSystem.startMusic('combat');
+        
         document.getElementById('combat-ui').style.display = 'block';
         document.getElementById('enemy-name').textContent = npc.name;
         document.getElementById('enemy-sprite').textContent = npc.type.sprite;
@@ -2465,16 +2805,20 @@ class CombatSystem {
         
         switch(action) {
             case 'attack':
+                soundSystem.playSwordSwing();
                 this.attack(this.game.player, this.enemy, false);
                 break;
             case 'heavy':
+                soundSystem.playHeavyAttack();
                 this.attack(this.game.player, this.enemy, true);
                 break;
             case 'defend':
+                soundSystem.playShieldBlock();
                 this.defending = true;
                 this.log('You take a defensive stance!');
                 break;
-            case 'heal':
+            case 'heal': {
+                soundSystem.playHeal();
                 const healAmount = 30;
                 this.game.player.health = Math.min(
                     this.game.player.health + healAmount,
@@ -2482,7 +2826,9 @@ class CombatSystem {
                 );
                 this.log(`You heal for ${healAmount} HP!`);
                 break;
+            }
             case 'flee':
+                soundSystem.playFlee();
                 if (Math.random() < 0.5) {
                     this.log('You escaped!');
                     this.endCombat(false);
@@ -2531,6 +2877,7 @@ class CombatSystem {
         }
         
         defender.health -= damage;
+        soundSystem.playHit();
         
         const attackerName = attacker === this.game.player ? 'You' : attacker.name;
         const defenderName = defender === this.game.player ? 'you' : defender.name;
@@ -2651,6 +2998,7 @@ class CombatSystem {
         }
         
         this.enemy.alive = false;
+        soundSystem.playVictory();
         
         setTimeout(() => {
             this.endCombat(true);
@@ -2678,6 +3026,7 @@ class CombatSystem {
     
     defeat() {
         this.log('You have been defeated...');
+        soundSystem.playDefeat();
         
         setTimeout(() => {
             alert('You have fallen in battle!\n\nBut your journey is not over...\n\nYou wake up at the village, weakened but alive.');
@@ -2698,6 +3047,7 @@ class CombatSystem {
         document.getElementById('combat-ui').style.display = 'none';
         this.game.inCombat = false;
         this.enemy = null;
+        soundSystem.startMusic('explore');
     }
     
     log(message) {
@@ -3148,8 +3498,11 @@ if (SaveSystem.hasSave()) {
     
     document.getElementById('load-save-btn').addEventListener('click', () => {
         document.getElementById('loading-screen').style.display = 'none';
+        soundSystem.init();
+        soundSystem.playClick();
         game.start();
         SaveSystem.load(game);
+        soundSystem.startMusic('explore');
     });
     
     document.getElementById('new-game-btn').addEventListener('click', () => {
