@@ -482,14 +482,14 @@
             position: absolute;
             top: 50px;
             left: 10px;
-            width: 280px;
+            width: 300px;
             background: rgba(20, 20, 40, 0.95);
             border: 2px solid #6a6a9a;
             border-radius: 10px;
             padding: 15px;
             color: white;
             display: none;
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
         }
         
@@ -515,7 +515,9 @@
         }
         
         .quest-item.completed {
-            opacity: 0.6;
+            opacity: 0.8;
+            border-left-color: #44ff44 !important;
+            background: rgba(30, 80, 30, 0.3);
         }
         
         .quest-title {
@@ -526,6 +528,11 @@
         .quest-desc {
             font-size: 12px;
             color: #aaa;
+        }
+        
+        .quest-progress {
+            font-size: 11px;
+            color: #888;
         }
         
         .clue-item {

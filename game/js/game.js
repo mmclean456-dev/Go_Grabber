@@ -356,6 +356,10 @@ const QUESTS = {
         id: 'main',
         title: 'The Dragon\'s Gold',
         description: 'Seek the dragon\'s lair, defeat the beast, and claim the legendary treasure.',
+        accepted: true,
+        rewardType: 'gold',
+        rewardAmount: 10000,
+        rewardDescription: '10,000 Gold',
         stages: [
             { id: 'start', description: 'Begin your journey - explore the village', completed: false },
             { id: 'gather_clues', description: 'Gather clues about the dragon\'s location (0/5)', completed: false, count: 0, required: 5 },
@@ -368,6 +372,10 @@ const QUESTS = {
         id: 'pirate_ship',
         title: 'A Ship of Your Own',
         description: 'Win a ship from the pirate captain in a game of cards.',
+        accepted: false,
+        rewardType: 'item',
+        rewardItem: 'SHIP_DEED',
+        rewardDescription: 'Ship Deed - Unlocks sea travel',
         stages: [
             { id: 'find_captain', description: 'Find the Pirate Captain', completed: false },
             { id: 'win_game', description: 'Beat him at cards', completed: false }
@@ -377,6 +385,10 @@ const QUESTS = {
         id: 'sheriff_bounty',
         title: 'Wanted: Dead or Alive',
         description: 'Help the sheriff capture dangerous bandits.',
+        accepted: false,
+        rewardType: 'gold',
+        rewardAmount: 200,
+        rewardDescription: '200 Gold',
         stages: [
             { id: 'talk_sheriff', description: 'Speak with the Sheriff', completed: false },
             { id: 'defeat_bandits', description: 'Defeat the bandits (0/3)', completed: false, count: 0, required: 3 },
@@ -387,6 +399,10 @@ const QUESTS = {
         id: 'ghost_mystery',
         title: 'The Castle Ghost',
         description: 'Uncover the mystery of the haunted castle.',
+        accepted: false,
+        rewardType: 'item',
+        rewardItem: 'MYSTIC_AMULET',
+        rewardDescription: 'Mystic Amulet - Reveals hidden clues',
         stages: [
             { id: 'enter_castle', description: 'Enter the Medieval Castle', completed: false },
             { id: 'find_ghost', description: 'Find the Ghost', completed: false },
@@ -397,8 +413,11 @@ const QUESTS = {
         id: 'wolf_hunt',
         title: 'Wolf Problem',
         description: 'Clear the wolves from the farmer\'s land.',
+        accepted: false,
+        rewardType: 'gold',
+        rewardAmount: 75,
+        rewardDescription: '75 Gold',
         stages: [
-            { id: 'accept', description: 'Accept the farmer\'s request', completed: false },
             { id: 'kill_wolves', description: 'Kill the wolves (0/5)', completed: false, count: 0, required: 5 },
             { id: 'return_farmer', description: 'Return to the farmer', completed: false }
         ]
@@ -407,6 +426,10 @@ const QUESTS = {
         id: 'lost_heirloom',
         title: 'The Lost Heirloom',
         description: 'Recover the wounded knight\'s family sword.',
+        accepted: false,
+        rewardType: 'gold',
+        rewardAmount: 150,
+        rewardDescription: '150 Gold',
         stages: [
             { id: 'find_bandits', description: 'Find the bandits who took the sword', completed: false },
             { id: 'recover_sword', description: 'Defeat the bandits and recover the sword', completed: false },
@@ -417,6 +440,11 @@ const QUESTS = {
         id: 'gold_mine',
         title: 'Gold Rush',
         description: 'Clear the bandits from the gold mine.',
+        accepted: false,
+        rewardType: 'item',
+        rewardItem: 'BATTLE_AXE',
+        rewardGold: 500,
+        rewardDescription: 'Battle Axe + 500 Gold',
         stages: [
             { id: 'find_mine', description: 'Find the gold mine', completed: false },
             { id: 'defeat_boss', description: 'Defeat Rattlesnake Rogers', completed: false },
@@ -427,6 +455,10 @@ const QUESTS = {
         id: 'rescue_prince',
         title: 'The Lost Prince',
         description: 'Rescue the prince from the dragon\'s lair.',
+        accepted: false,
+        rewardType: 'item',
+        rewardItem: 'ROYAL_SWORD',
+        rewardDescription: 'Royal Sword - A powerful blade',
         stages: [
             { id: 'learn_truth', description: 'Learn about the captured prince', completed: false },
             { id: 'defeat_dragon', description: 'Defeat the dragon', completed: false },
@@ -437,6 +469,11 @@ const QUESTS = {
         id: 'escort_mission',
         title: 'Swamp Rescue',
         description: 'Help the lost traveler escape the swamp.',
+        accepted: false,
+        rewardType: 'item',
+        rewardItem: 'RING_OF_PROTECTION',
+        rewardGold: 50,
+        rewardDescription: 'Ring of Protection + 50 Gold',
         stages: [
             { id: 'find_traveler', description: 'Find the lost traveler', completed: false },
             { id: 'escort_safely', description: 'Escort them to safety', completed: false }
@@ -642,8 +679,8 @@ class Game {
                 { text: "I'm looking for information.", next: 3 }
             ]},
             { text: "Ha! Passage ain't free. Win it from me in a game of cards, or pay 500 gold!", choices: [
-                { text: "I'll play your game!", next: 2 },
-                { text: "I'll find another way.", end: true }
+                { text: "I can do that. I'll play your game!", action: 'acceptPirateQuest', next: 2 },
+                { text: "I'll come back later.", end: true }
             ]},
             { text: "A gambler, eh? I like that! If ye win, I'll give ye me ship's deed. If ye lose... ye work on me ship for a year!", action: 'startCardGame', choices: [
                 { text: "Deal the cards!", action: 'openGambling', gamblingType: 'pirate' }
@@ -652,8 +689,8 @@ class Game {
                 { text: "Tell me what you know.", next: 4 }
             ]},
             { text: "Beat me at cards, and I'll mark it on yer map. That's me deal.", choices: [
-                { text: "You're on!", action: 'openGambling', gamblingType: 'pirate' },
-                { text: "I'll be back.", end: true }
+                { text: "I can do that. You're on!", action: 'acceptPirateQuest', next: 2 },
+                { text: "I'll come back later.", end: true }
             ]}
         ], { special: 'cardGame' });
         
@@ -681,9 +718,9 @@ class Game {
                 { text: "I'm looking for work.", next: 1 },
                 { text: "Just passing through.", end: true }
             ]},
-            { text: "Well, I've got a bounty that needs collecting. Three outlaws been terrorizing the area. 200 gold reward.", action: 'startBountyQuest', choices: [
-                { text: "I'll bring them in.", next: 2 },
-                { text: "Maybe later.", end: true }
+            { text: "Well, I've got a bounty that needs collecting. Three outlaws been terrorizing the area. 200 gold reward.", choices: [
+                { text: "I can do that. I'll bring them in.", action: 'acceptBountyQuest', next: 2 },
+                { text: "I'll come back later.", end: true }
             ]},
             { text: "Good. They're hiding in the canyons to the east. Watch yourself - they're mean cusses.", end: true }
         ], { questGiver: true });
@@ -723,13 +760,14 @@ class Game {
             { text: "A dragon slayer? Then you'll need the castle's blessing. Speak to the ghost in the tower first.", choices: [
                 { text: "Where is this tower?", next: 3 }
             ]},
-            { text: "Northwest tower, but beware - the ghost only speaks to those pure of heart. You'll need the Castle Key from the blacksmith.", action: 'startGhostQuest', choices: [
-                { text: "I'll find this ghost.", end: true }
+            { text: "Northwest tower, but beware - the ghost only speaks to those pure of heart. You'll need the Castle Key from the blacksmith.", choices: [
+                { text: "I can do that. I'll investigate the ghost.", action: 'acceptGhostQuest', end: true },
+                { text: "I'll come back later.", end: true }
             ]}
         ]);
         
         this.addNPC(25, 45, NPC_TYPES.GHOST, 'The Spirit of King Aldric', [
-            { text: "*ethereal voice* Who disturbs my eternal rest...?", choices: [
+            { text: "*ethereal voice* Who disturbs my eternal rest...?", action: 'foundGhost', choices: [
                 { text: "I seek knowledge of the dragon.", next: 1 },
                 { text: "Forgive me, I'll leave.", end: true }
             ]},
@@ -802,9 +840,9 @@ class Game {
         
         // Additional Village NPCs
         this.addNPC(55, 70, NPC_TYPES.VILLAGER, 'Worried Farmer', [
-            { text: "My farm to the east is overrun by wolves! Please, brave knight, help me!", choices: [
-                { text: "I'll clear out the wolves.", action: 'startWolfQuest', next: 1 },
-                { text: "I'm busy with other matters.", end: true }
+            { text: "My farm to the east is overrun by wolves! Please, brave knight, help me! I can pay you 75 gold.", choices: [
+                { text: "I can do that. I'll clear out the wolves.", action: 'acceptWolfQuest', next: 1 },
+                { text: "I'll come back later.", end: true }
             ]},
             { text: "Thank you! There should be about 5 of them. Return to me when they're dealt with.", end: true }
         ], { questGiver: true });
@@ -845,8 +883,9 @@ class Game {
                 { text: "Where did they go?", next: 1 },
                 { text: "I'll help you.", next: 1 }
             ]},
-            { text: "West... towards the canyons. Please... if you find it... bring it back. The sword has a ruby in the hilt.", action: 'startHeirloomQuest', choices: [
-                { text: "I'll find it.", end: true }
+            { text: "West... towards the canyons. Please... if you find it... bring it back. The sword has a ruby in the hilt. I'll reward you with 150 gold.", choices: [
+                { text: "I can do that. I'll find your sword.", action: 'acceptHeirloomQuest', end: true },
+                { text: "I'll come back later.", end: true }
             ]}
         ], { questGiver: true });
         
@@ -884,8 +923,9 @@ class Game {
                 { text: "Where was this gold mine?", next: 1 },
                 { text: "Tough luck, old timer.", end: true }
             ]},
-            { text: "Up in the mountains, northwest of here. If ye can clear out the bandits, I'll split the gold with ye!", action: 'startMineQuest', choices: [
-                { text: "Tell me more about these bandits.", next: 2 }
+            { text: "Up in the mountains, northwest of here. If ye can clear out the bandits, I'll split the gold with ye! Plus I got a fine battle axe for your trouble.", choices: [
+                { text: "I can do that. Tell me more.", action: 'acceptMineQuest', next: 2 },
+                { text: "I'll come back later.", end: true }
             ]},
             { text: "There's about 4 of 'em, led by a mean varmint named 'Rattlesnake' Rogers. They camp near the mine entrance.", end: true }
         ], { questGiver: true });
@@ -918,9 +958,9 @@ class Game {
                 { text: "The dragon kidnapped the prince?", next: 1 },
                 { text: "That's sad.", end: true }
             ]},
-            { text: "Years ago, yes. They say the prince is still alive, trapped in the dragon's lair. If someone could save him...", choices: [
-                { text: "I'll rescue the prince!", action: 'startPrinceQuest' },
-                { text: "That sounds dangerous.", end: true }
+            { text: "Years ago, yes. They say the prince is still alive, trapped in the dragon's lair. If someone could save him... the king would surely reward the hero with the Royal Sword.", choices: [
+                { text: "I can do that. I'll rescue the prince!", action: 'acceptPrinceQuest', end: true },
+                { text: "I'll come back later. That sounds dangerous.", end: true }
             ]}
         ], { questGiver: true });
         
@@ -935,11 +975,11 @@ class Game {
         
         // Swamp - more content
         this.addNPC(130, 98, NPC_TYPES.VILLAGER, 'Lost Traveler', [
-            { text: "Thank the gods! I've been lost in this swamp for days! Can you help me find my way out?", choices: [
-                { text: "Follow me to safety.", action: 'escortTraveler', next: 1 },
-                { text: "Sorry, I'm busy.", end: true }
+            { text: "Thank the gods! I've been lost in this swamp for days! Can you help me find my way out? I have a Ring of Protection I can give you!", choices: [
+                { text: "I can do that. Follow me to safety.", action: 'acceptEscortQuest', next: 1 },
+                { text: "I'll come back later.", end: true }
             ]},
-            { text: "Thank you! I was heading to the village. Lead the way!", action: 'startEscortQuest', end: true }
+            { text: "Thank you! I was heading to the village. Lead the way!", end: true }
         ], { questGiver: true });
         
         this.addNPC(115, 108, NPC_TYPES.WIZARD, 'Hermit Alchemist', [
@@ -1176,12 +1216,79 @@ class Game {
     startDialogue(npc) {
         if (!npc.dialogue || npc.dialogue.length === 0) return;
         
+        const questDialogue = this.getQuestDialogue(npc);
+        if (questDialogue) {
+            this.currentDialogue = { npc, currentIndex: 0 };
+            this.showDialogue(questDialogue, npc.name);
+            return;
+        }
+        
         this.currentDialogue = {
             npc,
             currentIndex: 0
         };
         
         this.showDialogue(npc.dialogue[0], npc.name);
+    }
+    
+    getQuestDialogue(npc) {
+        if (npc.name === 'Sheriff John' && this.quests.SHERIFF_BOUNTY.accepted) {
+            const allDead = this.quests.SHERIFF_BOUNTY.stages[1].completed;
+            if (allDead && !this.quests.SHERIFF_BOUNTY.stages[2].completed) {
+                return {
+                    text: "You got all three of 'em! Here's your 200 gold reward, as promised. Fine work, stranger.",
+                    action: 'completeBountyQuest',
+                    end: true,
+                    choices: [{ text: "Pleasure doing business.", end: true }]
+                };
+            } else if (this.quests.SHERIFF_BOUNTY.stages[2].completed) {
+                return { text: "Thanks again for cleaning up those outlaws. The town's a lot safer now.", end: true, choices: [{ text: "Stay safe, Sheriff.", end: true }] };
+            }
+        }
+        
+        if (npc.name === 'Worried Farmer' && this.quests.WOLF_HUNT.accepted) {
+            const allKilled = this.quests.WOLF_HUNT.stages[0].completed;
+            if (allKilled && !this.quests.WOLF_HUNT.stages[1].completed) {
+                return {
+                    text: "You did it! The wolves are gone! Thank you so much, brave knight! Here's 75 gold for your trouble.",
+                    action: 'completeWolfQuest',
+                    end: true,
+                    choices: [{ text: "Happy to help.", end: true }]
+                };
+            } else if (this.quests.WOLF_HUNT.stages[1].completed) {
+                return { text: "My farm is safe again thanks to you! Gods bless you, knight.", end: true, choices: [{ text: "Take care, farmer.", end: true }] };
+            }
+        }
+        
+        if (npc.name === 'Wounded Knight' && this.quests.LOST_HEIRLOOM.accepted) {
+            const foundSword = this.quests.LOST_HEIRLOOM.stages[1].completed;
+            if (foundSword && !this.quests.LOST_HEIRLOOM.stages[2].completed) {
+                return {
+                    text: "*eyes light up* My family's sword! You found it! Thank you, brave soul. Take this gold as my gratitude - 150 gold pieces.",
+                    action: 'completeHeirloomQuest',
+                    end: true,
+                    choices: [{ text: "Glad I could help.", end: true }]
+                };
+            } else if (this.quests.LOST_HEIRLOOM.stages[2].completed) {
+                return { text: "*resting* I'm healing well. My family will be whole again, thanks to you.", end: true, choices: [{ text: "Rest well.", end: true }] };
+            }
+        }
+        
+        if (npc.name === 'Lost Traveler' && this.quests.ESCORT_MISSION.accepted) {
+            if (this.quests.ESCORT_MISSION.stages[0].completed && !this.quests.ESCORT_MISSION.stages[1].completed) {
+                const playerRegion = this.getCurrentRegion();
+                if (playerRegion === REGIONS.STARTING_VILLAGE) {
+                    return {
+                        text: "We made it to the village! Thank you so much! Here, take this Ring of Protection - and some gold for your trouble.",
+                        action: 'completeEscortQuest',
+                        end: true,
+                        choices: [{ text: "Travel safe from now on.", end: true }]
+                    };
+                }
+            }
+        }
+        
+        return null;
     }
     
     showDialogue(dialogueNode, speakerName) {
@@ -1193,6 +1300,10 @@ class Game {
         speaker.textContent = speakerName;
         text.textContent = dialogueNode.text;
         choices.innerHTML = '';
+        
+        if (dialogueNode.action) {
+            this.executeDialogueAction(dialogueNode);
+        }
         
         if (dialogueNode.choices) {
             dialogueNode.choices.forEach((choice, idx) => {
@@ -1244,7 +1355,7 @@ class Game {
         switch(choice.action) {
             case 'startMainQuest':
                 this.quests.MAIN_QUEST.stages[0].completed = true;
-                this.notify('Quest Started: The Dragon\'s Gold');
+                this.notify('Quest Updated: The Dragon\'s Gold');
                 break;
             case 'openShop':
                 this.openShop(choice.shopType);
@@ -1256,6 +1367,11 @@ class Game {
                 break;
             case 'giveClue':
                 this.giveClue(choice.clueId);
+                break;
+            case 'foundGhost':
+                if (this.quests.GHOST_MYSTERY.accepted) {
+                    this.quests.GHOST_MYSTERY.stages[1].completed = true;
+                }
                 break;
             case 'startCombat':
                 this.closeDialogue();
@@ -1289,38 +1405,60 @@ class Game {
                 this.player.defense += 5;
                 this.notify('Received Ghost King\'s Blessing! +5 Attack, +5 Defense');
                 this.gameFlags.hasBlessing = true;
+                this.quests.GHOST_MYSTERY.stages[2].completed = true;
+                this.completeQuest('GHOST_MYSTERY');
                 break;
-            case 'startDragonFight':
+            case 'startDragonFight': {
+                const dragonNpc = this.currentDialogue ? this.currentDialogue.npc : null;
                 this.closeDialogue();
-                setTimeout(() => this.combat.start(this.currentDialogue.npc), 100);
+                if (dragonNpc) setTimeout(() => this.combat.start(dragonNpc), 100);
                 break;
-            case 'startBountyQuest':
+            }
+            case 'acceptBountyQuest':
+                this.acceptQuest('SHERIFF_BOUNTY');
                 this.quests.SHERIFF_BOUNTY.stages[0].completed = true;
-                this.notify('Quest Started: Wanted - Dead or Alive');
                 break;
-            case 'startGhostQuest':
+            case 'acceptGhostQuest':
+                this.acceptQuest('GHOST_MYSTERY');
                 this.quests.GHOST_MYSTERY.stages[0].completed = true;
-                this.notify('Quest Started: The Castle Ghost');
                 break;
-            case 'startWolfQuest':
-                this.quests.WOLF_HUNT.stages[0].completed = true;
-                this.notify('Quest Started: Wolf Problem');
+            case 'acceptWolfQuest':
+                this.acceptQuest('WOLF_HUNT');
                 break;
-            case 'startHeirloomQuest':
-                this.quests.LOST_HEIRLOOM.stages[0].completed = true;
-                this.notify('Quest Started: The Lost Heirloom');
+            case 'acceptHeirloomQuest':
+                this.acceptQuest('LOST_HEIRLOOM');
                 break;
-            case 'startMineQuest':
+            case 'acceptMineQuest':
+                this.acceptQuest('GOLD_MINE');
                 this.quests.GOLD_MINE.stages[0].completed = true;
-                this.notify('Quest Started: Gold Rush');
                 break;
-            case 'startPrinceQuest':
+            case 'acceptPrinceQuest':
+                this.acceptQuest('RESCUE_PRINCE');
                 this.quests.RESCUE_PRINCE.stages[0].completed = true;
-                this.notify('Quest Started: The Lost Prince');
                 break;
-            case 'startEscortQuest':
+            case 'acceptEscortQuest':
+                this.acceptQuest('ESCORT_MISSION');
                 this.quests.ESCORT_MISSION.stages[0].completed = true;
-                this.notify('Quest Started: Swamp Rescue');
+                break;
+            case 'acceptPirateQuest':
+                this.acceptQuest('PIRATE_SHIP');
+                this.quests.PIRATE_SHIP.stages[0].completed = true;
+                break;
+            case 'completeBountyQuest':
+                this.quests.SHERIFF_BOUNTY.stages[2].completed = true;
+                this.completeQuest('SHERIFF_BOUNTY');
+                break;
+            case 'completeWolfQuest':
+                this.quests.WOLF_HUNT.stages[1].completed = true;
+                this.completeQuest('WOLF_HUNT');
+                break;
+            case 'completeHeirloomQuest':
+                this.quests.LOST_HEIRLOOM.stages[2].completed = true;
+                this.completeQuest('LOST_HEIRLOOM');
+                break;
+            case 'completeEscortQuest':
+                this.quests.ESCORT_MISSION.stages[1].completed = true;
+                this.completeQuest('ESCORT_MISSION');
                 break;
             case 'paySecret':
                 if (this.player.gold >= choice.cost) {
@@ -1631,23 +1769,40 @@ class Game {
         
         questList.innerHTML = '';
         
-        Object.values(this.quests).forEach(quest => {
+        const acceptedQuests = Object.values(this.quests).filter(q => q.accepted);
+        
+        if (acceptedQuests.length === 0) {
+            questList.innerHTML = '<p style="color: #666; font-size: 12px;">No active quests. Talk to people to find quests!</p>';
+        }
+        
+        acceptedQuests.forEach(quest => {
             const div = document.createElement('div');
             const isMain = quest.id === 'main';
             const isCompleted = quest.stages.every(s => s.completed);
             
             div.className = `quest-item ${isMain ? 'main-quest' : 'side-quest'} ${isCompleted ? 'completed' : ''}`;
             
-            const currentStage = quest.stages.find(s => !s.completed) || quest.stages[quest.stages.length - 1];
-            let stageText = currentStage.description;
-            if (currentStage.count !== undefined) {
-                stageText = stageText.replace(/\d+\/\d+/, `${currentStage.count}/${currentStage.required}`);
+            if (isCompleted) {
+                div.innerHTML = `
+                    <div class="quest-title">${isMain ? '⭐' : '✅'} ${quest.title}</div>
+                    <div class="quest-desc" style="color: #66ff66;">Quest Complete! ${quest.rewardDescription ? 'Reward: ' + quest.rewardDescription : ''}</div>
+                `;
+            } else {
+                const currentStage = quest.stages.find(s => !s.completed);
+                let stageText = currentStage ? currentStage.description : 'In progress...';
+                if (currentStage && currentStage.count !== undefined) {
+                    stageText = stageText.replace(/\d+\/\d+/, `${currentStage.count}/${currentStage.required}`);
+                }
+                
+                const completedCount = quest.stages.filter(s => s.completed).length;
+                const totalCount = quest.stages.length;
+                
+                div.innerHTML = `
+                    <div class="quest-title">${isMain ? '⭐' : '📌'} ${quest.title}</div>
+                    <div class="quest-desc">${stageText}</div>
+                    <div class="quest-progress" style="margin-top:4px;font-size:11px;color:#888;">${completedCount}/${totalCount} steps · Reward: ${quest.rewardDescription || 'Unknown'}</div>
+                `;
             }
-            
-            div.innerHTML = `
-                <div class="quest-title">${isMain ? '⭐' : '📌'} ${quest.title}</div>
-                <div class="quest-desc">${stageText}</div>
-            `;
             
             questList.appendChild(div);
         });
@@ -1666,6 +1821,49 @@ class Game {
         if (this.cluesFound.length === 0) {
             clueList.innerHTML = '<p style="color: #666; font-size: 12px;">No clues found yet...</p>';
         }
+    }
+    
+    acceptQuest(questKey) {
+        const quest = this.quests[questKey];
+        if (!quest || quest.accepted) return;
+        quest.accepted = true;
+        this.notify(`Quest Accepted: ${quest.title}`);
+        this.updateQuestDisplay();
+    }
+    
+    completeQuest(questKey) {
+        const quest = this.quests[questKey];
+        if (!quest) return;
+        
+        const alreadyComplete = quest.stages.every(s => s.completed);
+        if (!alreadyComplete) return;
+        if (quest.rewarded) return;
+        quest.rewarded = true;
+        
+        let rewardMsg = `Quest Complete: ${quest.title}!`;
+        
+        if (quest.rewardType === 'gold') {
+            this.player.gold += quest.rewardAmount;
+            rewardMsg += ` +${quest.rewardAmount} Gold`;
+        } else if (quest.rewardType === 'item' && quest.rewardItem) {
+            const item = ITEMS[quest.rewardItem];
+            if (item) {
+                this.player.inventory.push({ item: { ...item } });
+                rewardMsg += ` Received: ${item.name}`;
+                if (item.type === 'weapon' && item.attack > (this.player.equipment.weapon ? this.player.equipment.weapon.attack : 0)) {
+                    this.notify(`Tip: Check your inventory to equip your new ${item.name}!`);
+                }
+            }
+        }
+        
+        if (quest.rewardGold) {
+            this.player.gold += quest.rewardGold;
+            rewardMsg += ` +${quest.rewardGold} Gold`;
+        }
+        
+        this.notify(rewardMsg);
+        this.updateHUD();
+        this.updateQuestDisplay();
     }
     
     useHotbarItem(slot) {
@@ -1923,6 +2121,33 @@ class Game {
                 }
             }
         }
+    }
+    
+    getCurrentRegion() {
+        const tileX = Math.floor(this.player.x / TILE_SIZE);
+        const tileY = Math.floor(this.player.y / TILE_SIZE);
+        
+        const regions = [
+            { region: REGIONS.STARTING_VILLAGE, x: 50, y: 75, range: 12 },
+            { region: REGIONS.FOREST, x: 100, y: 75, range: 15 },
+            { region: REGIONS.PIRATE_COVE, x: 150, y: 90, range: 12 },
+            { region: REGIONS.WESTERN_TOWN, x: 80, y: 40, range: 12 },
+            { region: REGIONS.MEDIEVAL_CASTLE, x: 30, y: 50, range: 12 },
+            { region: REGIONS.MYSTIC_SWAMP, x: 120, y: 100, range: 12 },
+            { region: REGIONS.MOUNTAIN_PASS, x: 100, y: 20, range: 12 },
+            { region: REGIONS.DRAGON_LAIR, x: 180, y: 12, range: 12 }
+        ];
+        
+        let closest = null;
+        let closestDist = Infinity;
+        for (const r of regions) {
+            const dist = Math.hypot(tileX - r.x, tileY - r.y);
+            if (dist < r.range && dist < closestDist) {
+                closest = r.region;
+                closestDist = dist;
+            }
+        }
+        return closest;
     }
     
     render() {
@@ -2318,18 +2543,18 @@ class CombatSystem {
         }
         
         // Check for bounty targets
-        if (this.enemy.bountyTarget) {
+        if (this.enemy.bountyTarget && this.game.quests.SHERIFF_BOUNTY.accepted) {
             const stage = this.game.quests.SHERIFF_BOUNTY.stages[1];
             stage.count = (stage.count || 0) + 1;
             if (stage.count >= stage.required) {
                 stage.completed = true;
-                this.game.notify('Return to the Sheriff for your reward!');
+                this.game.notify('All bandits defeated! Return to the Sheriff for your reward!');
             }
         }
         
         // Check for farm wolves
-        if (this.enemy.farmWolf && this.game.quests.WOLF_HUNT.stages[0].completed) {
-            const stage = this.game.quests.WOLF_HUNT.stages[1];
+        if (this.enemy.farmWolf && this.game.quests.WOLF_HUNT.accepted) {
+            const stage = this.game.quests.WOLF_HUNT.stages[0];
             stage.count = (stage.count || 0) + 1;
             if (stage.count >= stage.required) {
                 stage.completed = true;
@@ -2338,11 +2563,10 @@ class CombatSystem {
         }
         
         // Check for mine bandits
-        if (this.enemy.mineBoss) {
+        if (this.enemy.mineBoss && this.game.quests.GOLD_MINE.accepted) {
             this.game.quests.GOLD_MINE.stages[1].completed = true;
-            this.game.player.gold += 500;
-            this.game.notify('Rattlesnake Rogers defeated! +500 gold from the mine!');
             this.game.quests.GOLD_MINE.stages[2].completed = true;
+            this.game.completeQuest('GOLD_MINE');
         }
         
         // Drop heirloom sword from specific bandits
@@ -2350,8 +2574,12 @@ class CombatSystem {
             if (Math.random() < 0.5) {
                 this.game.player.inventory.push({ item: ITEMS.HEIRLOOM_SWORD });
                 this.game.gameFlags.foundHeirloom = true;
-                this.game.quests.LOST_HEIRLOOM.stages[1].completed = true;
-                this.game.notify('Found the Ruby Heirloom Sword!');
+                if (this.game.quests.LOST_HEIRLOOM.accepted) {
+                    this.game.quests.LOST_HEIRLOOM.stages[1].completed = true;
+                    this.game.notify('Found the Ruby Heirloom Sword! Return it to the Wounded Knight.');
+                } else {
+                    this.game.notify('Found the Ruby Heirloom Sword!');
+                }
             }
         }
         
@@ -2371,7 +2599,13 @@ class CombatSystem {
     dragonVictory() {
         this.game.quests.MAIN_QUEST.stages[3].completed = true;
         this.game.quests.MAIN_QUEST.stages[4].completed = true;
-        this.game.player.gold += 10000;
+        this.game.completeQuest('MAIN_QUEST');
+        
+        if (this.game.quests.RESCUE_PRINCE.accepted) {
+            this.game.quests.RESCUE_PRINCE.stages[1].completed = true;
+            this.game.quests.RESCUE_PRINCE.stages[2].completed = true;
+            this.game.completeQuest('RESCUE_PRINCE');
+        }
         
         alert('🎉 CONGRATULATIONS! 🎉\n\n' +
               'You have slain the mighty dragon Infernus!\n\n' +
@@ -2525,10 +2759,9 @@ class GamblingSystem {
             
             // Special pirate victory
             if (this.type === 'pirate') {
-                this.game.notify('You won the ship deed!');
-                this.game.player.inventory.push({ item: ITEMS.SHIP_DEED });
                 this.game.giveClue('clue2');
                 this.game.quests.PIRATE_SHIP.stages[1].completed = true;
+                this.game.completeQuest('PIRATE_SHIP');
             }
         } else if (playerScore < opponentScore) {
             resultDiv.innerHTML = `<span style="color: #ff4444;">YOU LOSE! -${this.bet} gold</span>`;
