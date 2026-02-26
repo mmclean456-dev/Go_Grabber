@@ -889,6 +889,11 @@ class Game {
             ]}
         ], { questGiver: true });
         
+        // Canyon bandits for heirloom quest
+        this.addNPC(85, 60, NPC_TYPES.BANDIT, 'Canyon Bandit', null, { hostile: true, level: 4, heirloomBandit: true });
+        this.addNPC(88, 58, NPC_TYPES.BANDIT, 'Canyon Thief', null, { hostile: true, level: 5, heirloomBandit: true });
+        this.addNPC(83, 62, NPC_TYPES.BANDIT, 'Canyon Raider', null, { hostile: true, level: 5, heirloomBandit: true });
+        
         // More Forest enemies
         this.addNPC(102, 85, NPC_TYPES.MONSTER, 'Giant Spider', null, { hostile: true, level: 4 });
         this.addNPC(108, 68, NPC_TYPES.BEAST, 'Dire Wolf', null, { hostile: true, level: 5 });
@@ -1342,11 +1347,11 @@ class Game {
         
         if (dialogueNode.action) {
             this.executeDialogueAction(dialogueNode);
+            if (!this.currentDialogue) return;
         }
         
         if (dialogueNode.choices) {
             dialogueNode.choices.forEach((choice, idx) => {
-                // Check conditions
                 if (choice.condition) {
                     if (!this.checkCondition(choice.condition)) return;
                 }
@@ -1412,10 +1417,12 @@ class Game {
                     this.quests.GHOST_MYSTERY.stages[1].completed = true;
                 }
                 break;
-            case 'startCombat':
+            case 'startCombat': {
+                const combatNpc = this.currentDialogue ? this.currentDialogue.npc : null;
                 this.closeDialogue();
-                this.combat.start(this.currentDialogue.npc);
+                if (combatNpc) this.combat.start(combatNpc);
                 break;
+            }
             case 'rest':
                 if (this.player.gold >= choice.cost) {
                     this.player.gold -= choice.cost;
@@ -1440,12 +1447,16 @@ class Game {
                 this.recruitAlly(choice.allyType, this.currentDialogue.npc);
                 break;
             case 'giveBlessing':
-                this.player.attack += 5;
-                this.player.defense += 5;
-                this.notify('Received Ghost King\'s Blessing! +5 Attack, +5 Defense');
-                this.gameFlags.hasBlessing = true;
-                this.quests.GHOST_MYSTERY.stages[2].completed = true;
-                this.completeQuest('GHOST_MYSTERY');
+                if (!this.gameFlags.hasBlessing) {
+                    this.player.attack += 5;
+                    this.player.defense += 5;
+                    this.notify('Received Ghost King\'s Blessing! +5 Attack, +5 Defense');
+                    this.gameFlags.hasBlessing = true;
+                }
+                if (this.quests.GHOST_MYSTERY.accepted) {
+                    this.quests.GHOST_MYSTERY.stages[2].completed = true;
+                    this.completeQuest('GHOST_MYSTERY');
+                }
                 break;
             case 'startDragonFight': {
                 const dragonNpc = this.currentDialogue ? this.currentDialogue.npc : null;
@@ -1491,7 +1502,7 @@ class Game {
                 this.quests.WOLF_HUNT.stages[1].completed = true;
                 this.completeQuest('WOLF_HUNT');
                 break;
-            case 'completeHeirloomQuest':
+            case 'completeHeirloomQuest': {
                 this.quests.LOST_HEIRLOOM.stages[2].completed = true;
                 const swordIdx = this.player.inventory.findIndex(i => i.item && i.item.name === 'Ruby Heirloom Sword');
                 if (swordIdx >= 0) {
@@ -1499,6 +1510,7 @@ class Game {
                 }
                 this.completeQuest('LOST_HEIRLOOM');
                 break;
+            }
             case 'completeEscortQuest':
                 this.quests.ESCORT_MISSION.stages[1].completed = true;
                 this.completeQuest('ESCORT_MISSION');
@@ -2616,10 +2628,13 @@ class CombatSystem {
             this.game.completeQuest('GOLD_MINE');
         }
         
-        // Drop heirloom sword from specific bandits
-        if (this.enemy.name && this.enemy.name.includes('Canyon') && !this.game.gameFlags.foundHeirloom) {
+        // Drop heirloom sword from canyon bandits
+        if (this.enemy.heirloomBandit && !this.game.gameFlags.foundHeirloom) {
+            if (this.game.quests.LOST_HEIRLOOM.accepted) {
+                this.game.quests.LOST_HEIRLOOM.stages[0].completed = true;
+            }
             if (Math.random() < 0.5) {
-                this.game.player.inventory.push({ item: ITEMS.HEIRLOOM_SWORD });
+                this.game.player.inventory.push({ item: { ...ITEMS.HEIRLOOM_SWORD } });
                 this.game.gameFlags.foundHeirloom = true;
                 if (this.game.quests.LOST_HEIRLOOM.accepted) {
                     this.game.quests.LOST_HEIRLOOM.stages[1].completed = true;
