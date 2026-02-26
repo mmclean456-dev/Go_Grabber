@@ -2495,7 +2495,7 @@ class CombatSystem {
             if (isPlayer) this.playerDefending = true;
             else this.enemyDefending = true;
             this.setMessage(`${attackerName} took a defensive stance!`);
-            this.log(`${attackerName} is defending!`);
+            this.log(isPlayer ? 'You are defending!' : `${attackerName} is defending!`);
             return;
         }
         
