@@ -596,7 +596,14 @@
         }
         
         .quest-item.completed {
-            opacity: 0.6;
+            opacity: 0.7;
+            border-left-color: #44ff44 !important;
+            background: rgba(0, 80, 0, 0.2);
+        }
+        
+        .quest-item.completed .quest-title {
+            color: #88ff88;
+            text-decoration: line-through;
         }
         
         .quest-title {
@@ -607,6 +614,10 @@
         .quest-desc {
             font-size: 12px;
             color: #aaa;
+        }
+        
+        .quest-item.completed .quest-desc {
+            color: #66cc66;
         }
         
         .clue-item {

@@ -490,14 +490,18 @@ const CLUES = [
     { id: 'clue6', text: "When all clues align, the mountain pass reveals its path...", region: REGIONS.MOUNTAIN_PASS, hint: 'Gather all clues' }
 ];
 
-// Quest definitions
+// Quest definitions with status tracking and rewards
+// Status: 'hidden' (not yet available), 'available' (can be offered), 'active' (accepted), 'completed'
 const QUESTS = {
     MAIN_QUEST: {
         id: 'main',
         title: 'The Dragon\'s Gold',
         description: 'Seek the dragon\'s lair, defeat the beast, and claim the legendary treasure.',
+        giver: 'Elder Thomas',
+        status: 'active', // Main quest starts active
+        reward: { gold: 10000, item: null, story: true },
         stages: [
-            { id: 'start', description: 'Begin your journey - explore the village', completed: false },
+            { id: 'start', description: 'Begin your journey - explore the village', completed: true },
             { id: 'gather_clues', description: 'Gather clues about the dragon\'s location (0/5)', completed: false, count: 0, required: 5 },
             { id: 'find_lair', description: 'Find the path to the Dragon\'s Lair', completed: false },
             { id: 'defeat_dragon', description: 'Defeat the Dragon', completed: false },
@@ -508,47 +512,61 @@ const QUESTS = {
         id: 'pirate_ship',
         title: 'A Ship of Your Own',
         description: 'Win a ship from the pirate captain in a game of cards.',
+        giver: 'Captain Blackbeard',
+        status: 'hidden',
+        reward: { gold: 0, item: 'SHIP_DEED', story: true },
         stages: [
-            { id: 'find_captain', description: 'Find the Pirate Captain', completed: false },
-            { id: 'win_game', description: 'Beat him at cards', completed: false }
+            { id: 'find_captain', description: 'Find the Pirate Captain at the cove', completed: false },
+            { id: 'win_game', description: 'Beat him at Texas Hold\'em', completed: false }
         ]
     },
     SHERIFF_BOUNTY: {
         id: 'sheriff_bounty',
         title: 'Wanted: Dead or Alive',
-        description: 'Help the sheriff capture dangerous bandits.',
+        description: 'Help the sheriff capture dangerous bandits terrorizing the town.',
+        giver: 'Sheriff John',
+        status: 'hidden',
+        reward: { gold: 150, item: null, story: false },
         stages: [
-            { id: 'talk_sheriff', description: 'Speak with the Sheriff', completed: false },
+            { id: 'accept', description: 'Accept the bounty contract', completed: false },
             { id: 'defeat_bandits', description: 'Defeat the bandits (0/3)', completed: false, count: 0, required: 3 },
-            { id: 'return_sheriff', description: 'Return to the Sheriff', completed: false }
+            { id: 'return_sheriff', description: 'Return to the Sheriff for payment', completed: false }
         ]
     },
     GHOST_MYSTERY: {
         id: 'ghost_mystery',
         title: 'The Castle Ghost',
         description: 'Uncover the mystery of the haunted castle.',
+        giver: 'Castle Ghost',
+        status: 'hidden',
+        reward: { gold: 100, item: 'MAGIC_AMULET', story: false },
         stages: [
-            { id: 'enter_castle', description: 'Enter the Medieval Castle', completed: false },
-            { id: 'find_ghost', description: 'Find the Ghost', completed: false },
+            { id: 'find_ghost', description: 'Find the Ghost in the castle', completed: false },
             { id: 'complete_task', description: 'Complete the Ghost\'s request', completed: false }
         ]
     },
     WOLF_HUNT: {
         id: 'wolf_hunt',
         title: 'Wolf Problem',
-        description: 'Clear the wolves from the farmer\'s land.',
+        description: 'Clear the wolves attacking the farmer\'s livestock.',
+        giver: 'Worried Farmer',
+        status: 'hidden',
+        reward: { gold: 75, item: null, story: false },
         stages: [
-            { id: 'accept', description: 'Accept the farmer\'s request', completed: false },
+            { id: 'accept', description: 'Agree to help the farmer', completed: false },
             { id: 'kill_wolves', description: 'Kill the wolves (0/5)', completed: false, count: 0, required: 5 },
-            { id: 'return_farmer', description: 'Return to the farmer', completed: false }
+            { id: 'return_farmer', description: 'Return to the farmer for your reward', completed: false }
         ]
     },
     LOST_HEIRLOOM: {
         id: 'lost_heirloom',
         title: 'The Lost Heirloom',
-        description: 'Recover the wounded knight\'s family sword.',
+        description: 'Recover the wounded knight\'s family sword stolen by bandits.',
+        giver: 'Wounded Knight',
+        status: 'hidden',
+        reward: { gold: 200, item: null, story: false },
         stages: [
-            { id: 'find_bandits', description: 'Find the bandits who took the sword', completed: false },
+            { id: 'accept', description: 'Promise to find the sword', completed: false },
             { id: 'recover_sword', description: 'Defeat the bandits and recover the sword', completed: false },
             { id: 'return_sword', description: 'Return the sword to the knight', completed: false }
         ]
@@ -556,9 +574,12 @@ const QUESTS = {
     GOLD_MINE: {
         id: 'gold_mine',
         title: 'Gold Rush',
-        description: 'Clear the bandits from the gold mine.',
+        description: 'Clear the bandits from the gold mine and claim your share.',
+        giver: 'Western Trader',
+        status: 'hidden',
+        reward: { gold: 500, item: null, story: false },
         stages: [
-            { id: 'find_mine', description: 'Find the gold mine', completed: false },
+            { id: 'accept', description: 'Agree to clear the mine', completed: false },
             { id: 'defeat_boss', description: 'Defeat Rattlesnake Rogers', completed: false },
             { id: 'claim_reward', description: 'Claim your share of the gold', completed: false }
         ]
@@ -566,7 +587,10 @@ const QUESTS = {
     RESCUE_PRINCE: {
         id: 'rescue_prince',
         title: 'The Lost Prince',
-        description: 'Rescue the prince from the dragon\'s lair.',
+        description: 'Rescue the captured prince from the dragon\'s lair.',
+        giver: 'King Aldric',
+        status: 'hidden',
+        reward: { gold: 300, item: 'ROYAL_ARMOR', story: true },
         stages: [
             { id: 'learn_truth', description: 'Learn about the captured prince', completed: false },
             { id: 'defeat_dragon', description: 'Defeat the dragon', completed: false },
@@ -576,12 +600,22 @@ const QUESTS = {
     ESCORT_MISSION: {
         id: 'escort_mission',
         title: 'Swamp Rescue',
-        description: 'Help the lost traveler escape the swamp.',
+        description: 'Help the lost traveler escape the dangerous swamp.',
+        giver: 'Lost Traveler',
+        status: 'hidden',
+        reward: { gold: 50, item: 'SWAMP_BOOTS', story: false },
         stages: [
-            { id: 'find_traveler', description: 'Find the lost traveler', completed: false },
+            { id: 'accept', description: 'Agree to escort the traveler', completed: false },
             { id: 'escort_safely', description: 'Escort them to safety', completed: false }
         ]
     }
+};
+
+// New items for quest rewards
+const QUEST_REWARD_ITEMS = {
+    MAGIC_AMULET: { name: 'Magic Amulet', type: 'accessory', sprite: '📿', attack: 5, defense: 5, description: 'A mystical amulet from the castle ghost' },
+    ROYAL_ARMOR: { name: 'Royal Armor', type: 'armor', sprite: '🛡️', attack: 0, defense: 15, description: 'Armor gifted by the grateful king' },
+    SWAMP_BOOTS: { name: 'Swamp Boots', type: 'accessory', sprite: '👢', attack: 0, defense: 3, speed: 2, description: 'Boots that let you move faster through difficult terrain' }
 };
 
 class Game {
@@ -775,22 +809,27 @@ class Game {
         this.addNPC(110, 80, NPC_TYPES.BEAST, 'Forest Bear', null, { hostile: true, level: 4, drops: ['beast_fang'] });
         this.addNPC(98, 82, NPC_TYPES.MONSTER, 'Forest Troll', null, { hostile: true, level: 5 });
         
-        // Pirate Cove NPCs
+        // Pirate Cove NPCs - Captain with ship quest
         this.addNPC(148, 88, NPC_TYPES.PIRATE_CAPTAIN, 'Captain Blackbeard', [
             { text: "Arr! What brings a landlubber to me cove?", choices: [
                 { text: "I seek passage across the sea.", next: 1 },
-                { text: "I challenge you to a game of cards!", next: 2 },
-                { text: "I'm looking for information.", next: 3 }
+                { text: "I heard you have a ship to wager...", next: 2 },
+                { text: "I'm looking for information.", next: 5 }
             ]},
-            { text: "Ha! Passage ain't free. Win it from me in a game of cards, or pay 500 gold!", choices: [
-                { text: "I'll play your game!", next: 2 },
-                { text: "I'll find another way.", end: true }
+            { text: "Ha! Passage ain't free. Beat me at Texas Hold'em, and I'll give ye me ship's deed!", choices: [
+                { text: "I'll take that challenge!", action: 'acceptQuest', questId: 'PIRATE_SHIP', next: 3 },
+                { text: "Maybe later.", action: 'declineQuest', end: true }
             ]},
-            { text: "A gambler, eh? I like that! If ye win, I'll give ye me ship's deed. If ye lose... ye work on me ship for a year!", action: 'startCardGame', choices: [
+            { text: "A gambler, eh? I like that! Beat me at cards and the ship is yours. You ready?", choices: [
+                { text: "I accept!", action: 'acceptQuest', questId: 'PIRATE_SHIP', next: 3 },
+                { text: "I need to prepare first.", action: 'declineQuest', end: true }
+            ]},
+            { text: "Arr, let's see what ye got, landlubber!", choices: [
                 { text: "Deal the cards!", action: 'openGambling', gamblingType: 'pirate' }
             ]},
+            { text: "Ye won fair and square! Here's the deed to me ship. She's yours now, captain!", questComplete: 'PIRATE_SHIP', end: true },
             { text: "Information about what, exactly? The dragon? *laughs* That beast's lair is hidden well... but I've seen it.", choices: [
-                { text: "Tell me what you know.", next: 4 }
+                { text: "Tell me what you know.", next: 6 }
             ]},
             { text: "Beat me at cards, and I'll mark it on yer map. That's me deal.", choices: [
                 { text: "You're on!", action: 'openGambling', gamblingType: 'pirate' },
@@ -816,18 +855,23 @@ class Game {
             ]}
         ], { gambling: true });
         
-        // Western Town NPCs
+        // Western Town NPCs - Sheriff with proper quest dialogue
         this.addNPC(78, 42, NPC_TYPES.SHERIFF, 'Sheriff John', [
             { text: "Howdy, stranger. You look like someone who can handle themselves.", choices: [
                 { text: "I'm looking for work.", next: 1 },
                 { text: "Just passing through.", end: true }
             ]},
-            { text: "Well, I've got a bounty that needs collecting. Three outlaws been terrorizing the area. 200 gold reward.", action: 'startBountyQuest', choices: [
-                { text: "I'll bring them in.", next: 2 },
-                { text: "Maybe later.", end: true }
+            { text: "Well, I've got a bounty that needs collecting. Three outlaws been terrorizing the area. 150 gold reward if you bring 'em in dead or alive. Interested?", choices: [
+                { text: "I'll take the job!", action: 'acceptQuest', questId: 'SHERIFF_BOUNTY', next: 2 },
+                { text: "Maybe I'll come back later.", action: 'declineQuest', end: true }
             ]},
-            { text: "Good. They're hiding in the canyons to the east. Watch yourself - they're mean cusses.", end: true }
-        ], { questGiver: true });
+            { text: "Good. They're hiding in the canyons to the east. Names are Outlaw Bill, Crazy Pete, and Snake Eye Sam. Watch yourself - they're mean cusses.", end: true },
+            { text: "You're back. Did you get those outlaws?", questCheck: 'SHERIFF_BOUNTY', choices: [
+                { text: "[Turn in bounty]", action: 'completeQuest', questId: 'SHERIFF_BOUNTY', next: 4, condition: 'questReady' },
+                { text: "Still hunting them.", end: true }
+            ]},
+            { text: "Justice has been served! Here's your 150 gold bounty. You ever need more work, come find me.", end: true }
+        ], { questGiver: true, questId: 'SHERIFF_BOUNTY' });
         
         this.addNPC(82, 38, NPC_TYPES.COWBOY, 'Dusty Dan', [
             { text: "Howdy partner! This here's the finest saloon in the West!", choices: [
@@ -941,14 +985,23 @@ class Game {
             { text: "Then return when you are prepared. The clues are scattered across the lands - the village, the pirates, the west, the castle, the swamp.", end: true }
         ], { clueGiver: true });
         
-        // Additional Village NPCs
+        // Additional Village NPCs - Worried Farmer with proper quest dialogue
         this.addNPC(55, 74, NPC_TYPES.VILLAGER, 'Worried Farmer', [
-            { text: "My farm to the east is overrun by wolves! Please, brave knight, help me!", choices: [
-                { text: "I'll clear out the wolves.", action: 'startWolfQuest', next: 1 },
-                { text: "I'm busy with other matters.", end: true }
+            { text: "My farm to the east is overrun by wolves! They've killed three of my sheep already!", choices: [
+                { text: "I can help. What do you need?", next: 1 },
+                { text: "Sorry, I'm too busy right now.", action: 'declineQuest', end: true }
             ]},
-            { text: "Thank you! There should be about 5 of them. Return to me when they're dealt with.", end: true }
-        ], { questGiver: true });
+            { text: "There's a pack of about 5 wolves east of here. Kill them all and I'll pay you 75 gold. Will you do it?", choices: [
+                { text: "Consider it done!", action: 'acceptQuest', questId: 'WOLF_HUNT', next: 2 },
+                { text: "Maybe I'll come back later.", action: 'declineQuest', end: true }
+            ]},
+            { text: "Thank you, brave knight! Come back when they're all dead.", end: true },
+            { text: "You're back! Have you killed all the wolves?", questCheck: 'WOLF_HUNT', choices: [
+                { text: "[Turn in quest]", action: 'completeQuest', questId: 'WOLF_HUNT', next: 4, condition: 'questReady' },
+                { text: "Not yet, still working on it.", end: true }
+            ]},
+            { text: "You've saved my farm! Here's your reward - 75 gold pieces!", end: true }
+        ], { questGiver: true, questId: 'WOLF_HUNT' });
         
         // Add more wolves for the quest - east of village in farmland
         for (let i = 0; i < 5; i++) {
@@ -1347,7 +1400,31 @@ class Game {
             currentIndex: 0
         };
         
-        this.showDialogue(npc.dialogue[0], npc.name);
+        // Check if this NPC has a quest and determine which dialogue to show
+        let startIndex = 0;
+        if (npc.questId) {
+            const quest = this.quests[npc.questId];
+            if (quest) {
+                if (quest.status === 'completed') {
+                    // Quest already done - show final dialogue or a generic thanks
+                    startIndex = npc.dialogue.length - 1;
+                } else if (quest.status === 'active') {
+                    // Quest in progress - check if ready to turn in
+                    if (this.isQuestReadyToComplete(npc.questId)) {
+                        // Find dialogue node with questCheck
+                        const turnInIndex = npc.dialogue.findIndex(d => d.questCheck === npc.questId);
+                        if (turnInIndex >= 0) startIndex = turnInIndex;
+                    } else {
+                        // Quest active but not complete - show reminder
+                        const reminderIndex = npc.dialogue.findIndex(d => d.questCheck === npc.questId);
+                        if (reminderIndex >= 0) startIndex = reminderIndex;
+                    }
+                }
+                // If quest is hidden/available, show first dialogue (default)
+            }
+        }
+        
+        this.showDialogue(npc.dialogue[startIndex], npc.name);
     }
     
     showDialogue(dialogueNode, speakerName) {
@@ -1460,33 +1537,40 @@ class Game {
                 this.closeDialogue();
                 setTimeout(() => this.combat.start(this.currentDialogue.npc), 100);
                 break;
+            // New unified quest acceptance system
+            case 'acceptQuest':
+                this.acceptQuest(choice.questId);
+                break;
+            case 'declineQuest':
+                this.notify("Maybe another time...");
+                break;
+            case 'completeQuest':
+                this.completeQuest(choice.questId);
+                break;
+            // Legacy quest starts - convert to new system
             case 'startBountyQuest':
-                this.quests.SHERIFF_BOUNTY.stages[0].completed = true;
-                this.notify('Quest Started: Wanted - Dead or Alive');
+                this.acceptQuest('SHERIFF_BOUNTY');
                 break;
             case 'startGhostQuest':
-                this.quests.GHOST_MYSTERY.stages[0].completed = true;
-                this.notify('Quest Started: The Castle Ghost');
+                this.acceptQuest('GHOST_MYSTERY');
                 break;
             case 'startWolfQuest':
-                this.quests.WOLF_HUNT.stages[0].completed = true;
-                this.notify('Quest Started: Wolf Problem');
+                this.acceptQuest('WOLF_HUNT');
                 break;
             case 'startHeirloomQuest':
-                this.quests.LOST_HEIRLOOM.stages[0].completed = true;
-                this.notify('Quest Started: The Lost Heirloom');
+                this.acceptQuest('LOST_HEIRLOOM');
                 break;
             case 'startMineQuest':
-                this.quests.GOLD_MINE.stages[0].completed = true;
-                this.notify('Quest Started: Gold Rush');
+                this.acceptQuest('GOLD_MINE');
                 break;
             case 'startPrinceQuest':
-                this.quests.RESCUE_PRINCE.stages[0].completed = true;
-                this.notify('Quest Started: The Lost Prince');
+                this.acceptQuest('RESCUE_PRINCE');
                 break;
             case 'startEscortQuest':
-                this.quests.ESCORT_MISSION.stages[0].completed = true;
-                this.notify('Quest Started: Swamp Rescue');
+                this.acceptQuest('ESCORT_MISSION');
+                break;
+            case 'startPirateQuest':
+                this.acceptQuest('PIRATE_SHIP');
                 break;
             case 'paySecret':
                 if (this.player.gold >= choice.cost) {
@@ -1524,7 +1608,22 @@ class Game {
                 return this.cluesFound.length >= 5;
             case 'hasMysticAmulet':
                 return this.player.inventory.some(i => i.item && i.item.name === 'Mystic Amulet');
+            case 'questReady':
+                // Check if the current dialogue's quest is ready to complete
+                if (this.currentDialogue && this.currentDialogue.npc.questId) {
+                    return this.isQuestReadyToComplete(this.currentDialogue.npc.questId);
+                }
+                return false;
             default:
+                // Check for quest-specific conditions like 'WOLF_HUNT_ready'
+                if (condition.endsWith('_ready')) {
+                    const questId = condition.replace('_ready', '');
+                    return this.isQuestReadyToComplete(questId);
+                }
+                if (condition.endsWith('_active')) {
+                    const questId = condition.replace('_active', '');
+                    return this.quests[questId] && this.quests[questId].status === 'active';
+                }
                 return this.gameFlags[condition];
         }
     }
@@ -1550,6 +1649,73 @@ class Game {
                 this.notify('All clues gathered! Seek the mountain pass.');
             }
         }
+    }
+    
+    // Quest management system
+    acceptQuest(questId) {
+        const quest = this.quests[questId];
+        if (!quest) return;
+        
+        if (quest.status === 'active') {
+            this.notify('You already have this quest!');
+            return;
+        }
+        
+        if (quest.status === 'completed') {
+            this.notify('You already completed this quest!');
+            return;
+        }
+        
+        quest.status = 'active';
+        quest.stages[0].completed = true;
+        this.notify(`📜 Quest Accepted: ${quest.title}`);
+        this.updateQuestDisplay();
+    }
+    
+    completeQuest(questId) {
+        const quest = this.quests[questId];
+        if (!quest || quest.status !== 'active') return;
+        
+        // Mark as completed
+        quest.status = 'completed';
+        quest.stages.forEach(s => s.completed = true);
+        
+        // Give rewards
+        if (quest.reward) {
+            if (quest.reward.gold > 0) {
+                this.player.gold += quest.reward.gold;
+                this.notify(`+${quest.reward.gold} gold!`);
+            }
+            
+            if (quest.reward.item) {
+                // Check if it's a special quest item or a reward item
+                let rewardItem = ITEMS[quest.reward.item] || QUEST_REWARD_ITEMS[quest.reward.item];
+                if (rewardItem) {
+                    this.player.inventory.push({ item: rewardItem });
+                    this.notify(`Received: ${rewardItem.name}!`);
+                }
+            }
+        }
+        
+        this.notify(`✅ Quest Complete: ${quest.title}!`);
+        this.updateHUD();
+        this.updateQuestDisplay();
+    }
+    
+    // Check if a quest can be offered to the player
+    canOfferQuest(questId) {
+        const quest = this.quests[questId];
+        return quest && (quest.status === 'hidden' || quest.status === 'available');
+    }
+    
+    // Check if a quest is ready to turn in
+    isQuestReadyToComplete(questId) {
+        const quest = this.quests[questId];
+        if (!quest || quest.status !== 'active') return false;
+        
+        // Check if all stages except possibly the last "return" stage are complete
+        const stagesExceptLast = quest.stages.slice(0, -1);
+        return stagesExceptLast.every(s => s.completed);
     }
     
     recruitAlly(allyType, npc) {
@@ -1797,26 +1963,47 @@ class Game {
         
         questList.innerHTML = '';
         
+        // Only show active or completed quests
         Object.values(this.quests).forEach(quest => {
+            if (quest.status !== 'active' && quest.status !== 'completed') return;
+            
             const div = document.createElement('div');
             const isMain = quest.id === 'main';
-            const isCompleted = quest.stages.every(s => s.completed);
+            const isCompleted = quest.status === 'completed';
             
             div.className = `quest-item ${isMain ? 'main-quest' : 'side-quest'} ${isCompleted ? 'completed' : ''}`;
             
-            const currentStage = quest.stages.find(s => !s.completed) || quest.stages[quest.stages.length - 1];
-            let stageText = currentStage.description;
-            if (currentStage.count !== undefined) {
-                stageText = stageText.replace(/\d+\/\d+/, `${currentStage.count}/${currentStage.required}`);
+            let stageText = '';
+            if (isCompleted) {
+                stageText = '✅ Quest Complete!';
+                if (quest.reward) {
+                    const rewards = [];
+                    if (quest.reward.gold > 0) rewards.push(`${quest.reward.gold} gold`);
+                    if (quest.reward.item) rewards.push('Special Item');
+                    if (rewards.length > 0) stageText += ` (Reward: ${rewards.join(', ')})`;
+                }
+            } else {
+                const currentStage = quest.stages.find(s => !s.completed) || quest.stages[quest.stages.length - 1];
+                stageText = currentStage.description;
+                if (currentStage.count !== undefined) {
+                    stageText = stageText.replace(/\d+\/\d+/, `${currentStage.count}/${currentStage.required}`);
+                }
             }
             
             div.innerHTML = `
-                <div class="quest-title">${isMain ? '⭐' : '📌'} ${quest.title}</div>
+                <div class="quest-title">${isMain ? '⭐' : '📌'} ${quest.title} ${isCompleted ? '✓' : ''}</div>
                 <div class="quest-desc">${stageText}</div>
+                <div class="quest-giver" style="font-size: 10px; color: #888; margin-top: 3px;">From: ${quest.giver}</div>
             `;
             
             questList.appendChild(div);
         });
+        
+        // Show message if no active quests
+        const activeQuests = Object.values(this.quests).filter(q => q.status === 'active' || q.status === 'completed');
+        if (activeQuests.length === 0) {
+            questList.innerHTML = '<p style="color: #666; font-size: 12px;">No active quests. Talk to villagers to find work!</p>';
+        }
         
         clueList.innerHTML = '';
         this.cluesFound.forEach(clueId => {
@@ -2752,33 +2939,37 @@ class CombatSystem {
             this.log('Enemy dropped a Health Potion!');
         }
         
-        // Quest checks
-        if (this.enemy.bountyTarget) {
+        // Quest checks - only count if quest is active
+        if (this.enemy.bountyTarget && this.game.quests.SHERIFF_BOUNTY.status === 'active') {
             const stage = this.game.quests.SHERIFF_BOUNTY.stages[1];
             stage.count = (stage.count || 0) + 1;
+            this.game.notify(`Bounty target defeated! (${stage.count}/${stage.required})`);
             if (stage.count >= stage.required) {
                 stage.completed = true;
-                this.game.notify('Return to the Sheriff for your reward!');
+                this.game.notify('All bounties collected! Return to the Sheriff!');
             }
         }
         
-        if (this.enemy.farmWolf && this.game.quests.WOLF_HUNT.stages[0].completed) {
+        if (this.enemy.farmWolf && this.game.quests.WOLF_HUNT.status === 'active') {
             const stage = this.game.quests.WOLF_HUNT.stages[1];
             stage.count = (stage.count || 0) + 1;
+            this.game.notify(`Wolf eliminated! (${stage.count}/${stage.required})`);
             if (stage.count >= stage.required) {
                 stage.completed = true;
-                this.game.notify('All wolves eliminated! Return to the farmer.');
+                this.game.notify('All wolves eliminated! Return to the farmer!');
             }
         }
         
-        if (this.enemy.mineBoss) {
+        if (this.enemy.mineBoss && this.game.quests.GOLD_MINE.status === 'active') {
             this.game.quests.GOLD_MINE.stages[1].completed = true;
             this.game.player.gold += 500;
             this.game.notify('Rattlesnake Rogers defeated! +500 gold from the mine!');
             this.game.quests.GOLD_MINE.stages[2].completed = true;
         }
         
-        if (this.enemy.name && this.enemy.name.includes('Canyon') && !this.game.gameFlags.foundHeirloom) {
+        if (this.enemy.name && this.enemy.name.includes('Canyon') && 
+            this.game.quests.LOST_HEIRLOOM.status === 'active' && 
+            !this.game.gameFlags.foundHeirloom) {
             if (Math.random() < 0.5) {
                 this.game.player.inventory.push({ item: ITEMS.HEIRLOOM_SWORD });
                 this.game.gameFlags.foundHeirloom = true;
