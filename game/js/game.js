@@ -1232,6 +1232,7 @@ class Game {
     }
     
     getQuestDialogue(npc) {
+        // Sheriff - bounty quest
         if (npc.name === 'Sheriff John' && this.quests.SHERIFF_BOUNTY.accepted) {
             const allDead = this.quests.SHERIFF_BOUNTY.stages[1].completed;
             if (allDead && !this.quests.SHERIFF_BOUNTY.stages[2].completed) {
@@ -1243,9 +1244,13 @@ class Game {
                 };
             } else if (this.quests.SHERIFF_BOUNTY.stages[2].completed) {
                 return { text: "Thanks again for cleaning up those outlaws. The town's a lot safer now.", end: true, choices: [{ text: "Stay safe, Sheriff.", end: true }] };
+            } else {
+                const count = this.quests.SHERIFF_BOUNTY.stages[1].count || 0;
+                return { text: `How's the hunt going? You've got ${count} of 3 outlaws so far. They're hiding in the canyons to the east.`, end: true, choices: [{ text: "I'm on it.", end: true }] };
             }
         }
         
+        // Farmer - wolf quest
         if (npc.name === 'Worried Farmer' && this.quests.WOLF_HUNT.accepted) {
             const allKilled = this.quests.WOLF_HUNT.stages[0].completed;
             if (allKilled && !this.quests.WOLF_HUNT.stages[1].completed) {
@@ -1257,9 +1262,13 @@ class Game {
                 };
             } else if (this.quests.WOLF_HUNT.stages[1].completed) {
                 return { text: "My farm is safe again thanks to you! Gods bless you, knight.", end: true, choices: [{ text: "Take care, farmer.", end: true }] };
+            } else {
+                const count = this.quests.WOLF_HUNT.stages[0].count || 0;
+                return { text: `Please hurry! You've dealt with ${count} of 5 wolves so far. The rest are still terrorizing my farm to the east!`, end: true, choices: [{ text: "I'll get them.", end: true }] };
             }
         }
         
+        // Wounded Knight - heirloom quest
         if (npc.name === 'Wounded Knight' && this.quests.LOST_HEIRLOOM.accepted) {
             const foundSword = this.quests.LOST_HEIRLOOM.stages[1].completed;
             if (foundSword && !this.quests.LOST_HEIRLOOM.stages[2].completed) {
@@ -1271,9 +1280,12 @@ class Game {
                 };
             } else if (this.quests.LOST_HEIRLOOM.stages[2].completed) {
                 return { text: "*resting* I'm healing well. My family will be whole again, thanks to you.", end: true, choices: [{ text: "Rest well.", end: true }] };
+            } else {
+                return { text: "*coughs* Have you found my sword yet? The bandits went west... towards the canyons. The sword has a ruby in the hilt.", end: true, choices: [{ text: "I'm still looking.", end: true }] };
             }
         }
         
+        // Lost Traveler - escort quest
         if (npc.name === 'Lost Traveler' && this.quests.ESCORT_MISSION.accepted) {
             if (this.quests.ESCORT_MISSION.stages[0].completed && !this.quests.ESCORT_MISSION.stages[1].completed) {
                 const playerRegion = this.getCurrentRegion();
@@ -1284,7 +1296,34 @@ class Game {
                         end: true,
                         choices: [{ text: "Travel safe from now on.", end: true }]
                     };
+                } else {
+                    return { text: "Are we near the village yet? I'm so tired... Please, lead the way!", end: true, choices: [{ text: "Follow me, we'll get there.", end: true }] };
                 }
+            } else if (this.quests.ESCORT_MISSION.stages[1].completed) {
+                return { text: "I made it home safely, thanks to you! I'll never forget your kindness.", end: true, choices: [{ text: "Glad you're safe.", end: true }] };
+            }
+        }
+        
+        // Sir Galahad - ghost quest in progress
+        if (npc.name === 'Sir Galahad' && this.quests.GHOST_MYSTERY.accepted && !this.quests.GHOST_MYSTERY.stages[2].completed) {
+            if (this.quests.GHOST_MYSTERY.stages[1].completed) {
+                return { text: "You've spoken to the ghost? What wisdom did the spirit share?", end: true, choices: [{ text: "He told me of the dragon's weakness.", end: true }] };
+            } else {
+                return { text: "Have you found the ghost in the northwest tower yet? Be careful up there.", end: true, choices: [{ text: "I'm working on it.", end: true }] };
+            }
+        }
+        
+        // Castle Servant - prince quest in progress
+        if (npc.name === 'Castle Servant' && this.quests.RESCUE_PRINCE.accepted && !this.quests.RESCUE_PRINCE.stages[2].completed) {
+            return { text: "*whispers* Any news of the prince? The king grows more desperate each day...", end: true, choices: [{ text: "I'll find him.", end: true }] };
+        }
+        
+        // Prospector Pete - mine quest in progress
+        if (npc.name === 'Prospector Pete' && this.quests.GOLD_MINE.accepted) {
+            if (this.quests.GOLD_MINE.stages[2].completed) {
+                return { text: "We're rich, partner! Well, richer than before! Thank ye kindly for clearing them bandits out.", end: true, choices: [{ text: "Good doing business with you.", end: true }] };
+            } else {
+                return { text: "Any luck with them bandits? Rattlesnake Rogers is a mean one - he camps near the mine entrance in the mountains northwest of here.", end: true, choices: [{ text: "I'm on my way.", end: true }] };
             }
         }
         
@@ -1454,6 +1493,10 @@ class Game {
                 break;
             case 'completeHeirloomQuest':
                 this.quests.LOST_HEIRLOOM.stages[2].completed = true;
+                const swordIdx = this.player.inventory.findIndex(i => i.item && i.item.name === 'Ruby Heirloom Sword');
+                if (swordIdx >= 0) {
+                    this.player.inventory.splice(swordIdx, 1);
+                }
                 this.completeQuest('LOST_HEIRLOOM');
                 break;
             case 'completeEscortQuest':
@@ -2563,7 +2606,11 @@ class CombatSystem {
         }
         
         // Check for mine bandits
-        if (this.enemy.mineBoss && this.game.quests.GOLD_MINE.accepted) {
+        if (this.enemy.mineBoss) {
+            if (!this.game.quests.GOLD_MINE.accepted) {
+                this.game.acceptQuest('GOLD_MINE');
+                this.game.quests.GOLD_MINE.stages[0].completed = true;
+            }
             this.game.quests.GOLD_MINE.stages[1].completed = true;
             this.game.quests.GOLD_MINE.stages[2].completed = true;
             this.game.completeQuest('GOLD_MINE');
@@ -2759,6 +2806,10 @@ class GamblingSystem {
             
             // Special pirate victory
             if (this.type === 'pirate') {
+                if (!this.game.quests.PIRATE_SHIP.accepted) {
+                    this.game.acceptQuest('PIRATE_SHIP');
+                    this.game.quests.PIRATE_SHIP.stages[0].completed = true;
+                }
                 this.game.giveClue('clue2');
                 this.game.quests.PIRATE_SHIP.stages[1].completed = true;
                 this.game.completeQuest('PIRATE_SHIP');
